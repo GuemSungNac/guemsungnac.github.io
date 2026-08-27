@@ -1,0 +1,685 @@
+<title>지금 거기 몇 시</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+
+<style>
+:root {
+  --ground:    #F3F4F1;
+  --surface:   #FFFFFF;
+  --surface-2: #EAECE7;
+  --line:      #D6D9D2;
+  --ink:       #14181A;
+  --ink-2:     #4E5654;
+  --ink-3:     #7C8481;
+  --accent:    #24488F;
+  --accent-in: #FFFFFF;
+  --sun:       #B77A17;
+  --sun-bg:    #FBF1DC;
+  --moon:      #3C4E86;
+  --moon-bg:   #E4E8F4;
+  --ok:        #1F6B4E;
+  --warn:      #9A5A12;
+  --stop:      #97372C;
+
+  --shadow: 0 1px 2px rgba(20,24,26,.06), 0 6px 20px rgba(20,24,26,.06);
+
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sans: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:    #101314;
+    --surface:   #1A1E20;
+    --surface-2: #232829;
+    --line:      #333A3B;
+    --ink:       #EDF0EC;
+    --ink-2:     #A8B0AD;
+    --ink-3:     #7A8380;
+    --accent:    #7FA6E8;
+    --accent-in: #0E1420;
+    --sun:       #E0AE4E;
+    --sun-bg:    #33291608;
+    --sun-bg:    #2A2418;
+    --moon:      #93A6DE;
+    --moon-bg:   #1D2333;
+    --ok:        #6DC79C;
+    --warn:      #D9A257;
+    --stop:      #E08A7D;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground:    #101314;
+  --surface:   #1A1E20;
+  --surface-2: #232829;
+  --line:      #333A3B;
+  --ink:       #EDF0EC;
+  --ink-2:     #A8B0AD;
+  --ink-3:     #7A8380;
+  --accent:    #7FA6E8;
+  --accent-in: #0E1420;
+  --sun:       #E0AE4E;
+  --sun-bg:    #2A2418;
+  --moon:      #93A6DE;
+  --moon-bg:   #1D2333;
+  --ok:        #6DC79C;
+  --warn:      #D9A257;
+  --stop:      #E08A7D;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 22px 18px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---------- 머리 ---------- */
+.masthead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+.masthead h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+.masthead .sub {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ---------- 우리 시각 ---------- */
+.home {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.home .clock {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  font-size: clamp(40px, 13vw, 58px);
+  line-height: 1.05;
+  letter-spacing: -.02em;
+}
+.home .clock .sec {
+  font-size: .5em;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-left: .18em;
+}
+.home .date {
+  color: var(--ink-2);
+  font-size: 16px;
+}
+
+/* ---------- 나라 고르기 ---------- */
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+label.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+label.field > span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding: 15px 44px 15px 16px;
+  font-family: var(--sans);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+  background-color: var(--surface);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 20px center, right 14px center;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+select:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 9px 15px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.chip:hover { background: var(--line); }
+.chip[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-in);
+}
+
+/* ---------- 상대국 ---------- */
+.there {
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  background: var(--surface);
+}
+.there .band {
+  padding: 20px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--sun-bg);
+  transition: background .3s ease;
+}
+.there.is-night .band { background: var(--moon-bg); }
+
+.there .place {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 19px;
+  font-weight: 600;
+}
+.there .place .flag { font-size: 24px; line-height: 1; }
+.there .place .zone {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  color: var(--ink-3);
+}
+.there .clock {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: clamp(46px, 16vw, 70px);
+  line-height: 1.02;
+  letter-spacing: -.03em;
+  color: var(--sun);
+}
+.there.is-night .clock { color: var(--moon); }
+.there .date { color: var(--ink-2); font-size: 16px; }
+
+.there .facts {
+  border-top: 1px solid var(--line);
+  padding: 16px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.fact {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.fact .key {
+  flex: 0 0 68px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-3);
+  padding-top: 2px;
+}
+.fact .val { font-size: 17px; }
+.fact .val b { font-weight: 600; }
+.fact .val .num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex: none;
+  background: currentColor;
+}
+.v-ok   { color: var(--ok); }
+.v-warn { color: var(--warn); }
+.v-stop { color: var(--stop); }
+
+/* ---------- 24시간 띠 ---------- */
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.strip .bar {
+  position: relative;
+  height: 26px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--moon-bg);
+  border: 1px solid var(--line);
+}
+.strip .day {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: var(--sun-bg);
+}
+.strip .now {
+  position: absolute;
+  top: -3px; bottom: -3px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.strip .ticks {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 다른 나라 한눈에 ---------- */
+.also {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.also h2 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: .02em;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 4px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  background: none;
+  border-left: 0; border-right: 0; border-top: 0;
+  width: 100%;
+  text-align: left;
+  font-family: var(--sans);
+  color: var(--ink);
+}
+.row:last-child { border-bottom: 0; }
+.row:hover { background: var(--surface-2); }
+.row .flag { font-size: 19px; }
+.row .name { font-size: 16px; font-weight: 500; }
+.row .gap {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.row .t {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 18px;
+  font-weight: 600;
+  min-width: 68px;
+  text-align: right;
+}
+.row .t.night { color: var(--moon); }
+.row .t.day   { color: var(--sun); }
+
+footer {
+  color: var(--ink-3);
+  font-size: 13px;
+  line-height: 1.7;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <h1>지금 거기 몇 시</h1>
+    <div class="sub">World Clock</div>
+  </div>
+
+  <section class="home" aria-label="우리나라 시각">
+    <div class="eyebrow">대한민국 · 서울</div>
+    <div class="clock" id="homeClock">--:--</div>
+    <div class="date" id="homeDate">—</div>
+  </section>
+
+  <div class="picker">
+    <label class="field">
+      <span>나라를 고르십시오</span>
+      <select id="pick" aria-label="나라 고르기"></select>
+    </label>
+    <div class="chips" id="chips" role="group" aria-label="자주 보는 나라"></div>
+  </div>
+
+  <section class="there" id="there" aria-live="polite">
+    <div class="band">
+      <div class="place">
+        <span class="flag" id="thereFlag">🇨🇭</span>
+        <span id="thereName">스위스</span>
+        <span class="zone" id="thereZone">Europe/Zurich</span>
+      </div>
+      <div class="clock" id="thereClock">--:--</div>
+      <div class="date" id="thereDate">—</div>
+    </div>
+    <div class="facts">
+      <div class="fact">
+        <div class="key">시차</div>
+        <div class="val" id="diffText">—</div>
+      </div>
+      <div class="fact">
+        <div class="key">전화</div>
+        <div class="val" id="callText">—</div>
+      </div>
+      <div class="fact">
+        <div class="key">하루</div>
+        <div class="val strip" style="flex:1">
+          <div class="bar" id="bar">
+            <div class="day" id="barDay"></div>
+            <div class="now" id="barNow"></div>
+          </div>
+          <div class="ticks"><span>0시</span><span>6시</span><span>12시</span><span>18시</span><span>24시</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="also">
+    <h2>한눈에 보기</h2>
+    <div id="alsoList"></div>
+  </section>
+
+  <footer>
+    시각은 폰의 시계를 기준으로 계산합니다. 서머타임(여름에 시계를 한 시간 당기는 나라)은 저절로 따라갑니다.<br>
+    폰 브라우저에서 <b>홈 화면에 추가</b>하시면 앱처럼 쓰실 수 있습니다.
+  </footer>
+
+</div>
+
+<script>
+"use strict";
+
+var HOME = "Asia/Seoul";
+
+var PLACES = [
+  { n:"스위스",            c:"취리히",        z:"Europe/Zurich",                 f:"🇨🇭" },
+  { n:"독일",              c:"베를린",        z:"Europe/Berlin",                 f:"🇩🇪" },
+  { n:"이탈리아",          c:"로마",          z:"Europe/Rome",                   f:"🇮🇹" },
+  { n:"프랑스",            c:"파리",          z:"Europe/Paris",                  f:"🇫🇷" },
+  { n:"영국",              c:"런던",          z:"Europe/London",                 f:"🇬🇧" },
+  { n:"스페인",            c:"마드리드",      z:"Europe/Madrid",                 f:"🇪🇸" },
+  { n:"네덜란드",          c:"암스테르담",    z:"Europe/Amsterdam",              f:"🇳🇱" },
+  { n:"오스트리아",        c:"빈",            z:"Europe/Vienna",                 f:"🇦🇹" },
+  { n:"체코",              c:"프라하",        z:"Europe/Prague",                 f:"🇨🇿" },
+  { n:"스웨덴",            c:"스톡홀름",      z:"Europe/Stockholm",              f:"🇸🇪" },
+  { n:"러시아",            c:"모스크바",      z:"Europe/Moscow",                 f:"🇷🇺" },
+  { n:"튀르키예",          c:"이스탄불",      z:"Europe/Istanbul",               f:"🇹🇷" },
+  { n:"이집트",            c:"카이로",        z:"Africa/Cairo",                  f:"🇪🇬" },
+  { n:"남아프리카공화국",  c:"요하네스버그",  z:"Africa/Johannesburg",           f:"🇿🇦" },
+  { n:"케냐",              c:"나이로비",      z:"Africa/Nairobi",                f:"🇰🇪" },
+  { n:"사우디아라비아",    c:"리야드",        z:"Asia/Riyadh",                   f:"🇸🇦" },
+  { n:"아랍에미리트",      c:"두바이",        z:"Asia/Dubai",                    f:"🇦🇪" },
+  { n:"우즈베키스탄",      c:"타슈켄트",      z:"Asia/Tashkent",                 f:"🇺🇿" },
+  { n:"인도",              c:"뉴델리",        z:"Asia/Kolkata",                  f:"🇮🇳" },
+  { n:"네팔",              c:"카트만두",      z:"Asia/Kathmandu",                f:"🇳🇵" },
+  { n:"태국",              c:"방콕",          z:"Asia/Bangkok",                  f:"🇹🇭" },
+  { n:"베트남",            c:"하노이",        z:"Asia/Ho_Chi_Minh",              f:"🇻🇳" },
+  { n:"인도네시아",        c:"자카르타",      z:"Asia/Jakarta",                  f:"🇮🇩" },
+  { n:"말레이시아",        c:"쿠알라룸푸르",  z:"Asia/Kuala_Lumpur",             f:"🇲🇾" },
+  { n:"싱가포르",          c:"싱가포르",      z:"Asia/Singapore",                f:"🇸🇬" },
+  { n:"필리핀",            c:"마닐라",        z:"Asia/Manila",                   f:"🇵🇭" },
+  { n:"중국",              c:"베이징",        z:"Asia/Shanghai",                 f:"🇨🇳" },
+  { n:"홍콩",              c:"홍콩",          z:"Asia/Hong_Kong",                f:"🇭🇰" },
+  { n:"대만",              c:"타이베이",      z:"Asia/Taipei",                   f:"🇹🇼" },
+  { n:"몽골",              c:"울란바토르",    z:"Asia/Ulaanbaatar",              f:"🇲🇳" },
+  { n:"일본",              c:"도쿄",          z:"Asia/Tokyo",                    f:"🇯🇵" },
+  { n:"호주",              c:"시드니",        z:"Australia/Sydney",              f:"🇦🇺" },
+  { n:"뉴질랜드",          c:"오클랜드",      z:"Pacific/Auckland",              f:"🇳🇿" },
+  { n:"괌",                c:"괌",            z:"Pacific/Guam",                  f:"🇬🇺" },
+  { n:"미국 하와이",       c:"호놀룰루",      z:"Pacific/Honolulu",              f:"🇺🇸" },
+  { n:"미국 서부",         c:"로스앤젤레스",  z:"America/Los_Angeles",           f:"🇺🇸" },
+  { n:"미국 중부",         c:"시카고",        z:"America/Chicago",               f:"🇺🇸" },
+  { n:"미국 동부",         c:"뉴욕",          z:"America/New_York",              f:"🇺🇸" },
+  { n:"캐나다",            c:"토론토",        z:"America/Toronto",               f:"🇨🇦" },
+  { n:"멕시코",            c:"멕시코시티",    z:"America/Mexico_City",           f:"🇲🇽" },
+  { n:"브라질",            c:"상파울루",      z:"America/Sao_Paulo",             f:"🇧🇷" },
+  { n:"아르헨티나",        c:"부에노스아이레스", z:"America/Argentina/Buenos_Aires", f:"🇦🇷" }
+];
+
+var FAVS = ["Europe/Zurich", "Europe/Berlin", "Europe/Rome", "America/New_York", "Asia/Tokyo", "Asia/Ho_Chi_Minh"];
+
+/* ---------- 시간대 계산 ---------- */
+function partsIn(date, tz) {
+  var dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz, hourCycle: "h23",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit"
+  });
+  var out = {};
+  dtf.formatToParts(date).forEach(function (p) { out[p.type] = p.value; });
+  return {
+    y: +out.year, mo: +out.month, d: +out.day,
+    h: +out.hour, mi: +out.minute, s: +out.second
+  };
+}
+function asUTC(date, tz) {
+  var p = partsIn(date, tz);
+  return Date.UTC(p.y, p.mo - 1, p.d, p.h, p.mi, p.s);
+}
+function offsetMinutes(date, tz) {
+  return Math.round((asUTC(date, tz) - asUTC(date, HOME)) / 60000);
+}
+function two(n) { return n < 10 ? "0" + n : "" + n; }
+
+function korTime(p) {
+  var h = p.h, ap = h < 12 ? "오전" : "오후";
+  var h12 = h % 12; if (h12 === 0) h12 = 12;
+  return ap + " " + h12 + ":" + two(p.mi);
+}
+function korDate(date, tz) {
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: tz, month: "long", day: "numeric", weekday: "long"
+  }).format(date);
+}
+
+/* ---------- 화면 그리기 ---------- */
+var $ = function (id) { return document.getElementById(id); };
+var current = null;
+
+function findPlace(z) {
+  for (var i = 0; i < PLACES.length; i++) if (PLACES[i].z === z) return PLACES[i];
+  return PLACES[0];
+}
+
+function buildPicker() {
+  var sel = $("pick");
+  PLACES.forEach(function (p) {
+    var o = document.createElement("option");
+    o.value = p.z;
+    o.textContent = p.f + "  " + p.n + " · " + p.c;
+    sel.appendChild(o);
+  });
+  sel.addEventListener("change", function () { choose(sel.value); });
+
+  var box = $("chips");
+  FAVS.forEach(function (z) {
+    var p = findPlace(z);
+    var b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.dataset.zone = z;
+    b.setAttribute("aria-pressed", "false");
+    b.textContent = p.f + " " + p.n;
+    b.addEventListener("click", function () { choose(z); });
+    box.appendChild(b);
+  });
+
+  var list = $("alsoList");
+  FAVS.forEach(function (z) {
+    var p = findPlace(z);
+    var r = document.createElement("button");
+    r.className = "row";
+    r.type = "button";
+    r.dataset.zone = z;
+    r.innerHTML =
+      '<span class="flag">' + p.f + '</span>' +
+      '<span class="name">' + p.n + '</span>' +
+      '<span class="gap" data-gap></span>' +
+      '<span class="t" data-t></span>';
+    r.addEventListener("click", function () { choose(z); });
+    list.appendChild(r);
+  });
+}
+
+function choose(z) {
+  current = findPlace(z);
+  $("pick").value = current.z;
+  var chips = document.querySelectorAll(".chip");
+  for (var i = 0; i < chips.length; i++) {
+    chips[i].setAttribute("aria-pressed", chips[i].dataset.zone === z ? "true" : "false");
+  }
+  try { localStorage.setItem("clock.zone", z); } catch (e) {}
+  tick();
+}
+
+function verdict(h) {
+  if (h >= 9 && h < 21)  return { cls: "v-ok",   txt: "지금 걸어도 좋은 시각입니다" };
+  if (h >= 7 && h < 9)   return { cls: "v-warn", txt: "이른 아침입니다. 조금 뒤가 낫습니다" };
+  if (h >= 21 && h < 23) return { cls: "v-warn", txt: "늦은 저녁입니다. 급한 일이면 거십시오" };
+  return { cls: "v-stop", txt: "한밤중입니다. 지금은 피하십시오" };
+}
+
+function diffSentence(mins, name) {
+  if (mins === 0) return "<b>" + name + "</b>는 우리와 시간이 같습니다.";
+  var ahead = mins > 0;
+  var a = Math.abs(mins), h = Math.floor(a / 60), m = a % 60;
+  var span = h > 0 ? h + "시간" : "";
+  if (m > 0) span += (span ? " " : "") + m + "분";
+  return "<b>" + name + "</b>는 우리보다 <span class='num'>" + span + "</span> " +
+         (ahead ? "빠릅니다" : "늦습니다") + ".";
+}
+
+function tick() {
+  var now = new Date();
+
+  var hp = partsIn(now, HOME);
+  $("homeClock").innerHTML = korTime(hp) + '<span class="sec">' + two(hp.s) + '</span>';
+  $("homeDate").textContent = korDate(now, HOME);
+
+  if (!current) return;
+  var p = partsIn(now, current.z);
+  var night = (p.h < 6 || p.h >= 19);
+
+  $("there").classList.toggle("is-night", night);
+  $("thereFlag").textContent = current.f;
+  $("thereName").textContent = current.n + " · " + current.c;
+  $("thereZone").textContent = night ? "밤" : "낮";
+  $("thereClock").textContent = korTime(p);
+  $("thereDate").textContent = korDate(now, current.z);
+
+  $("diffText").innerHTML = diffSentence(offsetMinutes(now, current.z), current.n);
+
+  var v = verdict(p.h);
+  $("callText").innerHTML =
+    '<span class="verdict ' + v.cls + '"><span class="dot"></span>' + v.txt + '</span>';
+
+  // 하루 띠 : 아침 6시 ~ 저녁 7시를 낮으로 칠한다
+  $("barDay").style.left  = (6 / 24 * 100) + "%";
+  $("barDay").style.width = (13 / 24 * 100) + "%";
+  $("barNow").style.left  = ((p.h * 60 + p.mi) / 1440 * 100) + "%";
+
+  var rows = document.querySelectorAll(".row");
+  for (var i = 0; i < rows.length; i++) {
+    var z = rows[i].dataset.zone;
+    var q = partsIn(now, z);
+    var isNight = (q.h < 6 || q.h >= 19);
+    var t = rows[i].querySelector("[data-t]");
+    t.textContent = korTime(q);
+    t.className = "t " + (isNight ? "night" : "day");
+    var mins = offsetMinutes(now, z);
+    var a = Math.abs(mins), hh = Math.floor(a / 60), mm = a % 60;
+    var lbl = mins === 0 ? "같음" :
+      (mins > 0 ? "+" : "−") + hh + (mm ? ":" + two(mm) : "") + "시간";
+    rows[i].querySelector("[data-gap]").textContent = lbl;
+  }
+}
+
+buildPicker();
+var saved = null;
+try { saved = localStorage.getItem("clock.zone"); } catch (e) {}
+choose(saved && findPlace(saved).z === saved ? saved : "Europe/Zurich");
+tick();
+setInterval(tick, 1000);
+</script>
