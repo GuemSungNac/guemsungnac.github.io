@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<base target="_top">   <!-- 앱스스크립트는 책을 iframe 안에 넣는다. 링크가 그 안에 갇히지 않게 -->
+<title>나주에 나씨가 둘인 까닭</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+
+<script>
+/* ★기본은 「달」 — 어두운 바탕. 밝게 보시려면 해 단추를 누른다.
+   글이 그려지기 전에 정해야 밝은 화면이 번쩍하지 않는다. */
+(function(){
+  var v = 'dark';
+  try{ if(localStorage.getItem('naBookTheme') === 'light') v = 'light'; }catch(e){}
+  document.documentElement.setAttribute('data-theme', v);
+})();
+</script>
+
+<style>
+/* ── 빛깔 : 새벽 강안개 바탕 · 푸른 기미의 먹 · 호구단자 관인의 붉은빛 ── */
+:root{
+  --paper:#EEF0EE;      /* 강안개 */
+  --sheet:#F7F8F6;      /* 글이 앉는 자리 */
+  --ink:#14191C;        /* 먹 — 밝은 바탕에서 흐려 보이지 않게 진하게 */
+  --dim:#4E585D;        /* 흐린 먹 */
+  --faint:#8E979B;
+  --edge:#D5DAD8;
+  --seal:#A33A2E;       /* 관인 붉은빛 */
+  --river:#3E6B6E;      /* 영산강 청록 */
+  --oldbg:#E7EAE6;      /* 옛 책 말씀 자리 */
+  --shadow:0 1px 3px rgba(31,38,42,.08),0 12px 32px rgba(31,38,42,.10);
+  --edgefade:rgba(31,38,42,.10);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#12171A; --sheet:#171D21; --ink:#F0F4F2; --dim:#B4BFC1; --faint:#8A9497;
+    --edge:#2A3338; --seal:#E07A6C; --river:#7FBAB6; --oldbg:#1D2529;
+    --shadow:0 1px 3px rgba(0,0,0,.5),0 14px 38px rgba(0,0,0,.55);
+    --edgefade:rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#12171A; --sheet:#171D21; --ink:#F0F4F2; --dim:#B4BFC1; --faint:#8A9497;
+  --edge:#2A3338; --seal:#D9695B; --river:#6FA9A6; --oldbg:#1D2529;
+  --shadow:0 1px 3px rgba(0,0,0,.5),0 14px 38px rgba(0,0,0,.55);
+  --edgefade:rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+/* ★문서가 옆으로 넓어지지 못하게 못 박는다.
+   쪽 상자 마흔 개가 옆으로 늘어서 있어서, 가리기만 해서는
+   문서 폭이 그만큼 넓어진 채로 남는다. PC 는 그냥 자르지만
+   폰은 그 넓은 폭에 맞춰 화면을 잡아 「책이 화면보다 크다」가 된다. */
+html,body{
+  height:100%;margin:0;overscroll-behavior:none;
+  width:100%;max-width:100%;overflow-x:hidden;
+}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'Noto Sans KR','Malgun Gothic',sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--seal);outline-offset:3px;border-radius:3px}
+
+/* ── 틀 ── */
+.book{height:100dvh;width:100%;max-width:100%;overflow:hidden;
+      display:grid;grid-template-rows:auto 1fr auto;gap:0}
+/* ★칸이 「제 속의 내용만큼」 넓어지려 드는 것을 막는다.
+   이것이 없으면 제목줄·단추줄이 안 줄어들어 좁은 폰에서 화면 밖으로 나간다.
+   (min-width 의 기본값이 auto 라서 생긴 일 — 2026-08-27 규명) */
+.book > *{min-width:0}
+.bar .name{min-width:0}
+.pageno{min-width:0}
+
+.bar{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px 8px;
+}
+.bar .name{
+  font-family:'Nanum Myeongjo',serif;font-weight:700;font-size:15px;
+  letter-spacing:.02em;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.bar .sp{flex:1}
+.iconbtn{
+  min-width:38px;height:34px;padding:0 8px;white-space:nowrap;border-radius:8px;color:var(--dim);
+  display:grid;place-items:center;font-size:14px;font-weight:700;
+}
+.iconbtn:hover{background:var(--oldbg);color:var(--ink)}
+.iconbtn.small{font-size:12px}
+.iconbtn svg{display:block}
+
+@media (max-width:400px){
+  .bar{gap:6px;padding:10px 12px 8px}
+  .bar .name{font-size:14px}
+  .iconbtn{min-width:34px;padding:0 6px}
+}
+.progress{height:2px;background:var(--edge);margin:0 16px;border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--seal);transition:width .25s ease}
+
+/* ── 글이 흐르는 자리 ──────────────────────────────────────────
+   ★쪽 나누기는 브라우저의 「여러 단(multi-column)」에 맡긴다.
+   전자책 표준 리더(Readium·epub.js)가 모두 쓰는 방법이다.
+   · column-fill:auto + 높이 고정  → 한 단이 화면 높이만큼 차면 다음 단으로
+   · 단 하나 = 한 쪽
+   · 넘기기 = scrollLeft — 실제로 그려진 단 자리를 재서 그 값으로 간다
+   클이 쪽을 만들지 않으므로 넘칠 수가 없다. */
+.stage{position:relative;overflow:hidden}
+
+.pages{
+  height:100%;
+  /* 글 폭 — 좁은 화면은 좌우 22px 씩, 넓은 화면은 읽기 좋은 폭까지만 */
+  width:calc(100% - 44px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));
+  max-width:var(--글폭,680px);
+  margin:0 auto;
+  padding:14px 0 6px;          /* 위아래 여백은 모든 단에 함께 든다 */
+  overflow:hidden;             /* 손가락으로 아무 데나 멈추지 못하게 */
+  column-fill:auto;            /* ★한 단을 끝까지 채우고 다음 단으로 */
+  column-gap:64px;             /* 옆 단이 비치지 않게 넉넉히 */
+  scroll-behavior:smooth;
+  font-size:var(--fs,17px);
+  font-weight:500;
+  line-height:1.9;
+}
+/* 문단·그림·네모상자가 쪽 경계에서 두 동강 나지 않게 */
+.pages > *{
+  break-inside:avoid;
+  -webkit-column-break-inside:avoid;
+  page-break-inside:avoid;
+}
+@media (prefers-reduced-motion:reduce){ .pages{scroll-behavior:auto} }
+
+/* ★왼쪽 맞춤 — 양쪽 맞춤은 어절 사이가 크게 벌어져 어린이 눈에 거슬린다
+   (한글은 낱말 안에서 끊지 않으므로 벌어짐이 심하다. 2026-08-27 눈으로 확인) */
+.pages p{orphans:2;widows:2;margin:0 0 .95em;text-align:left;word-break:keep-all}
+.pages p.li{margin:0 0 .45em;padding-left:1.1em;text-indent:-1.1em;text-align:left}
+
+.chap{
+  font-family:'Nanum Myeongjo',serif;font-weight:800;
+  font-size:1.32em;line-height:1.45;letter-spacing:-.01em;
+  margin:1.5em 0 .7em;color:var(--ink);text-wrap:balance;
+  break-after:avoid;
+}
+.chap:first-child{margin-top:0}
+.chap::before{
+  content:"";display:block;width:34px;height:3px;background:var(--seal);
+  margin-bottom:.5em;border-radius:2px;
+}
+.sub{
+  font-family:'Nanum Myeongjo',serif;font-weight:700;
+  font-size:1.08em;line-height:1.5;color:var(--river);
+  margin:1.3em 0 .55em;padding-bottom:.35em;
+  border-bottom:1px solid var(--edge);
+  text-wrap:balance;break-after:avoid;
+}
+
+/* 옛 책의 말씀 — 글꼴이 바뀐다. 지금 목소리와 옛 목소리를 가른다 */
+.old{
+  font-family:'Nanum Myeongjo',serif;font-size:1.02em;line-height:1.8;
+  margin:.9em 0 1em;padding:.7em .95em .7em 1.05em;
+  background:var(--oldbg);border-left:3px solid var(--river);
+  color:var(--ink);break-inside:avoid;
+}
+.old[data-tag="물음"]{border-left-color:var(--seal)}
+.old[data-tag="답"]{border-left-color:var(--seal);opacity:.94}
+
+/* 결론 — 네모 상자 */
+.point{
+  border:1px solid var(--seal);border-radius:2px;
+  padding:.75em .95em;margin:1em 0 1.1em;
+  font-weight:500;color:var(--ink);background:var(--sheet);
+  break-inside:avoid;text-align:left !important;
+}
+/* 본관이 바뀌는 자리 */
+.mark{
+  font-weight:700;color:var(--seal);letter-spacing:.01em;
+  margin:.8em 0 .6em !important;text-align:left !important;
+  break-inside:avoid;
+}
+
+.pic{margin:1.1em 0 1.2em;break-inside:avoid}
+.pic img{
+  display:block;width:100%;height:auto;border-radius:2px;
+  border:1px solid var(--edge);background:var(--sheet);
+  aspect-ratio:14/9;              /* ★그림이 다 그려지기 전에도 자리를 알 수 있게 */
+  max-height:56vh;object-fit:contain;
+}
+/* ★아주 낮은 화면(Z플립 커버 따위)에서는 그림을 더 줄인다.
+   화면 높이가 374px 인데 구글 안내 띠까지 빼면 책 높이가 277px 밖에 안 되어,
+   그림+설명이 한 쪽을 넘친다 (2026-08-27 실측 : 4px 넘침). */
+@media (max-height:560px){
+  .pic{margin:.7em 0 .8em}
+  .pic img{max-height:40vh}
+  .pic figcaption{font-size:.72em;line-height:1.5;margin-top:.35em}
+}
+.pic figcaption{
+  margin-top:.5em;font-size:.8em;line-height:1.6;color:var(--dim);
+  text-align:left;word-break:keep-all;
+}
+
+/* ── 겉장 ── */
+.cover{
+  height:100%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;gap:0;padding-bottom:2%;
+}
+.cover-seal{
+  width:48px;height:48px;border:2px solid var(--seal);border-radius:3px;
+  display:grid;place-items:center;margin-bottom:1.25em;
+  transform:rotate(-4deg);
+}
+.cover-seal span{
+  font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:30px;
+  color:var(--seal);line-height:1;
+}
+.cover-title{
+  font-family:'Nanum Myeongjo',serif;font-weight:800;
+  font-size:1.95em;line-height:1.35;letter-spacing:-.02em;
+  margin:0 0 .55em;text-wrap:balance;
+}
+.cover-sub{
+  font-size:.9em;color:var(--ink);margin:0 0 1.1em;
+  text-align:center !important;word-break:keep-all;line-height:1.7;
+}
+.cover-by{font-size:.8em;color:var(--dim);margin:1.5em 0 0;text-align:center !important}
+.cover-rule{width:44px;height:1px;background:var(--edge);margin:.4em 0 1.7em}
+.cover-meta{
+  margin:0;display:grid;grid-template-columns:auto;gap:.28em;
+  text-align:center;font-size:.8em;line-height:1.65;
+}
+.cover-meta dt{
+  color:var(--dim);font-size:.86em;letter-spacing:.06em;
+  margin-top:.85em;
+}
+.cover-meta dt:first-child{margin-top:0}
+.cover-meta dd{margin:0;color:var(--ink);font-family:'Nanum Myeongjo',serif}
+.cover-meta .q{font-family:'Noto Sans KR',sans-serif;font-size:.9em;color:var(--dim)}
+.cover-hint{
+  margin:2.4em 0 0;font-size:.78em;color:var(--dim);
+  text-align:center !important;letter-spacing:.02em;
+}
+.cover-hint::after{content:" →";color:var(--seal)}
+/* ★읽던 자리가 있을 때만 겉장에 뜨는 단추 (2026-08-27)
+   책은 언제나 겉장에서 열린다. 이어 읽고 싶으면 이것을 누른다. */
+.cover-go{
+  margin:1.5em 0 0;padding:.62em 1.25em;
+  border:1px solid var(--seal);border-radius:999px;
+  color:var(--seal);font-size:.82em;font-weight:700;
+  letter-spacing:.02em;line-height:1.4;
+  background:transparent;
+}
+.cover-go:hover{background:var(--seal);color:var(--sheet)}
+.cover-go[hidden]{display:none}
+
+/* ── 아래 ── */
+.nav{
+  display:flex;align-items:center;gap:6px;padding:6px 12px 12px;
+}
+.pagebtn{
+  width:46px;height:40px;border-radius:9px;color:var(--dim);
+  display:grid;place-items:center;font-size:19px;
+}
+.pagebtn:hover:not(:disabled){background:var(--oldbg);color:var(--ink)}
+.pagebtn:disabled{opacity:.28;cursor:default}
+.pageno{
+  flex:1;text-align:center;font-size:12.5px;color:var(--faint);
+  font-variant-numeric:tabular-nums;letter-spacing:.04em;
+}
+.pageno b{color:var(--dim);font-weight:500}
+
+/* ── 목차 ── */
+.tocwrap{
+  position:fixed;inset:0;z-index:40;display:none;
+  background:var(--edgefade);
+}
+.tocwrap.on{display:block}
+.toc{
+  position:absolute;left:0;right:0;bottom:0;max-height:76%;
+  background:var(--sheet);border-top:2px solid var(--seal);
+  border-radius:14px 14px 0 0;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+  animation:up .22s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes up{from{transform:translateY(14px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){ .toc{animation:none} }
+.toc h2{
+  font-family:'Nanum Myeongjo',serif;font-size:15px;font-weight:700;
+  margin:0;padding:16px 20px 10px;color:var(--dim);letter-spacing:.04em;
+}
+.toc ol{list-style:none;margin:0;padding:0 8px 22px;overflow-y:auto}
+.toc li{counter-increment:t}
+.toc button{
+  display:flex;gap:12px;width:100%;text-align:left;
+  padding:11px 12px;border-radius:8px;line-height:1.5;
+  font-size:15px;word-break:keep-all;
+}
+.toc button::before{
+  content:counter(t);color:var(--faint);font-size:12px;
+  font-variant-numeric:tabular-nums;min-width:1.3em;padding-top:.25em;
+}
+.toc button:hover{background:var(--oldbg)}
+.toc ol{counter-reset:t}
+
+/* ── 넓은 화면 : 두 쪽 펼침을 하지 않는다 (2026-08-27 할아버지 지시) ──
+   어느 기기든 「한 번에 한 쪽」이다. 화면이 넓으면 쪽을 넓히는 대신
+   좌우 여백을 키워 글 폭을 읽기 좋게 잡는다. 글 폭은 --글폭 하나로 다스린다. */
+@media (min-width:640px){
+  .pages{font-size:var(--fs,18.5px);padding-top:20px;padding-bottom:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="book">
+  <div class="bar">
+    <span class="name">나주에 나씨가 둘인 까닭</span>
+    <span class="sp"></span>
+    <button class="iconbtn" id="full" type="button" aria-label="화면 꽉 채우기" title="화면 꽉 채우기"></button>
+    <button class="iconbtn" id="theme" type="button" aria-label="밝게 어둡게">☾</button>
+    <button class="iconbtn small" id="smaller" type="button" aria-label="글씨 작게">가－</button>
+    <button class="iconbtn" id="bigger" type="button" aria-label="글씨 크게">가＋</button>
+    <button class="iconbtn" id="tocbtn" type="button" aria-label="차례">☰</button>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+
+  <div class="stage" id="stage">
+    <div class="pages" id="pages">
+<!--본문시작-->
+<section class="cover">
+  <p class="cover-eye">羅</p>
+  <h1>나주에 나씨가 둘인 까닭</h1>
+  <p class="cover-sub">— 두 이야기를 나란히 —</p>
+  <p class="cover-by">어린 벗들에게 들려주는 우리 나씨 이야기 · 둘째 권</p>
+  <p class="cover-by">2026년 8월 · 금성나씨호남종친회</p>
+  <p class="cover-tip">손가락으로 옆으로 밀어 넘기세요</p>
+  <button class="cover-go" id="이어단추" type="button" hidden></button>
+</section>
+<h2 class="chap" id="c1">이 책을 펴며</h2>
+<p>여러분의 본관은 <b>금성(錦城)</b>입니다. 금성은 지금의 <b>전라남도 나주</b>의 옛 이름입니다.</p>
+<p>그런데 우리와 같은 <b>나(羅)씨</b>인데 본관이 <b>나주</b>인 집안이 따로 있습니다.</p>
+<p><b>금성나씨</b>와 <b>나주나씨</b>입니다. 같은 고을 이름인데 어째서 둘일까요.</p>
+<h3 class="sub">이 책이 하지 않을 것</h3>
+<p>이 이야기에는 어른들이 <b>지금도 서로 다르게 말씀하시는 대목</b>이 많이 나옵니다.</p>
+<p>그런 자리에서 이 책은 <b>「이쪽이 맞다」고 하지 않겠습니다.</b></p>
+<p class="li">· <b>「이쪽은 이렇게 말하고, 저쪽은 이렇게 말한다」</b>고 적겠습니다.</p>
+<p class="li">· 어느 쪽 말이든 <b>어디에 적혀 있는지</b> 밝히겠습니다.</p>
+<p class="li">· <b>확인하지 못한 것은 「확인하지 못했다」</b>고 적겠습니다.</p>
+<p>한 가지 더 있습니다. 앞에서 말씀드린 대로 <b>이 책은 한쪽 집안이 만듭니다.</b></p>
+<p>그러니 여러분은 이 책도 <b>의심하면서</b> 읽어 주세요.</p>
+<p>그게 이 책이 바라는 읽기입니다.</p>
+<h2 class="chap" id="c2">한 고을에 나씨가 둘</h2>
+<p>나주는 예로부터 큰 고을이었습니다. <b>「나주」를 본관으로 삼는 성씨가 아주 많습니다.</b></p>
+<p>나주나씨(羅) · 나주임씨(林) · 나주임씨(任) · 나주정씨(丁) · 나주정씨(鄭) ·</p>
+<p>나주김씨 · 나주오씨 · 나주박씨 · 나주이씨 · 나주강씨 · 나주노씨 · 나주송씨 ·</p>
+<p>나주양씨 · 나주장씨 · 나주전씨 · 나주조씨 · 나주진씨 · 나주한씨 · 나주홍씨 …</p>
+<p>소리는 같은 성인데 <b>한자가 다른</b> 집안도 있습니다.</p>
+<p>나주임씨는 <b>林(수풀 림)</b>과 <b>任(맡길 임)</b>이 따로 있고,</p>
+<p>나주정씨도 <b>丁(고무래 정)</b>과 <b>鄭(나라 정)</b>이 따로 있습니다.</p>
+<p><b>지금 확인되는 것만도 서른일곱 곳이 넘습니다.</b></p>
+<p>집안에 전해 오는 말로는 예순두 분의 시조가 이 고을에서 나셨다고 합니다.</p>
+<p class="point">⚠그 예순둘이 <b>어느 책에 적힌 것인지는 아직 밝히지 못했습니다.</b></p>
+<h3 class="sub">그 땅의 이름</h3>
+<p>「본관」은 거의 다 <b>땅 이름</b>입니다. 전주이씨의 전주, 밀양박씨의 밀양처럼요.</p>
+<p>그러면 <b>금성</b>과 <b>나주</b>는 어떤 땅일까요. <b>같은 땅입니다.</b> 이름만 다릅니다.</p>
+<table class="tbl">
+<tr><th>때</th><th>이름</th></tr>
+<tr><td>백제</td><td><b>발라군(發羅郡) · 발라현(發羅縣)</b></td></tr>
+<tr><td>신라</td><td>통의(通義) · <b>금산군(錦山郡) · 금성군(錦城郡)</b></td></tr>
+<tr><td>후삼국</td><td>궁예가 왕건을 보내 금성군을 빼앗음(<b>903년</b>) → 뒤에 <b>나주(羅州)</b>로 고침</td></tr>
+</table>
+<p class="point">⚠<b>나주로 이름을 고친 해는 책마다 다릅니다.</b></p>
+<p>『고려사』는 903년, 『삼국사기』는 <b>911년</b>이라 적습니다.</p>
+<p>우리 집안 고증문헌은 또 <b>효공왕 5년</b>이라 적었습니다. <b>아직 하나로 정해지지 않았습니다.</b></p>
+<p class="mark">★한 가지만 보아 두세요. <b>백제 때 이름이 「發羅」였습니다.</b></p>
+<p><b>羅라는 글자는 왕건보다 먼저 그 땅에 있었습니다.</b></p>
+<p class="point">⚠다만 옛 땅 이름은 <b>소리를 한자로 옮긴 것</b>이 많으므로,</p>
+<p>그 글자에 어떤 뜻이 담겼는지까지는 말할 수 없습니다.</p>
+<h3 class="sub">우리 종친회는 이렇게 적고 있습니다</h3>
+<blockquote class="old">
+「신라 효공왕 때에 이르러 <b>나경(羅璥)공이 나주나씨로 관(貫)을 받았다</b>」
+「그간 <b>840여 년간 나주나씨로 행관</b>해 오던 우리 나씨는…」
+</blockquote>
+<p class="mark">★<b>우리 금성나씨가 원래는 나주나씨였다</b>고 우리 종친회 문서가 적고 있습니다.</p>
+<p class="point">⚠이 대목은 <b>우리 집안 문서</b>이고, 다르게 보는 어른들도 계십니다(11꼭지 참조).</p>
+<h2 class="chap" id="c3">혼인이 어려워진 날</h2>
+<p>옛날에는 같은 성끼리 혼인하는 일이 드물지 않았습니다.</p>
+<p>신라에서는 혈통을 지킨다며 가까운 친척끼리 혼인했고, 고려에서도 흉이 아니었습니다.</p>
+<p>그런데 <b>1669년(현종 10년)</b>, 나라에서 같은 성끼리의 혼인을 금하게 됩니다.</p>
+<p>우리 집안 고증문헌은 그 일을 이렇게 적었습니다.</p>
+<blockquote class="old">
+「현종 십 년 기유에 **우암 송선생(송시열)이 상소하여 같은 성 다른 본관에 서로 혼인함을 금하였으니,
+이는 본관이 다르고 근원이 한가지인 데 서로 혼인함을 금함이요,
+성은 한가지나 본관이 다르고 근원이 다름에 서로 혼인함이 아니다**」
+</blockquote>
+<p><b>★이 대목을 잘 읽어 두세요.</b> 아주 중요합니다.</p>
+<blockquote class="old">
+<b>뿌리(근원)가 같으면 — 본관이 달라도 혼인할 수 없다.</b>
+<b>뿌리가 다르면 — 성이 같아도 혼인할 수 있다.</b>
+</blockquote>
+<p>그 무렵 나주의 나씨들 사이에는 여러 차례 혼인이 있었습니다.</p>
+<p><b>나세찬(1498~1551)</b> 어른의 어머니가 그러하고, <b>나대용(1556~1612)</b> 장군 집안도 그러합니다.</p>
+<p>나세찬 어른 어머니의 혼인은 1490년대이니 <b>1669년보다 백칠십 해쯤 앞섭니다.</b></p>
+<p class="point">⚠나대용 장군 손녀 대의 혼인은 1620~1640년대로 보이니 <b>서른~쉰 해쯤 앞섭니다.</b></p>
+<p>어느 쪽이든 <b>혼인하던 그때에는 흉이 아니었습니다.</b></p>
+<h2 class="chap" id="c4">두 어른의 다른 선택</h2>
+<p>법이 바뀌자, 이름난 집안일수록 난처해졌습니다.</p>
+<p>그때 나주 나씨 가운데 두 어른이 계셨습니다.</p>
+<p class="li">· <b>나두벽(羅斗璧)</b> 공 — 거평(居平)에 사시던 어른</p>
+<p class="li">· <b>나두동(羅斗冬)</b> 공 — 여황(艅艎)에 사시던 어른</p>
+<p><b>두 분은 서로 다른 길을 고르셨습니다.</b></p>
+<p><b>두벽 공 쪽</b> — <b>1692년 임신보(壬申譜)</b>를 만드셨습니다.</p>
+<p>이때 <b>분명하지 못한 가승 이백여 부와 잘못된 보승 서른두 질을 모아 불살랐다</b>고</p>
+<p>나주나씨 기록은 적고 있습니다.</p>
+<p><b>두동 공 쪽</b> — <b>1721년 신축보(辛丑譜)</b>를 내셨습니다.</p>
+<p><b>부(富)공을 시조로 하는</b> 나주나씨의 첫 족보입니다.</p>
+<p class="mark">★<b>두 집안 모두 이 무렵에 옛 기록을 정리했습니다.</b></p>
+<p>한쪽은 태웠고, 한쪽은 새로 세웠습니다. <b>그래서 그 이전의 자료가 귀합니다.</b></p>
+<p>학노 선생의 책은 이때 두 분이 「우리 나씨들은 뿌리가 다르기 때문에 혼인을 한 것이다」</p>
+<p>라고 의논하셨다고 적습니다.</p>
+<p class="point">⚠<b>이것은 금성나씨 쪽 책의 서술</b>이고, 나주나씨 쪽에는 그런 기록이 없습니다.</p>
+<h2 class="chap" id="c5">회오리</h2>
+<p><b>1728년</b>, 이인좌의 난이 일어납니다. 나주의 나씨 몇 분이 여기 휘말리셨습니다.</p>
+<p>싸움은 졌고, 벌은 무거웠습니다.</p>
+<p>그런데 화가 엉뚱한 데까지 미쳤습니다. <b>같은 나주나씨라는 이유만으로</b></p>
+<p>거평에 살던 나씨들까지 의심을 받은 것입니다.</p>
+<p>그래서 거평 나씨들은 관청 문서에 <b>거평(居平)나씨</b>라고 적었습니다.</p>
+<p>그 뒤 <b>1747년</b>, 다시 <b>금성(錦城)</b>으로 옮깁니다. 이때 낸 족보가 <b>정묘보</b>입니다.</p>
+<p>우리 종친회 문서는 그 까닭을 이렇게 적었습니다.</p>
+<blockquote class="old">
+「이인좌의 난에 연루된 나씨와 **한 고을에 같은 본관을 쓰고 있어서
+같은 계통으로 오인될 누명을 염려하여** 거평나씨로 이관했다가…」
+</blockquote>
+<p class="point">⚠<b>셈이 하나 맞지 않습니다.</b> 종친회 문서는 「거평나씨로 25년」이라 하는데,</p>
+<p>1728년부터 1747년까지는 <b>열아홉 해</b>입니다.</p>
+<p>거평으로 옮긴 때가 언제인지 <b>더 살펴봐야 합니다.</b></p>
+<p class="point">⚠그리고 갈라 두어야 할 것이 있습니다.</p>
+<p class="li">· <b>시조를 나눈 일</b>(1692~1721)과</p>
+<p class="li">· <b>본관을 옮긴 일</b>(1728~1747)은 <b>서른 해 가까이 떨어진 다른 일</b>입니다.</p>
+<h2 class="chap" id="c6">서로 상대의 책을 가리키다</h2>
+<p>여기서부터가 가장 이상한 대목입니다.</p>
+<p><b>두 집안은 서로 「상대편 책」을 자기 증거로 내밉니다.</b></p>
+<h3 class="sub">금성나씨가 내미는 것 — 나주나씨의 족보 서문</h3>
+<blockquote class="old">
+「나씨는 처음에 하나에서 나와 둘이 아니므로 <b>모든 나씨는 나주나씨임에 틀림없다</b>」
+— 나주나씨 정묘보(1807) 나한명 서문
+</blockquote>
+<p>&gt;</p>
+<blockquote class="old">
+「<b>羅旣出於一本 元不可分離</b>」 (나씨는 이미 하나의 근원에서 나와 나뉠 수 없다)
+— 나주나씨 계사보(1833) 나희후 서문
+</blockquote>
+<p>&gt;</p>
+<blockquote class="old">
+「금성나씨측에 여러 번 통지했으나 <b>끝내 논의할 수 없어</b> 부득이 정묘년에 파보를 만들고
+뒷날 합보를 기약했다」 — 계사보 나관재 발문
+</blockquote>
+<h3 class="sub">나주나씨가 내미는 것 — 「辨疑(변의)」</h3>
+<p>나주나씨 대동보에는 <b>「辨疑」</b>, 곧 <b>「의심을 가린다」</b>는 글이 실려 있습니다.</p>
+<p>그 글은 이렇게 시작합니다.</p>
+<blockquote class="old">
+「나주에는 나씨 성을 사용하는 <b>두 종족</b>이 있는데, 그 중의 하나는 중국의 <b>예장(豫章)</b>으로부터
+우리나라 서해 바다를 건너온 후 고려에서 <b>감문위 상장군</b>을 지내신 <b>휘 부(富)를 시조로</b>
+모시면서 나주로 본관을 삼은 세칭 <b>당라(唐羅)</b>와, 또 하나는 **가락국 수로왕의 후손인
+나총례를 시조로 하는 종족<b>인데 … 세칭 </b>토라(土羅)**가 있다」
+</blockquote>
+<p>&gt;</p>
+<blockquote class="old">
+「두 나씨는 … <b>본 뿌리가 완전히 다른 이족(異族)임이 분명하고</b>,
+또 옛날부터 오늘에 이르기까지를 살펴보면 금성나씨와 나주나씨 사이에는
+<b>수십 차례에 거쳐 혼인한 사실이 두 집안의 족보에 분명하게 등재</b>되어 있으며…」
+</blockquote>
+<p><b>이것이 저쪽 어른들의 말씀입니다.</b> 이 책은 이 말을 반박하지 않고 그대로 옮깁니다.</p>
+<p class="mark">★그리고 나주나씨는 <b>금성나씨 정묘보(1747) 부록</b>을 근거로 듭니다.</p>
+<blockquote class="old">
+「나주의 고호(古號)인 <b>금성으로 본관을 삼아 다른 종족임을 명백히 한다</b>」
+</blockquote>
+<h3 class="sub">그 부록에는 이런 것도 있었습니다</h3>
+<p>같은 부록에 <b>「금성나씨는 김수로왕의 후손」</b>이라는 대목이 있었습니다.</p>
+<p>나주나씨는 그것을 인용하고, 금성나씨는 그것을 부끄럽게 여깁니다.</p>
+<p>우리 집안 나승욱 어른이 그 내력을 이렇게 적으셨습니다.</p>
+<blockquote class="old">
+「내 나이 열아홉 살 때에 처음으로 「금성나씨가 김수로왕의 후손이므로 사라(士羅)라고
+일컫는다」는 말을 나주 나성수에게서 들었다. … 대동보와 파보를 합하여 **여섯 번 보첩을
+살펴보았으나 그 말이 전혀 없었다.<b> 다만 </b>정묘보 부록 가운데 빼어 버린 흔적**이 있으므로…」
+</blockquote>
+<p>&gt;</p>
+<blockquote class="old">
+문중 어른의 말씀 — 「**정묘보를 나눌 때 거짓으로 꾸민 글이 드러나 허황한 폐를 당하고
+그 부분을 빼어 버렸다**」
+</blockquote>
+<p class="mark">★<b>여러분, 여기를 보세요.</b></p>
+<p><b>우리 쪽 책에 있던 글을 우리 쪽에서 도려냈습니다.</b></p>
+<p>그리고 저쪽은 그 도려낸 글을 근거로 삼습니다.</p>
+<p><b>앞 꼭지에서 두벽 공 쪽이 옛 족보를 태운 이야기를 했지요.</b></p>
+<p><b>양쪽 다 없앤 자리가 있습니다.</b> 그것이 이 이야기를 어렵게 만듭니다.</p>
+<h2 class="chap" id="c7">우리에게도 묻는 집안</h2>
+<p>나씨에는 <b>안정나씨(安定羅氏)</b>도 있습니다.</p>
+<p>시조는 <b>나천서(羅天瑞)</b> 할아버지이고, 고려 말에 <b>안천군(安川君)</b>에 봉해지셨습니다.</p>
+<p>우리 금성나씨는 <b>「안정나씨도 우리와 한 뿌리」</b>라고 하며,</p>
+<p>나주 경모사에 그 어른의 위패도 모셔 두었습니다.</p>
+<p class="point">⚠<b>그런데 안정나씨는 이것을 달갑게 여기지 않으십니다.</b></p>
+<p><b>동의 없이 모신 것</b>이기 때문입니다. 2013년부터 2014년까지 <b>네 차례 항의문</b>을 보내오셨습니다.</p>
+<h3 class="sub">안정나씨의 말씀</h3>
+<blockquote class="old">
+「<b>국립중앙도서관</b>에서 금성나씨들의 경신보(1800년)·병진보(1856년)·임자보(1912년)·
+계해보(1923년) 등의 역대 족보와 … 수성나씨 을사보(1845년)의 면주를 복사하였다.
+족보를 살펴보면 그들의 <b>10세 윤(允)에게는 외아들 천부(天富) 한 명뿐</b>이고 …
+사위 성여완의 아들·손자·증손 및 현손 <b>성삼문까지</b> 아주 상세히 기록하고 있다」
+</blockquote>
+<p><b>성삼문까지 적어 놓고 아들을 빠뜨렸을 리 없다</b> — 이것이 저쪽 어른들의 논거입니다.</p>
+<p>그리고 <b>수성나씨 을사보(1845) 선세고증편</b>을 드십니다.</p>
+<blockquote class="old">
+「<b>금성나씨와 수성나씨는 동원이관(同源異貫)</b>이고
+ <b>나주나씨·안정나씨·상산나씨·군위나씨는 동성분봉(同姓分封)</b>」
+</blockquote>
+<p><b>동원이관</b> = 근원이 같고 본관만 다름 / <b>동성분봉</b> = 성이 같고 각각 봉해짐.</p>
+<p><b>두 말을 갈라 쓴 것</b>이 저쪽 어른들이 짚는 대목입니다.</p>
+<h3 class="sub">우리 쪽 책은 이렇게 적고 있습니다</h3>
+<p>우리 고증문헌에는 이런 대목이 있습니다.</p>
+<blockquote class="old">
+「<b>정승공 휘 우(尤)</b>의 아래에 대장군 휘 <b>천부(天富)</b>와 안천군 휘 <b>천서(天瑞)</b>와
+상산백 휘 <b>원서(元瑞)</b>와 적라백 휘 <b>문서(文瑞)</b>가 있는데,
+저 족보에는 휘 천서 이하로부터 다 계통을 끊었다」
+</blockquote>
+<p><b>아들이 넷이라고 적혀 있습니다.</b></p>
+<p class="mark">★<b>두 집안의 책이 서로 다릅니다.</b> 어느 쪽이 맞는지 이 책은 정하지 않겠습니다.</p>
+<p class="mark">★그리고 이것을 꼭 보아 두세요.</p>
+<p>우리가 나주나씨에게 한 말은 <b>「너희 옛 책에 총례가 시조라고 적혀 있다」</b>였고,</p>
+<p>안정나씨가 우리에게 하는 말은 <b>「너희 옛 책에 우리 시조 이름이 없다」</b>입니다.</p>
+<p><b>똑같은 방법입니다.</b> 그 물음은 <b>우리에게도 똑같이 향해야 합니다.</b></p>
+<h2 class="chap" id="c8">갈라지기 전에 쓰인 책들</h2>
+<p>서로 달리 말하는 두 집안의 말만 들어서는 알 수가 없습니다.</p>
+<p>그러면 <b>갈라서기 전에, 다른 사람이 쓴 책</b>을 찾아보면 어떨까요.</p>
+<h3 class="sub">씨족원류(氏族源流)</h3>
+<p><b>조종운(趙從耘, 1607~1683)</b>이라는 분이 지은 책으로, <b>540여 문중</b>의 계보를 모았습니다.</p>
+<p>나씨가 갈라선 1721년·1747년보다 <b>앞섭니다.</b></p>
+<p class="point">⚠다만 <b>정확한 편찬 연대는 「조선 후기」로만 전할 뿐 확정되어 있지 않습니다.</b></p>
+<p>그 책의 <b>「羅州羅氏」 한 항목</b> 안에 <b>총례(聰禮)</b>와 <b>부(富)</b>가 함께 실려 있고,</p>
+<p>표제 곁에 <b>「通義 錦山 / 鎭海 錦城」</b>이 적혀 있습니다.</p>
+<p class="point">⚠<b>이것을 어떻게 읽을지는 갈립니다.</b></p>
+<p class="li">· <b>한 뿌리라서</b> 한 항목에 넣었다고 볼 수도 있고,</p>
+<p class="li">· <b>한 고을의 같은 성씨</b>라서 묶어 적었다고 볼 수도 있습니다.</p>
+<p><b>이 책은 어느 쪽이라 정하지 않겠습니다.</b></p>
+<h3 class="sub">나라에서 낸 책들</h3>
+<p>나씨고증문헌 <b>제4장 「공가문헌제고(公家文獻諸攷)」</b>는</p>
+<p><b>나라와 학자들이 만든 책</b>을 모아 놓은 장입니다.</p>
+<table class="tbl">
+<tr><th>책</th><th>지은이·때</th></tr>
+<tr><td>최구만성보(最舊萬姓譜)</td><td>이시종 승욱의 집 인본</td></tr>
+<tr><td><b>해동성씨록(海東姓氏錄)</b></td><td><b>양성지(梁誠之, 1415~1482)</b></td></tr>
+<tr><td>문헌비고(文獻備考)</td><td>영조 때 김치인 등 왕명으로 엮음</td></tr>
+<tr><td>동국세보 · 전고대방 · 동국씨족고 · 만성대동보 · 대동씨족고</td><td></td></tr>
+</table>
+<p>이 책들은 한결같이 <b>「羅州羅氏 始祖 聰禮」</b>라 적고 있습니다.</p>
+<p><b>양성지</b>는 <b>《고려사》를 다시 엮는 일에 참여</b>하고 <b>《팔도지리지》·《동국지도》</b>를 만든</p>
+<p>조선의 큰 학자입니다.</p>
+<p class="point">⚠다만 <b>해동성씨록의 원본이 지금 전하는지는 확인하지 못했습니다.</b></p>
+<p>우리 고증문헌이 그 책을 인용하고 있을 뿐입니다.</p>
+<p><b>「우리 책이 그렇게 인용했다」와 「그 책에 그렇게 있다」는 다릅니다.</b></p>
+<h3 class="sub">그리고 이 대목</h3>
+<p><b>만성대동보와 대동씨족고</b>에는 나씨의 본관이 <b>마흔 곳 넘게</b> 실려 있는데,</p>
+<p><b>거기에 「금성」은 보이지 않습니다.</b> 「거평」은 있습니다.</p>
+<p class="point">⚠금성이라는 본관은 <b>1747년 이후에 생긴 것</b>이니 그 전 문헌에 없는 것은 당연합니다.</p>
+<p>그러나 <b>없는 것은 없는 것</b>입니다. 이 책은 그것을 그대로 적어 둡니다.</p>
+<h2 class="chap" id="c9">함자가 빠진 자리</h2>
+<p>나씨고증문헌 <b>8쪽</b>에 이런 한 줄이 있습니다.</p>
+<blockquote class="old">
+**「政事 — 옛 족보(舊乘)에 함자(諱字)가 빠지고 「政事」라는 두 글자만 있으며,
+가정보(嘉靖譜)에는 공(公)의 아들 부(富)가 있는데 지금은 빠져 있다(今闕之)」**
+</blockquote>
+<p><b>아주 중요한 한 줄입니다.</b> 두 가지를 말하고 있습니다.</p>
+<p><b>하나</b> — 옛 족보에 <b>함자가 없이 「政事」 두 글자만 적힌 한 줄기</b>가 있다.</p>
+<p><b>둘</b> — <b>1562년 가정보에는 그분의 아들로 「부(富)」가 있었는데, 지금은 빠졌다.</b></p>
+<p class="mark">★그러니까 <b>「政事 → 富」는 1930년에 새로 만든 것이 아닙니다.</b></p>
+<p><b>1562년 책에 이미 있었고, 그 뒤에 빠진 것</b>입니다.</p>
+<h3 class="sub">「政事」를 어떻게 읽을까</h3>
+<p class="li">· 우리 집안 어른들은 <b>「政治的인 事件」</b>, 곧 정치적인 사건으로 읽습니다.</p>
+<p>무슨 일이 있어서 함자가 지워졌다는 뜻이지요.</p>
+<p class="li">· <b>벼슬 이름</b>으로 읽을 수도 있습니다. 「참지정사(叅知政事)」라는 재상 벼슬이 있으니까요.</p>
+<p class="point">⚠<b>어느 쪽인지 이 책은 정하지 않겠습니다.</b></p>
+<p>다만 함자가 지워졌다는 것, 그리고 <b>지워졌다는 사실만은 남겨 두었다</b>는 것 —</p>
+<p>이것이 옛 어른들의 정직함입니다.</p>
+<p class="point">⚠이 대목이 실린 대조표를 만드신 분은 <b>금성나씨 36세 나광채</b> 어른이십니다.</p>
+<p><b>우리 쪽 어른이 만드신 표</b>라는 것도 함께 적어 둡니다.</p>
+<h2 class="chap" id="c10">1930년, 한 권의 족보</h2>
+<p>앞에서 본 이야기가 모두 <b>한 권의 책</b>으로 모입니다.</p>
+<h3 class="sub">「나씨총보(羅氏總譜)」</h3>
+<p>다섯 본관의 나씨를 한 책에 담으려 한 족보로, 네 권으로 되어 있었습니다.</p>
+<table class="tbl">
+<tr><th>권</th><th>무엇</th></tr>
+<tr><td>갑편</td><td>금성나씨</td></tr>
+<tr><td><b>을편</b></td><td><b>나주나씨</b></td></tr>
+<tr><td>병편</td><td>안정나씨</td></tr>
+<tr><td>정편</td><td>군위나씨</td></tr>
+</table>
+<p>이 책에서 <b>나주나씨 시조 부(富)공은 금성나씨 7세</b> 자리에,</p>
+<p><b>안정·상산·군위나씨의 시조는 금성나씨 11세</b> 자리에 놓였습니다.</p>
+<h3 class="sub">그런데 아무도 반기지 않았습니다</h3>
+<p class="li">· <b>나주나씨</b> — 「<b>위보(僞譜)</b>, 곧 거짓 족보다」</p>
+<p class="li">· <b>안정나씨</b> — 「<b>우리 윗대 계보(선계)를 조작했다</b>」</p>
+<p class="li">· <b>금성나씨 안에서도</b> 반대가 있었습니다</p>
+<p><b>그리고 나주나씨가 오래 요구하여, 그 책에서 부(富)공의 함자가 지워졌습니다.</b></p>
+<p>지금 <b>을편은 전하지 않습니다.</b></p>
+<p class="mark">★제가 그 책의 실물 사진에서 본 것이 이렇습니다.</p>
+<blockquote class="old">
+<b>「政事 ─ 富」</b> / <b>「見乙編羅州派」</b> (나주파는 乙편을 보라)
+</blockquote>
+<p><b>가리키는 손가락은 남았는데, 가리킨 곳이 사라졌습니다.</b></p>
+<h3 class="sub">그러면 어느 쪽이 맞을까요</h3>
+<p>이 책은 정하지 않겠습니다. 다만 <b>여러분이 확인할 수 있는 자리</b>를 적어 둡니다.</p>
+<blockquote class="old">
+<b>1562년 가정보에 「政事의 아들 富」가 있었다</b>고 우리 고증문헌은 적고 있습니다.
+<b>그 가정보를 찾아 그 자리를 펴 보면 됩니다.</b>
+</blockquote>
+<p class="point">⚠<b>안정나씨 어른들은 「1930년부터 조작되었다」고 하십니다.</b></p>
+<p>그분들이 보신 것은 <b>1800년 이후의 족보</b>였습니다.</p>
+<p><b>1562년 가정보는 아직 아무도 맞대어 보지 않았습니다.</b></p>
+<h2 class="chap" id="c11">되돌리려 한 세 번</h2>
+<p><b>1930년 나씨총보</b> — 다섯 본관을 한 책에. → 받아들여지지 않았습니다.</p>
+<p><b>1969년 복관보</b> — 금성나씨 함무안파가 나주로 본관을 되돌리는 족보를 냈습니다.</p>
+<p>→ <b>1968년 6월 14일, 양쪽 대표가 만나 약정서를 썼습니다.</b> 그 문구가 이렇습니다.</p>
+<blockquote class="old">
+「<b>휘 총례를 시조로 하는 나씨와 휘 부를 시조로 하는 나씨의 뿌리가 다름이 확실하므로</b>,
+이에 양 나씨 종중의 대표가 이를 확증하기 위하여 본 약정서를 작성하고 서명날인한다」
+— 금성나씨복관대동보소 대표 <b>나승옥·나승문·나환주·나갑주</b> 등이 날인
+</blockquote>
+<p><b>우리 쪽 대표들이 「뿌리가 다르다」고 도장을 찍은 문서입니다.</b></p>
+<p>1971년에는 그 족보의 발문 백여 장을 잘라내기로 각서도 썼습니다.</p>
+<p class="point">⚠이 문서를 어떻게 볼지도 갈립니다.</p>
+<p class="li">· <b>종중 전체의 뜻</b>으로 볼 수도 있고,</p>
+<p class="li">· <b>복관보를 만들던 한 보소의 일</b>로 볼 수도 있습니다.</p>
+<p class="li">· 실제로 <b>1987년에 금성나씨는 다시 금성으로 족보를 냈습니다.</b></p>
+<p><b>1987년 정묘대동보</b> — 여덟 해가 걸렸습니다.</p>
+<p>우리 집안 회보 <b>「씨족문화」(1989년 제4호)</b>의 <b>「丁卯大同譜가 나오기까지」</b>는</p>
+<p>그 머리에 이렇게 적었습니다.</p>
+<blockquote class="old">
+「<b>8년 동안의 우여곡절</b> 끝에 … 그동안 나돈 통문을 비교 나열하여 기록에 남기고,
+<b>다시는 역사한 일이 있어서는 아니 될 것이라고 다짐한다</b>」
+</blockquote>
+<p>그 여덟 해에 무슨 일이 있었는지는 이 책에 적지 않겠습니다.</p>
+<p>어른들이 많이 부딪치셨고, 지금 읽으면 마음이 아픈 일도 있습니다.</p>
+<p><b>되돌리자는 쪽의 뜻은 받아들여지지 않았습니다.</b></p>
+<p>그 글은 이렇게 맺습니다.</p>
+<blockquote class="old">
+「아무튼 **이번 대동보 수보와 같이 분렬되는 일이 있어서는 종사에 큰 걱정이 앞서는 것을
+어찌할 수 없다**」
+</blockquote>
+<h2 class="chap" id="c12">오늘, 그리고 여러분에게</h2>
+<h3 class="sub">265년 만에</h3>
+<p><b>2012년 5월 19일</b>, 나주에서 <b>「한국나씨총연합회」 창립총회</b>가 열렸습니다.</p>
+<p>안내문 아래에 네 분의 이름이 나란히 적혀 있습니다.</p>
+<p>금성나씨  대 종 회 장   나  진</p>
+<p>나주나씨 중앙종친회장   나 형 균</p>
+<p>수성나씨  종 친 회 장   나 덕 호</p>
+<p>안정나씨  대 종 회 장   나 덕 흠</p>
+<p>그날 일정에 <b>「나주나씨, 금성나씨 시조단 참배」</b>가 들어 있었습니다.</p>
+<p class="point">⚠사실대로 적습니다. <b>안정나씨 대종회장은 그날 오지 못하셨습니다.</b></p>
+<p>「일정이 겹쳐 참석하지 못하였다」고 그쪽 기록에 있습니다. <b>모두가 모인 것은 아니었습니다.</b></p>
+<h3 class="sub">그리고 멈추었습니다</h3>
+<p>네 번까지 모임이 이어졌고, 회보도 세 권이 나왔습니다.</p>
+<p>그런데 <b>2016년 8월, 그 모임을 주선하신 나진 회장님이 돌아가셨습니다.</b></p>
+<p><b>그 뒤로 모임은 열리지 않고 있습니다.</b></p>
+<p class="mark">★<b>어려운 일을 한 사람의 힘에만 기대면, 그 한 사람이 없어질 때 함께 없어집니다.</b></p>
+<p>하지만 <b>한 번 모였다는 사실은 없어지지 않습니다.</b></p>
+<p>안내문도 회보도 남아 있습니다. <b>한 번 되었으면 또 될 수 있습니다.</b></p>
+<h3 class="sub">어른이 되면 알아볼 것</h3>
+<p class="li">1. ★<b>1562년 가정보에 「政事의 아들 富」가 정말 있는가.</b></p>
+<p>우리 고증문헌이 그렇게 적었으니, <b>그 책을 찾아 그 자리를 펴 보면 됩니다.</b></p>
+<p class="li">2. <b>1800년 경신보의 6세 자리에는 무엇이 적혀 있는가.</b> 경모사 서재에 있습니다.</p>
+<p class="li">3. <b>부(富)공은 언제 사람인가.</b> 나주나씨 안에서도 「송나라 말」·「고려 공양왕 때」·</p>
+<p>「고려 인종 4년(1126)」 세 가지가 있습니다. <b>서로 백 년 넘게 어긋납니다.</b></p>
+<p class="li">4. <b>나주로 이름을 고친 해는 903년인가 911년인가.</b> 『고려사』와 『삼국사기』가 다릅니다.</p>
+<p class="li">5. <b>양성지의 해동성씨록 원본은 지금 전하는가.</b></p>
+<p class="li">6. <b>1968년 약정서에는 무엇이라 적혀 있고, 누가 날인했는가.</b></p>
+<p class="li">7. <b>씨족원류가 「羅州羅氏」 한 항목에 두 분을 함께 실은 까닭은 무엇인가.</b></p>
+<p class="li">8. <b>1692년에 태워진 가승 이백여 부에는 무엇이 적혀 있었을까.</b></p>
+<h3 class="sub">마지막으로</h3>
+<p><b>먼 데서 온 것은 부끄러운 일이 아닙니다.</b></p>
+<p>우리나라 성씨에는 그런 집안이 아주 많습니다.</p>
+<p>다만 <b>누가 언제 왔는지를 바르게 아는 것</b>은 중요합니다.</p>
+<p>그것이 족보를 만드는 까닭이니까요.</p>
+<p>그리고 이 이야기에서 한 가지만 가져가 주세요.</p>
+<blockquote class="old">
+<b>양쪽 다 없앤 자리가 있고, 양쪽 다 남긴 자리가 있습니다.</b>
+없앤 자리를 두고 서로를 나무라기는 쉽습니다.
+<b>남긴 자리를 찾아 맞대어 보는 것</b>이 어렵고, 그래서 값집니다.
+</blockquote>
+<p>누가 여러분에게 「너희는 어떤 집안이다」라고 함부로 말하거든,</p>
+<p>화내지 말고 이렇게 물어보세요.</p>
+<blockquote class="old">
+<b>「그건 어느 책 몇 쪽에 적혀 있나요?」</b>
+</blockquote>
+<p>그 한마디를 할 줄 알면, 여러분은 이미 이 책을 다 읽은 것입니다.</p>
+<!--본문끝-->
+</div>
+<div class="nav">
+    <button class="pagebtn" id="prev" type="button" aria-label="앞 쪽">‹</button>
+    <div class="pageno"><b id="cur">1</b> / <span id="tot">1</span></div>
+    <button class="pagebtn" id="next" type="button" aria-label="다음 쪽">›</button>
+  </div>
+</div>
+
+<div class="tocwrap" id="tocwrap">
+  <nav class="toc" role="dialog" aria-label="차례">
+    <h2>차 례</h2>
+    <ol id="toclist">
+      <!-- 비워 둔다 — 본문의 <h2 class="chap" id="…"> 를 읽어 JS 가 스스로 만든다 -->
+    </ol>
+  </nav>
+</div>
+
+<script>
+(function(){
+  /* ══ 쪽맞춤은 브라우저에게 맡기고, 클은 「단 자리」만 잰다 ══ */
+  var stage = document.getElementById('stage');
+  var pages = document.getElementById('pages');
+  var elCur = document.getElementById('cur'), elTot = document.getElementById('tot');
+  var bar   = document.getElementById('bar');
+  var prev  = document.getElementById('prev'), next = document.getElementById('next');
+
+  var 자식 = Array.prototype.slice.call(pages.children);
+  var 자리 = [];        /* 자식마다 그려진 왼쪽 자리 */
+  var 단자리 = [0];     /* 쪽마다 scrollLeft 값 — 셈이 아니라 실측 */
+  var page = 0, 쪽수 = 1;
+
+  /* ── 단 자리를 잰다 ────────────────────────────────────────
+     ★셈하지 않는다. 브라우저가 실제로 그린 자리를 그대로 쓴다.
+     단 간격은 일정하지 않게 잡히므로 (폭+틈)×번호 로 맞히면 어긋난다. */
+  function 단재기(){
+    /* 단 하나의 폭 = 상자 폭. 퍼센트로는 줄 수 없어 px 로 못 박는다 */
+    var 폭 = pages.clientWidth;
+    if (!(폭 > 60)) 폭 = Math.max(240, document.documentElement.clientWidth - 44);
+    pages.style.columnWidth = 폭 + 'px';
+
+    /* ★재는 동안 스크롤을 건드리지 않는다.
+       CSS 에 scroll-behavior:smooth 가 걸려 있어서, 재려고 scrollLeft 를
+       0 으로 되돌리면 그것이 「부드러운 스크롤」로 처리된다.
+       그 움직임이 뒤늦게 자리를 0 까지 끌고 가서, 되살려 둔 자리를 덮어썼다.
+       (2026-08-27 규명 — 이어읽기가 안 되던 참까닭)
+       스크롤 값을 더해 주면 문서 좌표가 되므로 건드릴 까닭이 없다. */
+    var 바탕 = pages.getBoundingClientRect().left - pages.scrollLeft;
+
+    자리 = [];
+    for (var i = 0; i < 자식.length; i++){
+      var rs = 자식[i].getClientRects();
+      var L = rs.length ? rs[0].left : 자식[i].getBoundingClientRect().left;
+      자리.push(Math.round(L - 바탕));
+    }
+    var 정렬 = 자리.slice().sort(function(a,b){ return a-b; });
+    단자리 = [];
+    for (var j = 0; j < 정렬.length; j++)
+      if (!단자리.length || 정렬[j] - 단자리[단자리.length-1] > 8)
+        단자리.push(정렬[j]);
+    if (!단자리.length) 단자리 = [0];
+    쪽수 = 단자리.length;
+  }
+
+  function 자식의쪽(i){
+    var L = 자리[i], 가장 = 0, 차 = Infinity;
+    for (var t = 0; t < 단자리.length; t++){
+      var d = Math.abs(L - 단자리[t]);
+      if (d < 차){ 차 = d; 가장 = t; }
+    }
+    return 가장;
+  }
+  /* 크기가 바뀌어도 읽던 자리를 지킨다 — 쪽 번호가 아니라 「몇 번째 대목」으로 */
+  function 지금대목(){
+    for (var i = 0; i < 자리.length; i++) if (자식의쪽(i) === page) return i;
+    return 0;
+  }
+
+  function 그리기(즉시){
+    if (page < 0) page = 0;
+    if (page > 쪽수 - 1) page = 쪽수 - 1;
+    /* 즉시 = 다시 나눈 직후(움직임 없이 바로) / 그 밖 = 부드럽게 */
+    pages.style.scrollBehavior = 즉시 ? 'auto' : 'smooth';
+    var 목표 = 단자리[page] || 0;
+    pages.scrollLeft = 목표;
+    /* 그림이 늦게 뜨면 자리가 늦게 잡힌다 — 못 갔으면 한 번 더 */
+    if (Math.abs(pages.scrollLeft - 목표) > 2)
+      requestAnimationFrame(function(){ pages.scrollLeft = 목표; });
+    elCur.textContent = page + 1; elTot.textContent = 쪽수;
+    bar.style.width = (쪽수 < 2 ? 100 : (page / (쪽수 - 1) * 100)) + '%';
+    prev.disabled = (page <= 0); next.disabled = (page >= 쪽수 - 1);
+    /* ★쪽 번호가 아니라 「몇 번째 대목」을 적어 둔다.
+       글씨 크기나 기기가 달라지면 쪽 번호는 뜻이 달라진다.
+       ⚠겉장(첫 쪽)에서는 적지 않는다. 책은 늘 겉장에서 열리므로,
+         적어 버리면 열자마자 지난번 자리가 지워진다. */
+    if (page > 0){
+      try{ localStorage.setItem('naBook대목', 지금대목()); }catch(e){}
+    }
+  }
+
+  /* ★책은 언제나 겉장에서 열린다 (2026-08-27 할아버지 지시).
+     지난번에 읽던 자리가 있으면 겉장에 「○쪽부터 이어 읽기」 단추를 보여 준다.
+     남에게 보여 줄 때 겉장부터 시작되도록, 종이책과 같게. */
+  var 이어대목 = -1;
+  try{
+    var _v = localStorage.getItem('naBook대목');
+    if (_v !== null) 이어대목 = +_v;
+  }catch(e){}
+  var 이어단추 = document.getElementById('이어단추');
+
+  function 이어단추손질(){
+    if (!이어단추) return;
+    if (이어대목 > 0 && 이어대목 < 자식.length){
+      var 쪽 = 자식의쪽(이어대목) + 1;
+      if (쪽 > 1){
+        이어단추.textContent = '이어 읽기';
+        이어단추.hidden = false;
+        return;
+      }
+    }
+    이어단추.hidden = true;
+  }
+
+  function 세기(지킬대목){
+    단재기();
+    if (지킬대목 != null){
+      page = 자식의쪽(지킬대목);
+    }
+    이어단추손질();
+    그리기(true);
+  }
+
+  function 가기(n){
+    var p = Math.max(0, Math.min(쪽수 - 1, n));
+    if (p !== page){ page = p; 그리기(); }
+  }
+  if (이어단추) 이어단추.onclick = function(e){
+    e.stopPropagation();
+    가기(자식의쪽(이어대목));
+  };
+  prev.onclick = function(){ 가기(page - 1); };
+  next.onclick = function(){ 가기(page + 1); };
+
+  /* ── 손가락으로 밀기 ── */
+  var x0 = null, y0 = null, t0 = 0, 손뗀때 = 0;
+  stage.addEventListener('touchstart', function(e){
+    var t = e.changedTouches[0]; x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+  }, {passive:true});
+  stage.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    var 빠름 = (Date.now() - t0) < 500;
+    if (Math.abs(dx) > Math.abs(dy) * 1.4 && (Math.abs(dx) > 48 || (빠름 && Math.abs(dx) > 26)))
+      가기(page + (dx < 0 ? 1 : -1));
+    x0 = null; 손뗀때 = Date.now();
+  }, {passive:true});
+
+  /* ── 좌우 끝을 톡 치기 ── */
+  stage.addEventListener('click', function(e){
+    if (Date.now() - 손뗀때 < 700) return;      /* 민 직후의 클릭은 흘려보낸다 */
+    if (e.target.closest('img')) return;
+    var r = stage.getBoundingClientRect(), x = e.clientX - r.left;
+    if (x < r.width * 0.22) 가기(page - 1);
+    else if (x > r.width * 0.78) 가기(page + 1);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ 가기(page+1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ 가기(page-1); e.preventDefault(); }
+    else if (e.key === 'Home') 가기(0);
+    else if (e.key === 'End') 가기(쪽수 - 1);
+    else if (e.key === 'Escape') 닫기();
+  });
+
+  /* ── 글씨 크기 ── */
+  var fs = 17;
+  try{ var v = localStorage.getItem('naBookFs'); if (v) fs = Math.min(24, Math.max(14, +v)); }catch(e){}
+  function 글씨(n){
+    fs = Math.min(24, Math.max(14, n));
+    pages.style.setProperty('--fs', fs + 'px');
+    try{ localStorage.setItem('naBookFs', fs); }catch(e){}
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 30);
+  }
+  document.getElementById('bigger').onclick  = function(){ 글씨(fs+1); };
+  document.getElementById('smaller').onclick = function(){ 글씨(fs-1); };
+
+  /* ── 화면 꽉 채우기 ──────────────────────────────────────
+     ★앱스스크립트는 책을 iframe 두 겹으로 감싸고, 그 위에 구글 안내 띠를 붙인다.
+     띠는 우리 바깥이라 우리 코드가 없앨 수 없다.
+     그런데 바깥 틀에 `fullscreen *` 권한이 들어 있어(2026-08-27 실측),
+     이 단추를 누르면 주소줄도 띠도 다 사라지고 화면을 꽉 채운다. */
+  var 꽉 = document.getElementById('full');
+  function 꽉인가(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  /* ★글자(⛶)는 기기에 그 글꼴이 없으면 빈칸으로 나온다(2026-08-27 캡처로 확인).
+     그래서 어디서나 똑같이 보이는 그림(SVG)으로 그린다. */
+  var 그림_켜기 = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M4 9V5h5M15 5h5v4M20 15v5h-5M9 20H4v-5"/></svg>';
+  var 그림_끄기 = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg>';
+  function 꽉얼굴(){ 꽉.innerHTML = 꽉인가() ? 그림_끄기 : 그림_켜기; }
+  if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled){
+    꽉.style.display = 'none';        /* 안 되는 기기(아이폰 사파리 등)에서는 감춘다 */
+  }
+  꽉.onclick = function(){
+    try{
+      if (꽉인가()){
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      } else {
+        var e = document.documentElement;
+        (e.requestFullscreen || e.webkitRequestFullscreen).call(e);
+      }
+    }catch(err){}
+  };
+  document.addEventListener('fullscreenchange', function(){
+    꽉얼굴();
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 220);   /* 크기가 바뀌었으니 다시 나눈다 */
+  });
+  document.addEventListener('webkitfullscreenchange', function(){
+    꽉얼굴();
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 220);
+  });
+  꽉얼굴();
+
+  /* ── 해 · 달 ── */
+  var 해달 = document.getElementById('theme');
+  function 지금어두운가(){
+    var a = document.documentElement.getAttribute('data-theme');
+    if (a === 'dark') return true;
+    if (a === 'light') return false;
+    try{ return window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return false; }
+  }
+  function 단추얼굴(){ 해달.textContent = 지금어두운가() ? '☀' : '☾'; }
+  단추얼굴();
+  해달.onclick = function(){
+    var 어둡게 = !지금어두운가();
+    document.documentElement.setAttribute('data-theme', 어둡게 ? 'dark' : 'light');
+    try{ localStorage.setItem('naBookTheme', 어둡게 ? 'dark' : 'light'); }catch(e){}
+    단추얼굴();
+  };
+
+  /* ── 차례 : 본문의 큰 제목을 읽어 스스로 만든다 ──────────────
+     ★다음 책을 만들 때 차례를 따로 쓰지 않아도 된다.
+     본문에 <h2 class="chap" id="c1">…</h2> 만 두면 여기 저절로 실린다.
+     손으로 적어 둔 차례가 이미 있으면 그것을 그대로 쓴다. */
+  (function(){
+    var ol = document.getElementById('toclist');
+    if (!ol || ol.children.length) return;
+    for (var i = 0; i < 자식.length; i++){
+      var e = 자식[i];
+      if (e.tagName === 'H2' && e.className.indexOf('chap') >= 0 && e.id){
+        var li = document.createElement('li');
+        var b  = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('data-go', e.id);
+        b.textContent = (e.textContent || '').trim();
+        li.appendChild(b); ol.appendChild(li);
+      }
+    }
+  })();
+
+  /* ── 차례 ── */
+  var wrap = document.getElementById('tocwrap');
+  function 닫기(){ wrap.classList.remove('on'); }
+  document.getElementById('tocbtn').onclick = function(){ wrap.classList.toggle('on'); };
+  wrap.addEventListener('click', function(e){ if (e.target === wrap) 닫기(); });
+  document.getElementById('toclist').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-go]'); if (!b) return;
+    var 이름 = b.getAttribute('data-go');
+    for (var i = 0; i < 자식.length; i++)
+      if (자식[i].id === 이름){ page = 자식의쪽(i); break; }
+    닫기(); 그리기();
+  });
+
+  /* ── 크기가 바뀔 때 ── */
+  var 늦게 = null;
+  function 다시(){
+    var 대목 = 지금대목();
+    clearTimeout(늦게);
+    늦게 = setTimeout(function(){ 세기(대목); }, 140);
+  }
+  window.addEventListener('resize', 다시);
+  window.addEventListener('orientationchange', 다시);
+
+  /* ── 첫 그림 ── */
+  pages.style.setProperty('--fs', fs + 'px');
+  세기();
+  if (document.fonts && document.fonts.ready)
+    document.fonts.ready.then(function(){ setTimeout(function(){ 세기(지금대목()); }, 40); });
+  window.addEventListener('load', function(){
+    setTimeout(function(){ 세기(지금대목()); }, 60);
+  });
+})();
+</script>
+</body>
+</html>
