@@ -126,6 +126,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   font-size:var(--fs,17px);
   font-weight:500;
   line-height:1.9;
+  /* ★한글은 낱말 안에서 끊지 않는다 — 좁은 폰에서 「고을」이 「고/을」로,
+     「되었습니다」가 「되었습/니다」로 갈라졌다 (2026-09-03 할아버지 지적).
+     p 에만 걸려 있어 제목(.chap)·인용(.old)·상자(.point)가 새어 나갔다.
+     그릇에 걸면 모든 자식이 물려받는다. */
+  word-break:keep-all;
+  overflow-wrap:break-word;
 }
 /* 문단·그림·네모상자가 쪽 경계에서 두 동강 나지 않게 */
 .pages > *{
@@ -203,6 +209,32 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .pic figcaption{
   margin-top:.5em;font-size:.8em;line-height:1.6;color:var(--dim);
   text-align:left;word-break:keep-all;
+}
+
+/* ── 표 ──
+   틀에 표 스타일이 아예 없어 선이 안 보이고 칸 폭이 제멋대로였다.
+   좁은 폰에서 「우리」가 「우/리」로 쪼개져 보였다. (2026-09-03 할아버지 지적) */
+.tbl{
+  width:100%;border-collapse:collapse;
+  margin:.9em 0 1.2em;
+  font-size:.92em;line-height:1.6;
+  break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
+}
+.tbl th,.tbl td{
+  border:1px solid var(--edge);
+  padding:.45em .55em;
+  text-align:left;vertical-align:top;
+  word-break:keep-all;
+}
+.tbl th{
+  background:var(--oldbg);color:var(--dim);
+  font-weight:700;font-size:.9em;letter-spacing:.02em;
+}
+.tbl tr:nth-child(even) td{background:var(--oldbg)}
+/* 좁은 화면에서는 조금 더 작게 — 칸이 좁아 낱말이 쪼개지지 않게 */
+@media (max-width:430px){
+  .tbl{font-size:.84em}
+  .tbl th,.tbl td{padding:.38em .4em}
 }
 
 /* ── 겉장 ── */
@@ -356,6 +388,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <p class="mark"><b>이름이 세 번 다 물과 배입니다. 배가 닿던 곳이었습니다.</b></p>
 <h3 class="sub">그리고 나주에 합쳐졌습니다</h3>
 <p>고려 때, 이 여황현이 <b>나주에 붙었습니다.</b> 고을 하나가 없어지고, 그 사람들이 나주 사람이 된 것입니다.</p>
+<p><b>다만 그것이 몇 해인지는 남아 있지 않습니다.</b> 붙었다는 것은 여러 기록이 함께 말하지만, <b>합해진 해를 적어 놓은 문헌은 없습니다.</b></p>
 <p class="point">★이것이 모든 일의 시작입니다.</p>
 <blockquote class="old"><b>여황이라는 이름은 아주 최근까지 살아 있었습니다.</b><br>1906년까지 나주군에 <b>여황면</b>이 있었고, <b>1914년</b>에 장본면·적량면과 합쳐지면서<br><b>「본량면」</b>이 되었습니다. 그때 <b>여황</b>이라는 이름이 사라졌습니다.<br>백 년 조금 넘었을 뿐입니다.</blockquote>
 <h2 class="chap" id="c3">2. 한 고을에 나씨가 둘이 되었습니다</h2>
@@ -365,7 +398,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <tr><td><b>저쪽</b></td><td>본래 <b>여황</b> 사람</td><td>부(富) 할아버지</td></tr>
 </table>
 <p><b>시조가 서로 다른 두 집</b>이었습니다. 그런데 같은 고을에 살게 되었으니, <b>둘 다 본관을 「나주」라고 쓰게 되었습니다.</b></p>
-<p>같은 이름을 쓰지만 뿌리가 다른 두 집 — 여기서부터 얽히기 시작합니다.</p>
+<p>시조가 다른 두 집이 같은 본관을 쓰게 되었습니다 — 여기서부터 얽히기 시작합니다.</p>
 <h3 class="sub">그때 「나주」는 아주 큰 이름이었습니다</h3>
 <p>지금 나주시만 한 곳을 생각하면 안 됩니다.</p>
 <p class="li">· <b>1018년</b>, 나주목은 <b>무안·담양·곡성·낙안·남평</b>과 <b>여황·진원·원율·화순·반남·회진</b> 같은 고을들을 거느렸습니다</p>
@@ -491,7 +524,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <h2 class="chap" id="c12">붙임 — 이 책의 근거</h2>
 <p>이 책에 나오는 말이 어디에서 왔는지 적어 둡니다. 자라서 직접 확인하시라고 남깁니다.</p>
 <p class="li"><b>· 여황현이 고려 때 나주에 붙었다</b></p>
-<p class="li2">1747년 정묘 변의문 / 1018년 나주목 11속현에 여황 &nbsp;· &nbsp;전사본·마을유래 문서로 확인</p>
+<p class="li2">1747년 정묘 변의문 / 1018년 나주목 11속현에 여황 &nbsp;· &nbsp;전사본·마을유래 문서로 확인<br><b>⚠다만 합해진 해를 적은 문헌은 없다.</b> 변의문의 「고려 성종 때」는 1747년 우리 어른들의 말씀이고, 그 해를 밝힌 사료는 아직 못 찾았다</p>
 <p class="li"><b>· 여황현 = 지금의 광산구 본량·삼도·임곡, 관청터는 본량면 지산리 「관터」</b></p>
 <p class="li2">「나주군의 행정구역 변화」(집안 소장, 삼국사기·대동지지 인용) &nbsp;· &nbsp;<b>문서로 직접 확인 (2026-09-01)</b></p>
 <p class="li"><b>· 백제 때 이름이 수천현(水川縣)·수입이현(水入伊縣)</b></p>
@@ -744,9 +777,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     if (x0 === null) return;
     var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
     var 빠름 = (Date.now() - t0) < 500;
-    if (Math.abs(dx) > Math.abs(dy) * 1.4 && (Math.abs(dx) > 48 || (빠름 && Math.abs(dx) > 26)))
+    if (Math.abs(dx) > Math.abs(dy) * 1.4 && (Math.abs(dx) > 48 || (빠름 && Math.abs(dx) > 26))){
       가기(page + (dx < 0 ? 1 : -1));
-    x0 = null; 손뗀때 = Date.now();
+      손뗀때 = Date.now();        /* ★민 때만 찍는다 — 톡 친 때 찍으면 폰에서 톡 치기가 죽는다 */
+    } else if (Math.abs(dx) > 12 || Math.abs(dy) > 12){
+      손뗀때 = Date.now();        /* 쓸어 넘긴 것도 톡 친 것이 아니다 */
+    }
+    x0 = null;
   }, {passive:true});
 
   /* ── 좌우 끝을 톡 치기 ── */
