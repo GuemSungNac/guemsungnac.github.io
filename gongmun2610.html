@@ -81,6 +81,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   display:flex;align-items:center;gap:12px;
   padding:10px 16px 8px;
 }
+/* ★지금 보는 자리 — 붙임과 제목, 넘치면 (n/총) (2026-09-22 할아버지 지시) */
+.here{
+  font-family:'Noto Sans KR',sans-serif;font-size:.72em;font-weight:600;
+  color:var(--seal,#A33A2E);letter-spacing:.02em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:46vw;opacity:.95;
+}
+.here b{color:var(--dim,#4E585D);font-weight:600}
+@media (max-width:420px){ .name{max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+                          .here{max-width:40vw;font-size:.68em} }
+
 .bar .name{
   font-family:'Noto Serif KR',serif;font-weight:700;font-size:15px;
   letter-spacing:.02em;color:var(--dim);
@@ -173,7 +183,46 @@ caption.chap .cap{
   letter-spacing:.06em;color:var(--seal,#A33A2E);
   border-bottom:1px solid var(--edge,#D5DAD8);
 }
+.toc .grp button{
+  all:unset;cursor:pointer;display:block;width:100%;
+  font-family:inherit;font-weight:inherit;font-size:inherit;
+  letter-spacing:inherit;color:inherit;padding:.15em 0;
+}
+.toc .grp button:hover{opacity:.75}
+
 .toc .grp:first-child{margin-top:0}
+
+/* ── ★붙임 간지 · 장마다 새 쪽 (2026-09-22 할아버지 「붙임 구분이 제대로 안 보인다」) ── */
+.divider{
+  height:100%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;gap:0;
+  break-before:column;-webkit-column-break-before:always;
+  break-inside:avoid;-webkit-column-break-inside:avoid;
+}
+.divider .dnum{
+  font-family:'Noto Sans KR',sans-serif;font-weight:800;
+  font-size:.82em;letter-spacing:.3em;color:var(--seal,#A33A2E);
+  margin:0 0 1.1em;padding:.35em 1.1em .3em;
+  border:1px solid var(--seal,#A33A2E);border-radius:2em;
+}
+.divider .dtitle{
+  font-family:'Noto Serif KR',serif;font-weight:800;
+  font-size:1.62em;line-height:1.4;letter-spacing:-.02em;
+  color:var(--ink);margin:0 0 .8em;text-wrap:balance;word-break:keep-all;
+}
+.divider .dnote{
+  font-size:.82em;line-height:1.7;color:var(--dim,#4E585D);
+  word-break:keep-all;max-width:22em;
+}
+.divider::after{
+  content:'';display:block;width:3.4em;height:2px;
+  background:var(--seal,#A33A2E);opacity:.55;margin-top:1.5em;
+}
+/* ★장은 저마다 새 쪽에서 시작한다 — 제목과 글이 쪽에 딱 맞아 들어가게 */
+.chap{break-before:column;-webkit-column-break-before:always}
+.cover + .chap, .divider + .chap{break-before:auto}
+
 /* ★묶음 머리는 번호를 먹지 않는다 — 안 그러면 차례 순번이 밀린다 */
 .toc li.grp{counter-increment:none}
 
@@ -380,7 +429,7 @@ a.dl{display:inline-block;margin:.4em auto;padding:.7em 1.15em;
 
 <div class="book">
   <div class="bar">
-    <span class="name">2026-006호 10월 이사회 안내</span>
+    <span class="name">2026-006호 10월 이사회 안내</span><span class="here" id="here" aria-live="polite"></span>
     <span class="sp"></span>
     <button class="iconbtn" id="full" type="button" aria-label="화면 꽉 채우기" title="화면 꽉 채우기"></button>
     <button class="iconbtn" id="theme" type="button" aria-label="밝게 어둡게">☾</button>
@@ -439,9 +488,11 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <p class="li">· 일시 — <b>2026. 10. 10.(토) 오전 11시</b></p>
 <p class="li">· 장소 — 금성나씨호남종친회 사무실 (랜드피아 오피스텔 926호)</p>
 <p class="li">· 안건 — 1. 가을 나들이 시행의 건</p>
-<p class="li">· 붙임 — 1. 가을 나들이 계획(안) · 2. 종친회 재무현황 · 3. 제21대 임원·종인 입금내역</p>
+<p class="li">· 붙임 — 1. 가을 나들이 계획(안) · 2. 종친회 재무현황 · 3. 제21대 임원·종인 입금내역 · <b>4. 사무실 개소식 기록</b></p>
 <p>부득이 참석이 어려운 임원께서는 총무이사(010-9605-5109)에게 연락 주시기 바랍니다.</p>
 <p><span class="q">금성나씨호남종친회</span></p>
+
+<section class="divider" id="d1"><div class="dnum">붙임 1</div><div class="dtitle">가을 나들이 계획(안)</div><div class="dnote">왜 · 때와 곳 · 하루 차례 · 경비 · 참가 신청 · 그 밖에</div></section>
 
 <h2 class="chap" id="c1"><span class="tag">붙임 1 · 가을 나들이 계획(안)</span>왜 하고자 하는가</h2>
 <p>올해 우리는 전국 종인의 뜻을 모아 광주에 사무실을 마련하였습니다. 그 일을 함께 이룬 임원과 가족이 하루 가볍게 나들이하며 정을 나누는 자리를 마련하고자 합니다.</p>
@@ -493,6 +544,8 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <p class="li">○ 담양(죽녹원·메타세쿼이아길)과 보성·장흥(홍암나철기념관·우드랜드)도 살펴보았습니다. 담양은 오르막과 걷는 거리가 있고, 보성·장흥은 광주에서 왕복 세 시간이라 11월 날씨에는 무리가 있다고 보았습니다.</p>
 <p class="cap">사진 출처 : 뿌리공원 조형물 — 라정호 촬영 / 소충사 — 나기정 촬영 / 생가 — 국가유산청 / 반남고분군 — 국립나주박물관</p>
 
+<section class="divider" id="d2"><div class="dnum">붙임 2</div><div class="dtitle">종친회 재무현황</div><div class="dnote">2026. 1. 1. ~ 9. 21.</div></section>
+
 <h2 class="chap" id="c7"><span class="tag">붙임 2</span>종친회 재무현황</h2>
 <p class="cap">2026. 1. 1. ~ 9. 21. · 단위 : 원</p>
 <p class="li">전기이월 (2025년 결산 잔액) &nbsp;<b>8,861,130</b></p>
@@ -504,6 +557,8 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <p><b>■ 임원 여러분께</b></p>
 <p>본 종친회는 임원 여러분의 회비로 운영됩니다. 올해 회비를 내주신 분은 <b>18분</b>이십니다. 총회와 이사회, 경조사와 문중 행사가 모두 이 회비로 이루어집니다.</p>
 <p>※ <b>연말 장학생 추천은 그해 회비를 내주신 임원께서 하실 수 있습니다.</b> 우리 자녀와 손주에게 돌아가는 일이니 널리 헤아려 주시기 바랍니다.</p>
+
+<section class="divider" id="d3"><div class="dnum">붙임 3</div><div class="dtitle">제21대 임원·종인 입금내역</div><div class="dnote">고문진부터 종인·단체까지 아홉 갈래</div></section>
 
 <table class="nbtbl" id="c8"><caption class="chap"><span class="tag">붙임 3 · 임원·종인 입금내역</span>고문진<span class="cap">고문 일곱 분 &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead>
 <tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr>
@@ -634,6 +689,8 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <tr class="sum"><td class="nm">소계</td><td class="">92</td><td class="">50</td><td class="y26">40</td><td class="gen"></td></tr>
 </tbody></table>
 
+<section class="divider" id="d4a"><div class="dnum">붙임 4 ①</div><div class="dtitle">사무실 개소식 — 말씀 기록</div><div class="dnote">그날 동영상에서 옮긴 말씀</div></section>
+
 <h2 class="chap" id="c24"><span class="tag">붙임 4 · 사무실 개소식 기록</span>식순</h2>
 <p>아래는 그날 찍힌 동영상에서 <b>말씀을 그대로 옮겨</b> 간추린 것입니다. 적어 둔 기록이 따로 없어, 소리를 듣고 옮겼습니다.</p>
 <p class="point">① 개식<br>② 국민의례 — 국기에 대한 경례 · 순국선열에 대한 묵념<br>③ 내빈 소개<br>④ 사무실 마련 경과보고<br>⑤ 대종회장 기념사<br>⑥ 호남종친회장 인사말<br>⑦ 기념촬영</p>
@@ -669,6 +726,8 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <p class="point">祝 금성나씨 대종회 사무소 開所式<br><b>제16대 국회재경위원장 나오연</b></p>
 <p class="point">금성나씨 대종회의 무궁한 발전을 기원합니다<br><b>체암 나대용장군기념사업회 회장 이영규</b></p>
 <p>사무실 책상에는 <b>「대종회장」·「호남종친회장」</b> 명패가 나란히 놓여 있었습니다.</p>
+
+<section class="divider" id="d4b"><div class="dnum">붙임 4 ②</div><div class="dtitle">사무실 개소식 — 사진첩</div><div class="dnote">그날의 모습</div></section>
 
 <h2 class="chap" id="c17"><span class="tag">붙임 4 · 사무실 개소식 기록</span>사진첩 — 그날의 모습</h2>
 
@@ -742,16 +801,16 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
     <ol id="toclist">
 <li class="grp">공문</li>
 <li><button type="button" data-go="c0">공문 머리</button></li>
-<li class="grp">붙임 1 · 가을 나들이 계획(안)</li>
+<li class="grp"><button type="button" data-go="d1">붙임 1 · 가을 나들이 계획(안)</button></li>
 <li><button type="button" data-go="c1">왜 하고자 하는가</button></li>
 <li><button type="button" data-go="c2">때와 곳</button></li>
 <li><button type="button" data-go="c3">하루 차례(안)</button></li>
 <li><button type="button" data-go="c4">경비</button></li>
 <li><button type="button" data-go="c5">참가 신청</button></li>
 <li><button type="button" data-go="c6">그 밖에</button></li>
-<li class="grp">붙임 2 · 종친회 재무현황</li>
+<li class="grp"><button type="button" data-go="d2">붙임 2 · 종친회 재무현황</button></li>
 <li><button type="button" data-go="c7">재무현황</button></li>
-<li class="grp">붙임 3 · 임원·종인 입금내역</li>
+<li class="grp"><button type="button" data-go="d3">붙임 3 · 제21대 임원·종인 입금내역</button></li>
 <li><button type="button" data-go="c8">고문진</button></li>
 <li><button type="button" data-go="c9">자문위원</button></li>
 <li><button type="button" data-go="c10">회장단 (1/2)</button></li>
@@ -761,12 +820,13 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <li><button type="button" data-go="c14">이사진 (2/3)</button></li>
 <li><button type="button" data-go="c15">이사진 (3/3)</button></li>
 <li><button type="button" data-go="c16">종인 및 단체 헌성내역</button></li>
-<li class="grp">붙임 4 · 사무실 개소식 기록</li>
+<li class="grp"><button type="button" data-go="d4a">붙임 4 ① 개소식 — 말씀 기록</button></li>
 <li><button type="button" data-go="c24">식순</button></li>
 <li><button type="button" data-go="c25">사무실 마련 경과보고</button></li>
 <li><button type="button" data-go="c26">대종회장 기념사</button></li>
 <li><button type="button" data-go="c27">호남종친회장 인사말</button></li>
 <li><button type="button" data-go="c28">축하해 주신 분</button></li>
+<li class="grp"><button type="button" data-go="d4b">붙임 4 ② 개소식 — 사진첩</button></li>
 <li><button type="button" data-go="c17">사진첩 — 그날의 모습</button></li>
 <li><button type="button" data-go="c18">10:00 ~ 11:00  등록</button></li>
 <li><button type="button" data-go="c19">11:00 ~ 11:20  현판 제막식 · 고유제</button></li>
@@ -832,6 +892,51 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
         단자리.push(정렬[j] < 0 ? 0 : 정렬[j]);
     if (!단자리.length) 단자리 = [0];
     쪽수 = 단자리.length;
+    장자리재기();
+  }
+
+  /* ── ★지금 보는 자리(붙임·제목·나눔표시) ── 2026-09-22 할아버지 지시
+     한 장이 여러 쪽에 걸치면 위 띠에 「붙임 3 · 이사진 (2/3)」처럼 보여 준다 */
+  var 장목록 = [];
+  function 장자리재기(){
+    장목록 = [];
+    var 바탕2 = pages.getBoundingClientRect().left - pages.scrollLeft;
+    var 것들 = pages.querySelectorAll('.divider, h2.chap, caption.chap');
+    for (var i = 0; i < 것들.length; i++){
+      var el = 것들[i], rs = el.getClientRects();
+      if (!rs.length) continue;
+      var L = Math.round(rs[0].left - 바탕2), 차 = Infinity, p = 0;
+      for (var t = 0; t < 단자리.length; t++){
+        var d = Math.abs(L - 단자리[t]);
+        if (d < 차){ 차 = d; p = t; }
+      }
+      var 꼬 = el.querySelector('.tag, .dnum');
+      var 제 = '';
+      if (el.classList.contains('divider')){
+        제 = (el.querySelector('.dtitle') || {}).textContent || '';
+      } else {
+        var 벗 = el.cloneNode(true);
+        var 뺄 = 벗.querySelectorAll('.tag, .cap');
+        for (var k = 0; k < 뺄.length; k++) 뺄[k].parentNode.removeChild(뺄[k]);
+        제 = 벗.textContent;
+      }
+      장목록.push({ 쪽: p, 꼬리: 꼬 ? 꼬.textContent.trim() : '', 제목: (제 || '').trim() });
+    }
+    장목록.sort(function(a, b){ return a.쪽 - b.쪽; });
+  }
+
+  function 자리보이기(){
+    var el = document.getElementById('here');
+    if (!el || !장목록.length){ if (el) el.textContent = ''; return; }
+    var 지금 = null, 다음쪽 = 쪽수;
+    for (var i = 0; i < 장목록.length; i++){
+      if (장목록[i].쪽 <= page){ 지금 = 장목록[i]; 다음쪽 = (i + 1 < 장목록.length) ? 장목록[i+1].쪽 : 쪽수; }
+    }
+    if (!지금){ el.textContent = ''; return; }
+    var 총 = Math.max(1, 다음쪽 - 지금.쪽), 몇 = page - 지금.쪽 + 1;
+    var 글 = (지금.꼬리 ? 지금.꼬리 + '  ' : '') + 지금.제목;
+    el.innerHTML = 글.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                 + (총 > 1 ? ' <b>(' + 몇 + '/' + 총 + ')</b>' : '');
   }
 
   function 자식의쪽(i){
@@ -859,6 +964,7 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
     if (Math.abs(pages.scrollLeft - 목표) > 2)
       requestAnimationFrame(function(){ pages.scrollLeft = 목표; });
     elCur.textContent = page + 1; elTot.textContent = 쪽수;
+    자리보이기();
     bar.style.width = (쪽수 < 2 ? 100 : (page / (쪽수 - 1) * 100)) + '%';
     prev.disabled = (page <= 0); next.disabled = (page >= 쪽수 - 1);
     /* ★쪽 번호가 아니라 「몇 번째 대목」을 적어 둔다.
