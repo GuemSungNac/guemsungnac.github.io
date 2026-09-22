@@ -473,6 +473,10 @@ a.dl{display:inline-block;margin:.4em auto;padding:.7em 1.15em;
 .nbtbl td.nm{padding-left:.45em}
 .nbtbl td.gen{font-size:.84em}
 .nbtbl td.nm i.sp{display:inline-block;width:1em;font-style:normal}
+/* ★두 글자 이름을 세 글자 폭에 고르게 벌린다 — 끝 글자가 아랫줄 셋째 글자와 나란히 선다
+   (2026-09-22 할아버지 「갑은 아래 나성주의 주에 맞춰야지」) */
+.nbtbl td.nm b.sp2{display:inline-block;width:3em;text-align:justify;
+                   text-align-last:justify;font-weight:inherit}
 .nbtbl tr.grp td{background:#1f3864;color:#fff;font-weight:700;
                  text-align:left;padding-left:.5em;letter-spacing:.06em}
 @media (max-width:360px){ .nbtbl{font-size:.84em} }
@@ -684,7 +688,7 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 
 <table class="nbtbl" id="p7"><caption class="chap"><span class="tag">납부내역 &nbsp;7/9</span>이사진 (3/3)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
 <tr><td class="nm">나지훈</td><td class="">12</td><td class="z">·</td><td class="z">·</td><td class="gen">33-82</td></tr>
-<tr><td class="nm">나<i class="sp"></i>갑</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">34-47</td></tr>
+<tr><td class="nm">나&#12288;갑</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">34-47</td></tr>
 <tr><td class="nm">나성주</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">34-60</td></tr>
 <tr><td class="nm">나병우</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">35-38</td></tr>
 <tr><td class="nm">나광찬</td><td class="z">·</td><td class="">12</td><td class="y26">12</td><td class="gen">36-49</td></tr>
