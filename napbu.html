@@ -1,0 +1,1095 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<base target="_top">   <!-- 앱스스크립트는 책을 iframe 안에 넣는다. 링크가 그 안에 갇히지 않게 -->
+<title>제21대 임원·종인 입금내역</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+
+<script>
+/* ★기본은 「달」 — 어두운 바탕. 밝게 보시려면 해 단추를 누른다.
+   글이 그려지기 전에 정해야 밝은 화면이 번쩍하지 않는다. */
+(function(){
+  var v = 'dark';
+  try{ if(localStorage.getItem('gm2610Theme') === 'light') v = 'light'; }catch(e){}
+  document.documentElement.setAttribute('data-theme', v);
+})();
+</script>
+
+<style>
+/* ── 빛깔 : 새벽 강안개 바탕 · 푸른 기미의 먹 · 호구단자 관인의 붉은빛 ── */
+:root{
+  --paper:#EEF0EE;      /* 강안개 */
+  --sheet:#F7F8F6;      /* 글이 앉는 자리 */
+  --ink:#14191C;        /* 먹 — 밝은 바탕에서 흐려 보이지 않게 진하게 */
+  --dim:#4E585D;        /* 흐린 먹 */
+  --faint:#8E979B;
+  --edge:#D5DAD8;
+  --seal:#A33A2E; --gold:#B8860B; --barfill:#2A3338;       /* 관인 붉은빛 */
+  --river:#3E6B6E;      /* 영산강 청록 */
+  --oldbg:#E7EAE6;      /* 옛 책 말씀 자리 */
+  --shadow:0 1px 3px rgba(31,38,42,.08),0 12px 32px rgba(31,38,42,.10);
+  --edgefade:rgba(31,38,42,.10);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#12171A; --sheet:#171D21; --ink:#F0F4F2; --dim:#B4BFC1; --faint:#8A9497;
+    --edge:#2A3338; --seal:#E07A6C; --gold:#D9B44A; --barfill:#F4F6F5; --river:#7FBAB6; --oldbg:#1D2529;
+    --shadow:0 1px 3px rgba(0,0,0,.5),0 14px 38px rgba(0,0,0,.55);
+    --edgefade:rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#12171A; --sheet:#171D21; --ink:#F0F4F2; --dim:#B4BFC1; --faint:#8A9497;
+  --edge:#2A3338; --seal:#D9695B; --gold:#D9B44A; --barfill:#F4F6F5; --river:#6FA9A6; --oldbg:#1D2529;
+  --shadow:0 1px 3px rgba(0,0,0,.5),0 14px 38px rgba(0,0,0,.55);
+  --edgefade:rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+/* ★문서가 옆으로 넓어지지 못하게 못 박는다.
+   쪽 상자 마흔 개가 옆으로 늘어서 있어서, 가리기만 해서는
+   문서 폭이 그만큼 넓어진 채로 남는다. PC 는 그냥 자르지만
+   폰은 그 넓은 폭에 맞춰 화면을 잡아 「책이 화면보다 크다」가 된다. */
+html,body{
+  height:100%;margin:0;overscroll-behavior:none;
+  width:100%;max-width:100%;overflow-x:hidden;
+}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'Noto Sans KR','Malgun Gothic',sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--seal);outline-offset:3px;border-radius:3px}
+
+/* ── 틀 ── */
+.book{height:100dvh;width:100%;max-width:100%;overflow:hidden;
+      display:grid;grid-template-rows:auto 1fr auto;gap:0}
+/* ★칸이 「제 속의 내용만큼」 넓어지려 드는 것을 막는다.
+   이것이 없으면 제목줄·단추줄이 안 줄어들어 좁은 폰에서 화면 밖으로 나간다.
+   (min-width 의 기본값이 auto 라서 생긴 일 — 2026-08-27 규명) */
+.book > *{min-width:0}
+.bar .name{min-width:0}
+.pageno{min-width:0}
+
+.bar{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px 8px;
+}
+/* ★지금 보는 자리 — 붙임과 제목, 넘치면 (n/총) (2026-09-22 할아버지 지시) */
+.here{
+  font-family:'Noto Sans KR',sans-serif;font-size:.72em;font-weight:600;
+  color:var(--seal,#A33A2E);letter-spacing:.02em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:46vw;opacity:.95;
+}
+.here b{color:var(--dim,#4E585D);font-weight:600}
+/* 제목 위 꼬리표에 붙는 쪽 셈 */
+.tag .pt{font-style:normal;font-weight:700;color:var(--dim,#4E585D);letter-spacing:.06em}
+/* ★좁은 화면에서는 문서 이름을 접고 「붙임 · 제목 (n/총)」을 끝까지 보인다
+   (2026-09-22 — 위 띠가 「202··· 붙임 1···」로 잘려 몇 쪽인지 안 보였다) */
+@media (max-width:560px){ .bar .name{display:none} .here{max-width:62vw} }
+@media (max-width:420px){ .here{max-width:66vw;font-size:.68em} }
+
+.bar .name{
+  font-family:'Noto Serif KR',serif;font-weight:700;font-size:15px;
+  letter-spacing:.02em;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.bar .sp{flex:1}
+.iconbtn{
+  min-width:38px;height:34px;padding:0 8px;white-space:nowrap;border-radius:8px;color:var(--dim);
+  display:grid;place-items:center;font-size:14px;font-weight:700;
+}
+.iconbtn:hover{background:var(--oldbg);color:var(--ink)}
+.iconbtn.small{font-size:12px}
+.iconbtn svg{display:block}
+
+@media (max-width:400px){
+  .bar{gap:6px;padding:10px 12px 8px}
+  .bar .name{font-size:14px}
+  .iconbtn{min-width:34px;padding:0 6px}
+}
+.progress{height:2px;background:var(--edge);margin:0 16px;border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--barfill,#F4F6F5);transition:width .25s ease}
+
+/* ── 글이 흐르는 자리 ──────────────────────────────────────────
+   ★쪽 나누기는 브라우저의 「여러 단(multi-column)」에 맡긴다.
+   전자책 표준 리더(Readium·epub.js)가 모두 쓰는 방법이다.
+   · column-fill:auto + 높이 고정  → 한 단이 화면 높이만큼 차면 다음 단으로
+   · 단 하나 = 한 쪽
+   · 넘기기 = scrollLeft — 실제로 그려진 단 자리를 재서 그 값으로 간다
+   클이 쪽을 만들지 않으므로 넘칠 수가 없다. */
+.stage{position:relative;overflow:hidden}
+
+.pages{
+  height:100%;
+  /* 글 폭 — 좁은 화면은 좌우 22px 씩, 넓은 화면은 읽기 좋은 폭까지만 */
+  width:calc(100% - 44px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));
+  max-width:var(--글폭,680px);
+  margin:0 auto;
+  padding:14px 0 6px;          /* 위아래 여백은 모든 단에 함께 든다 */
+  overflow:hidden;             /* 손가락으로 아무 데나 멈추지 못하게 */
+  column-fill:auto;            /* ★한 단을 끝까지 채우고 다음 단으로 */
+  column-gap:64px;             /* 옆 단이 비치지 않게 넉넉히 */
+  scroll-behavior:smooth;
+  font-size:var(--fs,17px);
+  font-weight:500;
+  line-height:1.9;
+  /* ★한글은 낱말 안에서 끊지 않는다 — 좁은 폰에서 「고을」이 「고/을」로,
+     「되었습니다」가 「되었습/니다」로 갈라졌다 (2026-09-03 할아버지 지적).
+     p 에만 걸려 있어 제목(.chap)·인용(.old)·상자(.point)가 새어 나갔다.
+     그릇에 걸면 모든 자식이 물려받는다. */
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+/* 문단·그림·네모상자가 쪽 경계에서 두 동강 나지 않게 */
+.pages > *{
+  break-inside:avoid;
+  -webkit-column-break-inside:avoid;
+  page-break-inside:avoid;
+}
+@media (prefers-reduced-motion:reduce){ .pages{scroll-behavior:auto} }
+
+/* ★왼쪽 맞춤 — 양쪽 맞춤은 어절 사이가 크게 벌어져 어린이 눈에 거슬린다
+   (한글은 낱말 안에서 끊지 않으므로 벌어짐이 심하다. 2026-08-27 눈으로 확인) */
+.pages p{orphans:2;widows:2;margin:0 0 .95em;text-align:left;word-break:keep-all}
+.pages p.li{margin:0 0 .45em;padding-left:1.1em;text-indent:-1.1em;text-align:left}
+
+.chap{
+  font-family:'Noto Serif KR',serif;font-weight:900;
+  font-size:1.58em;line-height:1.38;letter-spacing:-.02em;
+  /* ★쪽 맨 위 빈 공간 없애기 (2026-09-22 할아버지 「위의 빈 공간은 왜 있냐」 · 11·16쪽)
+     .chap 은 break-before:column 이라 언제나 쪽 맨 위에 온다 — 위 여백이 그대로 빈칸이 됐다 */
+  margin:0 0 .75em;color:var(--ink);text-wrap:balance;
+  break-after:avoid;
+}
+/* ── ★붙임 꼬리표 · 표 제목 · 차례 묶음 (2026-09-22 공문 체계에 맞춰 다시 짬) ── */
+.tag{
+  display:block;font-family:'Noto Sans KR',sans-serif;font-weight:700;
+  font-size:.5em;letter-spacing:.14em;color:var(--seal,#A33A2E);
+  margin:0 0 .45em;opacity:.92;
+}
+/* 표 제목은 표 안(caption)에 둔다 — 제목만 앞 쪽에 남고 표가 넘어가는 일을 막는다 */
+caption.chap{
+  caption-side:top;text-align:left;margin:0 0 .55em;   /* [12] 위 빈칸 없앰 */
+}
+caption.chap .cap{
+  display:block;font-family:'Noto Sans KR',sans-serif;font-weight:400;
+  font-size:.62em;line-height:1.5;color:var(--dim,#4E585D);
+  letter-spacing:0;margin-top:.35em;
+}
+.toc .grp{
+  list-style:none;margin:1.1em 0 .35em;padding:0 0 .3em;
+  font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:.82em;
+  letter-spacing:.06em;color:var(--seal,#A33A2E);
+  border-bottom:1px solid var(--edge,#D5DAD8);
+}
+.toc .grp button{
+  all:unset;cursor:pointer;display:block;width:100%;
+  font-family:inherit;font-weight:inherit;font-size:inherit;
+  letter-spacing:inherit;color:inherit;padding:.15em 0;
+}
+.toc .grp button:hover{opacity:.75}
+
+.toc .grp:first-child{margin-top:0}
+
+/* ── ★붙임 간지 · 장마다 새 쪽 (2026-09-22 할아버지 「붙임 구분이 제대로 안 보인다」) ── */
+.divider{
+  height:100%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;gap:0;
+  break-before:column;-webkit-column-break-before:always;
+  break-inside:avoid;-webkit-column-break-inside:avoid;
+}
+.divider .dnum{
+  font-family:'Noto Sans KR',sans-serif;font-weight:800;
+  font-size:.82em;letter-spacing:.3em;color:var(--seal,#A33A2E);
+  margin:0 0 1.1em;padding:.35em 1.1em .3em;
+  border:1px solid var(--seal,#A33A2E);border-radius:2em;
+}
+.divider .dtitle{
+  font-family:'Noto Serif KR',serif;font-weight:800;
+  font-size:1.62em;line-height:1.4;letter-spacing:-.02em;
+  color:var(--ink);margin:0 0 .8em;text-wrap:balance;word-break:keep-all;
+}
+.divider .dnote{
+  font-size:.82em;line-height:1.7;color:var(--dim,#4E585D);
+  word-break:keep-all;max-width:22em;
+}
+.divider::after{
+  content:'';display:block;width:3.4em;height:2px;
+  background:var(--seal,#A33A2E);opacity:.55;margin-top:1.5em;
+}
+/* ★장은 저마다 새 쪽에서 시작한다 — 제목과 글이 쪽에 딱 맞아 들어가게 */
+.chap{break-before:column;-webkit-column-break-before:always}
+.cover + .chap, .divider + .chap{break-before:auto}
+
+/* ★묶음 머리는 번호를 먹지 않는다 — 안 그러면 차례 순번이 밀린다 */
+.toc li.grp{counter-increment:none}
+
+.chap:first-child{margin-top:0}
+.chap::before{
+  content:"";display:block;width:40px;height:3px;background:var(--gold,#B8860B);
+  margin-bottom:.5em;border-radius:2px;
+}
+.sub{
+  font-family:'Noto Serif KR',serif;font-weight:700;
+  font-size:1.08em;line-height:1.5;color:var(--river);
+  margin:1.3em 0 .55em;padding-bottom:.35em;
+  border-bottom:1px solid var(--edge);
+  text-wrap:balance;break-after:avoid;
+}
+
+/* 옛 책의 말씀 — 글꼴이 바뀐다. 지금 목소리와 옛 목소리를 가른다 */
+.old{
+  font-family:'Noto Serif KR',serif;font-size:1.02em;line-height:1.8;
+  margin:.9em 0 1em;padding:.7em .95em .7em 1.05em;
+  background:var(--oldbg);border-left:3px solid var(--river);
+  color:var(--ink);break-inside:avoid;
+}
+.old[data-tag="물음"]{border-left-color:var(--seal)}
+.old[data-tag="답"]{border-left-color:var(--seal);opacity:.94}
+
+/* 결론 — 네모 상자 */
+.point{
+  border:1px solid var(--seal);border-radius:2px;
+  padding:.75em .95em;margin:1em 0 1.1em;
+  font-weight:500;color:var(--ink);background:var(--sheet);
+  break-inside:avoid;text-align:left !important;
+}
+/* 본관이 바뀌는 자리 */
+.mark{
+  font-weight:700;color:var(--seal);letter-spacing:.01em;
+  margin:.8em 0 .6em !important;text-align:left !important;
+  break-inside:avoid;
+}
+
+.pic{margin:1.1em 0 1.2em;break-inside:avoid}
+.pic img{
+  display:block;width:100%;height:auto;border-radius:2px;
+  border:1px solid var(--edge);background:var(--sheet);
+  aspect-ratio:14/9;              /* ★그림이 다 그려지기 전에도 자리를 알 수 있게 */
+  max-height:56vh;object-fit:contain;
+}
+/* ★아주 낮은 화면(Z플립 커버 따위)에서는 그림을 더 줄인다.
+   화면 높이가 374px 인데 구글 안내 띠까지 빼면 책 높이가 277px 밖에 안 되어,
+   그림+설명이 한 쪽을 넘친다 (2026-08-27 실측 : 4px 넘침). */
+@media (max-height:560px){
+  .pic{margin:.7em 0 .8em}
+  .pic img{max-height:40vh}
+  .pic figcaption{font-size:.72em;line-height:1.5;margin-top:.35em}
+}
+.pic figcaption{
+  margin-top:.5em;font-size:.8em;line-height:1.6;color:var(--dim);
+  text-align:left;word-break:keep-all;
+}
+
+/* ── 표 ──
+   틀에 표 스타일이 아예 없어 선이 안 보이고 칸 폭이 제멋대로였다.
+   좁은 폰에서 「우리」가 「우/리」로 쪼개져 보였다. (2026-09-03 할아버지 지적) */
+.tbl{
+  width:100%;border-collapse:collapse;
+  margin:.9em 0 1.2em;
+  font-size:.92em;line-height:1.6;
+  break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
+}
+.tbl th,.tbl td{
+  border:1px solid var(--edge);
+  padding:.45em .55em;
+  text-align:left;vertical-align:top;
+  word-break:keep-all;
+}
+.tbl th{
+  background:var(--oldbg);color:var(--dim);
+  font-weight:700;font-size:.9em;letter-spacing:.02em;
+}
+.tbl tr:nth-child(even) td{background:var(--oldbg)}
+/* 좁은 화면에서는 조금 더 작게 — 칸이 좁아 낱말이 쪼개지지 않게 */
+@media (max-width:430px){
+  .tbl{font-size:.84em}
+  .tbl th,.tbl td{padding:.38em .4em}
+}
+
+/* ── 겉장 ── */
+.cover{
+  height:100%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;gap:0;padding-bottom:2%;
+  /* ★겉장은 통째로 한 쪽에 — 「손가락으로 밀거나…」 안내가 2쪽으로 밀리던 것을 막는다
+     (2026-09-22 할아버지 지적) */
+  break-inside:avoid;-webkit-column-break-inside:avoid;overflow:hidden;
+}
+.cover-seal{
+  width:48px;height:48px;border:2px solid var(--seal);border-radius:3px;
+  display:grid;place-items:center;margin:.9em auto 1.1em;
+  transform:rotate(-4deg);
+}
+.cover-seal span{
+  font-family:'Noto Serif KR',serif;font-weight:800;font-size:30px;
+  color:var(--seal);line-height:1;
+}
+.cover-title{
+  font-family:'Noto Serif KR',serif;font-weight:800;
+  font-size:1.95em;line-height:1.35;letter-spacing:-.02em;
+  margin:0 0 .55em;text-wrap:balance;
+}
+.cover-sub{
+  font-size:.9em;color:var(--ink);margin:0 0 1.1em;
+  text-align:center !important;word-break:keep-all;line-height:1.7;
+}
+.cover-by{font-size:.8em;color:var(--dim);margin:1.5em 0 0;text-align:center !important}
+.cover-rule{width:44px;height:1px;background:var(--edge);margin:.4em 0 1.7em}
+.cover-meta{
+  margin:0;display:grid;grid-template-columns:auto;gap:.28em;
+  text-align:center;font-size:.8em;line-height:1.65;
+}
+.cover-meta dt{
+  color:var(--dim);font-size:.86em;letter-spacing:.06em;
+  margin-top:.85em;
+}
+.cover-meta dt:first-child{margin-top:0}
+.cover-meta dd{margin:0;color:var(--ink);font-family:'Noto Serif KR',serif}
+.cover-meta .q{font-family:'Noto Sans KR',sans-serif;font-size:.9em;color:var(--dim)}
+.cover-hint{
+  margin:2.4em 0 0;font-size:.78em;color:var(--dim);
+  text-align:center !important;letter-spacing:.02em;
+}
+.cover-hint::after{content:" →";color:var(--seal)}
+/* ★읽던 자리가 있을 때만 겉장에 뜨는 단추 (2026-08-27)
+   책은 언제나 겉장에서 열린다. 이어 읽고 싶으면 이것을 누른다. */
+.cover-go{
+  margin:1.5em 0 0;padding:.62em 1.25em;
+  border:1px solid var(--seal);border-radius:999px;
+  color:var(--seal);font-size:.82em;font-weight:700;
+  letter-spacing:.02em;line-height:1.4;
+  background:transparent;
+}
+.cover-go:hover{background:var(--seal);color:var(--sheet)}
+.cover-go[hidden]{display:none}
+
+/* ── 아래 ── */
+.nav{
+  display:flex;align-items:center;gap:6px;padding:6px 12px 12px;
+}
+.pagebtn{
+  width:46px;height:40px;border-radius:9px;color:var(--dim);
+  display:grid;place-items:center;font-size:19px;
+}
+.pagebtn:hover:not(:disabled){background:var(--oldbg);color:var(--ink)}
+.pagebtn:disabled{opacity:.28;cursor:default}
+.pageno{
+  flex:1;text-align:center;font-size:12.5px;color:var(--faint);
+  font-variant-numeric:tabular-nums;letter-spacing:.04em;
+}
+.pageno b{color:var(--dim);font-weight:500}
+
+/* ── 목차 ── */
+.tocwrap{
+  position:fixed;inset:0;z-index:40;display:none;
+  background:var(--edgefade);
+}
+.tocwrap.on{display:block}
+.toc{
+  position:absolute;left:0;right:0;bottom:0;max-height:76%;
+  background:var(--sheet);border-top:2px solid var(--seal);
+  border-radius:14px 14px 0 0;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+  animation:up .22s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes up{from{transform:translateY(14px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){ .toc{animation:none} }
+.toc h2{
+  font-family:'Noto Serif KR',serif;font-size:15px;font-weight:700;
+  margin:0;padding:16px 20px 10px;color:var(--dim);letter-spacing:.04em;
+}
+.toc ol{list-style:none;margin:0;padding:0 8px 22px;overflow-y:auto}
+.toc li{counter-increment:t}
+.toc button{
+  display:flex;gap:12px;width:100%;text-align:left;
+  padding:11px 12px;border-radius:8px;line-height:1.5;
+  font-size:15px;word-break:keep-all;
+}
+.toc button::before{
+  content:counter(t);color:var(--faint);font-size:12px;
+  font-variant-numeric:tabular-nums;min-width:1.3em;padding-top:.25em;
+}
+.toc button:hover{background:var(--oldbg)}
+.toc ol{counter-reset:t}
+
+/* ── 넓은 화면 : 두 쪽 펼침을 하지 않는다 (2026-08-27 할아버지 지시) ──
+   어느 기기든 「한 번에 한 쪽」이다. 화면이 넓으면 쪽을 넓히는 대신
+   좌우 여백을 키워 글 폭을 읽기 좋게 잡는다. 글 폭은 --글폭 하나로 다스린다. */
+@media (min-width:640px){
+  .pages{font-size:var(--fs,18.5px);padding-top:20px;padding-bottom:10px}
+}
+.mid{text-align:center}
+a.dl{display:inline-block;margin:.4em auto;padding:.7em 1.15em;
+  background:var(--seal);color:#fff;border-radius:8px;
+  font-weight:700;text-decoration:none}
+.pages .q{color:var(--dim);font-size:.9em}
+
+/* ── 납부내역 겉장 ── */
+.coin{width:96px;height:96px;display:block;margin:0 auto .55em;
+      filter:drop-shadow(0 3px 8px rgba(0,0,0,.18))}
+.upd{font-size:.92em;color:var(--seal,#A33A2E);margin:.1em 0 .75em;letter-spacing:.02em}
+.upd b{font-weight:800}
+.acct{border:1.5px solid var(--gold,#B8860B);border-radius:12px;
+      padding:.6em 1.1em;margin:.2em auto .9em;max-width:17.5em;
+      background:rgba(184,134,11,.07)}
+.acctline{font-size:.74em;letter-spacing:.16em;color:var(--seal,#A33A2E);
+          margin:0 0 .3em;font-weight:700}
+.acctno{font-size:1.1em;font-weight:800;margin:0 0 .2em;letter-spacing:.01em;
+        font-family:'Noto Sans KR',sans-serif}
+.acctnm{font-size:.84em;color:var(--dim,#4E585D);margin:0}
+.cover-note{font-size:.8em;line-height:1.7;color:var(--dim,#4E585D);
+            margin:0 0 1.1em;opacity:.9}
+.nbtbl tr.grp td{background:#1f3864;color:#fff;font-weight:700;
+                 text-align:left;padding-left:.6em;letter-spacing:.06em}
+/* ★겉장이 한 쪽을 넘지 않게 — 화면이 낮으면 더 줄인다 */
+.cover .cover-title{margin-bottom:.35em}
+.cover .cover-sub{margin-bottom:.65em}
+@media (max-height:760px){
+  .coin{width:74px;height:74px;margin-bottom:.4em}
+  .cover-title{font-size:1.62em}
+  .acct{padding:.5em 1em;margin:.15em auto .7em}
+  .acctno{font-size:1em}
+  .cover-note{font-size:.74em;margin-bottom:.8em}
+}
+@media (max-height:620px){
+  .coin{width:58px;height:58px}
+  .cover-title{font-size:1.42em}
+  .subtitle{font-size:.84em;margin-bottom:.5em}
+}
+
+.subtitle{font-family:'Noto Serif KR',serif;font-size:.92em;font-weight:700;
+          color:var(--seal,#A33A2E);letter-spacing:.02em;margin:.1em 0 .7em;
+          opacity:.95}
+</style>
+</head>
+<body>
+
+<div class="book">
+  <div class="bar">
+    <span class="name">2026-006호 10월 이사회 안내</span><span class="here" id="here" aria-live="polite"></span>
+    <span class="sp"></span>
+    <button class="iconbtn" id="full" type="button" aria-label="화면 꽉 채우기" title="화면 꽉 채우기"></button>
+    <button class="iconbtn" id="theme" type="button" aria-label="밝게 어둡게">☾</button>
+    <button class="iconbtn small" id="smaller" type="button" aria-label="글씨 작게">가－</button>
+    <button class="iconbtn" id="bigger" type="button" aria-label="글씨 크게">가＋</button>
+    <button class="iconbtn" id="tocbtn" type="button" aria-label="차례">☰</button>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+
+  <div class="stage" id="stage">
+    <div class="pages" id="pages"><section class="cover">
+
+<!-- ★엽전 — 그림 파일이 아니라 그려 넣은 것이라 아무리 키워도 안 깨진다 -->
+<svg class="coin" viewBox="0 0 120 120" aria-hidden="true">
+  <defs>
+    <radialGradient id="g1" cx="38%" cy="32%">
+      <stop offset="0%"  stop-color="#F2D98B"/>
+      <stop offset="55%" stop-color="#D9B44A"/>
+      <stop offset="100%" stop-color="#9A7B22"/>
+    </radialGradient>
+  </defs>
+  <circle cx="60" cy="60" r="54" fill="url(#g1)" stroke="#8A6B1C" stroke-width="2"/>
+  <circle cx="60" cy="60" r="46" fill="none" stroke="#8A6B1C" stroke-width="1.2" opacity=".65"/>
+  <rect x="46" y="46" width="28" height="28" rx="2" fill="var(--paper,#EEF0EE)" stroke="#8A6B1C" stroke-width="2"/>
+  <text x="60" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#6B5316" font-family="'Noto Serif KR',serif">常</text>
+  <text x="60" y="97" text-anchor="middle" font-size="15" font-weight="700" fill="#6B5316" font-family="'Noto Serif KR',serif">通</text>
+  <text x="26" y="67" text-anchor="middle" font-size="15" font-weight="700" fill="#6B5316" font-family="'Noto Serif KR',serif">平</text>
+  <text x="94" y="67" text-anchor="middle" font-size="15" font-weight="700" fill="#6B5316" font-family="'Noto Serif KR',serif">寶</text>
+</svg>
+
+<h1 class="cover-title">제21대 임원·종인<br>입금내역</h1>
+<p class="subtitle">호남종친회 총무이사의 비밀장부</p>
+<p class="cover-sub">금성나씨 호남종친회</p>
+
+<!-- ★고친 날 — 갱신할 때 이 두 줄만 바꾸면 된다 ▼▼▼ -->
+<p class="upd"><b>2026. 9. 22.</b> 현재</p>
+<!-- ▲▲▲ -->
+
+<div class="acct">
+  <p class="acctline">회비 계좌</p>
+  <p class="acctno">농협 351-0424-6879-13</p>
+  <p class="acctnm">금성나씨호남종친회</p>
+</div>
+
+<p class="cover-sub" style="font-size:.88em;line-height:1.8">
+본 종친회는 임원 여러분의 회비로 운영됩니다.<br>
+총회·이사회·경조사·문중 행사가 모두 이 회비로.</p>
+
+<p class="cover-note">
+「·」는 아직 내지 않으신 것입니다<br>
+연말 장학생 추천은 그해 회비를 납부하신 임원만</p>
+
+<p class="cover-sub" style="opacity:.75">손가락으로 밀거나 좌우 끝을 톡 치면 넘어갑니다 →</p>
+<button class="cover-go" id="이어단추" type="button" hidden></button>
+</section>
+
+<style>
+.nbtbl{width:100%;border-collapse:collapse;font-size:.95em;margin:.5em 0}
+.nbtbl th,.nbtbl td{border:1px solid #d5d5d5;padding:.42em .3em;text-align:center;background:#fff;color:#222}
+.nbtbl thead th{background:#1f3864;color:#fff;font-weight:700}
+.nbtbl td.nm{text-align:left;padding-left:.6em;font-weight:600;white-space:nowrap}
+.nbtbl tr.sum td{background:#eef2f8;color:#1f3864;font-weight:700}
+.nbtbl tr.cont td{background:#fafafa;color:#888;font-size:.85em;text-align:right}
+.nbtbl td.y26{background:#fff3d6;font-weight:700;color:#8a5a00}
+.nbtbl td.z{color:#cfcfcf}
+.nbtbl td.gen{color:#999;font-size:.86em}
+.cap{font-size:.86em;color:#888;margin:.2em 0 .8em}
+/* ── 각주 — 말씀 기록에서 우리 자료와 숫자가 다른 곳 (2026-09-22) ─────
+   ★바탕과 글자색을 둘 다 못박는다. 하나만 적으면 어두운 화면에서 묻힌다 */
+sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align:super;margin-left:1px}
+.fn{border-top:1px solid var(--edge,#D5DAD8);margin:1.1em 0 .4em;padding-top:.7em;
+    break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid}
+.fn p{font-size:.82em;line-height:1.66;color:var(--dim,#4E585D);margin:0 0 .5em;
+      text-indent:-1.5em;padding-left:1.5em;text-align:left}
+.fn p b{color:var(--ink,#14191C);font-weight:700}
+.fn p b:first-child{color:var(--seal,#A33A2E)}
+
+.bigline{text-align:center;font-size:1.22em;line-height:2.05;margin:.7em 0}
+/* [16] 신청 적는 본 — 굵기 보통으로 (2026-09-22 할아버지 「글 너무 두껍다 얇게 해라」) */
+.bigline.thin{font-weight:500}
+
+/* [5] 공문 머리 — 라벨 칸 + 내용 칸 두 칸 격자.
+   줄이 넘어가도 둘째 줄이 내용 칸 왼쪽에 나란히 선다
+   (「오전 11시」가 「2026」의 2 아래, 「(랜드피아」의 ( 가 「금성나씨」의 금 아래) */
+.pages p.li.gi{
+  display:grid;grid-template-columns:auto 1fr;column-gap:.5em;
+  padding-left:0;text-indent:0;align-items:start;
+}
+.pages p.li.gi > span:first-child{white-space:nowrap}
+/* [5] 붙임 네 줄은 세로로 나란히 — 가운데서 잘리지 않게 한 묶음으로 */
+.pages p.li.buts{break-inside:avoid;-webkit-column-break-inside:avoid;margin-bottom:.8em}
+
+/* [13] 하루 차례 — 시각 칸과 내용 칸이 겹치지 않게 못 박는다 */
+.pages p.li.tl{
+  display:grid;grid-template-columns:4.4em 1fr;column-gap:.5em;
+  padding-left:0;text-indent:0;align-items:start;margin-bottom:.5em;
+}
+
+/* [7] 때 — 가·나 두 줄이 세로로 나란히 서게 */
+.ttime{display:inline-grid;grid-template-columns:auto auto;column-gap:.45em;
+       text-align:left;vertical-align:top}
+
+/* [10][11] 사진 두 장을 한 쪽에 나란히 (2026-09-22 할아버지 「앞의 사진과 이번 사진을 한쪽에 다 넣고」) */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:.55em;margin:.4em 0 .95em;
+      break-inside:avoid;-webkit-column-break-inside:avoid}
+.pair figure{margin:0}
+.pair img{width:100%;max-height:34vh;object-fit:contain;border-radius:6px}
+.pair .cap{margin:.25em 0 0;font-size:.74em;line-height:1.5}
+.pair.three img{max-height:23vh}
+@media (max-width:360px){ .pair img{max-height:28vh} .pair.three img{max-height:20vh} }
+.pages img{max-height:46vh;object-fit:contain;height:auto}
+@media (max-width:360px){.nbtbl{font-size:.84em}.nbtbl th,.nbtbl td{padding:.28em .12em}}
+@media (max-height:420px){.pages img{max-height:40vh}.nbtbl{font-size:.8em}}
+</style>
+
+<table class="nbtbl" id="p1"><caption class="chap"><span class="tag">임원·종인 입금내역</span>고문진 · 감사<span class="cap">고문 일곱 분 · 감사 두 분 &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">나영창</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">29-36</td></tr>
+<tr><td class="nm">나성식</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">30-57</td></tr>
+<tr><td class="nm">나승판</td><td class="z">·</td><td class="">24</td><td class="z">·</td><td class="gen">33-34</td></tr>
+<tr><td class="nm">나승포</td><td class="z">·</td><td class="">20</td><td class="z">·</td><td class="gen">33-42</td></tr>
+<tr><td class="nm">나간채</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">33-48</td></tr>
+<tr><td class="nm">나단오</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">34-40</td></tr>
+<tr><td class="nm">나근채</td><td class="">43.5</td><td class="">12</td><td class="y26">20</td><td class="gen">36-47</td></tr>
+<tr class="sum"><td class="nm">소계</td><td class="">67.5</td><td class="">80</td><td class="y26">20</td><td class="gen"></td></tr>
+<tr class="grp"><td class="nm" colspan="5">감 사</td></tr>
+<tr><td class="nm">나석환</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">31-57</td></tr>
+<tr><td class="nm">나유정</td><td class="z">·</td><td class="">17</td><td class="z">·</td><td class="gen">34-57</td></tr>
+<tr class="sum"><td class="nm">소계</td><td class="">12</td><td class="">29</td><td class="y26">12</td><td class="gen"></td></tr>
+</tbody></table>
+
+<table class="nbtbl" id="p2"><caption class="chap"><span class="tag">임원·종인 입금내역</span>자문위원<span class="cap">자문위원 여덟 분 &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">나문식</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">30-40</td></tr>
+<tr><td class="nm">나준식</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">30-41</td></tr>
+<tr><td class="nm">나맹호</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">31-38</td></tr>
+<tr><td class="nm">나맹환</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">31-47</td></tr>
+<tr><td class="nm">나명수</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">32-38</td></tr>
+<tr><td class="nm">나기대</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">32-45</td></tr>
+<tr><td class="nm">나용덕</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-55</td></tr>
+<tr><td class="nm">나성군</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">34-39</td></tr>
+<tr class="sum"><td class="nm">소계</td><td class="">60</td><td class="">60</td><td class="y26">60</td><td class="gen"></td></tr>
+</tbody></table>
+
+<table class="nbtbl" id="p3"><caption class="chap"><span class="tag">임원·종인 입금내역</span>회장단 (1/2)<span class="cap">회장 · 수석부회장 · 부회장 &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">나승범</td><td class="">150</td><td class="">100</td><td class="z">·</td><td class="gen">회장</td></tr>
+<tr><td class="nm">나영길</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">수석</td></tr>
+<tr><td class="nm">나병열</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">31-49</td></tr>
+<tr><td class="nm">나인정</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">31-60</td></tr>
+<tr><td class="nm">나민순</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">32-35</td></tr>
+<tr><td class="nm">나영주</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">33-41</td></tr>
+<tr><td class="nm">나승묵</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">33-42</td></tr>
+<tr><td class="nm">나승만</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">33-47</td></tr>
+<tr><td class="nm">나상근</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-49</td></tr>
+<tr class="cont"><td colspan="5">▶ 다음 쪽으로 이어집니다</td></tr>
+</tbody></table>
+
+<table class="nbtbl" id="p4"><caption class="chap"><span class="tag">임원·종인 입금내역</span>회장단 (2/2)<span class="cap">부회장 (이어서) &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">나승병</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-54</td></tr>
+<tr><td class="nm">나금주</td><td class="">12</td><td class="z">·</td><td class="y26">24</td><td class="gen">34-49</td></tr>
+<tr><td class="nm">나의갑</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">34-49</td></tr>
+<tr><td class="nm">나해주</td><td class="z">·</td><td class="">12</td><td class="z">·</td><td class="gen">34-57</td></tr>
+<tr><td class="nm">나병대</td><td class="z">·</td><td class="">12</td><td class="y26">12</td><td class="gen">35-58</td></tr>
+<tr><td class="nm">나성채</td><td class="">24</td><td class="">12</td><td class="z">·</td><td class="gen">36-49</td></tr>
+<tr><td class="nm">나홍채</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">36-51</td></tr>
+<tr><td class="nm">나선홍</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">37-62</td></tr>
+<tr class="sum"><td class="nm">소계</td><td class="">258</td><td class="">208</td><td class="y26">72</td><td class="gen"></td></tr>
+</tbody></table>
+
+<table class="nbtbl" id="p5"><caption class="chap"><span class="tag">임원·종인 입금내역</span>이사진 (1/3)<span class="cap">총무·재무·홍보·관리이사와 이사 &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">라정호</td><td class="z">·</td><td class="">5</td><td class="z">·</td><td class="gen">총무</td></tr>
+<tr><td class="nm">나영식</td><td class="z">·</td><td class="">26</td><td class="z">·</td><td class="gen">재무</td></tr>
+<tr><td class="nm">나홍주</td><td class="z">·</td><td class="">10</td><td class="z">·</td><td class="gen">홍보</td></tr>
+<tr><td class="nm">나윤수</td><td class="z">·</td><td class="z">·</td><td class="y26">신임</td><td class="gen">관리</td></tr>
+<tr><td class="nm">나두현</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">31-46</td></tr>
+<tr><td class="nm">나광출</td><td class="z">·</td><td class="z">·</td><td class="y26">12</td><td class="gen">31-53</td></tr>
+<tr><td class="nm">나송환</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">31-57</td></tr>
+<tr><td class="nm">나병헌</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">31-60</td></tr>
+<tr><td class="nm">나석환</td><td class="z">·</td><td class="z">·</td><td class="y26">신임</td><td class="gen">31-63</td></tr>
+<tr class="cont"><td colspan="5">▶ 다음 쪽으로 이어집니다</td></tr>
+</tbody></table>
+
+<table class="nbtbl" id="p6"><caption class="chap"><span class="tag">임원·종인 입금내역</span>이사진 (2/3)<span class="cap">이사 (이어서) &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">나종현</td><td class="">12</td><td class="">42</td><td class="y26">12</td><td class="gen">32-38</td></tr>
+<tr><td class="nm">나승채</td><td class="">58</td><td class="z">·</td><td class="z">·</td><td class="gen">33-49</td></tr>
+<tr><td class="nm">나찬영</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">33-50</td></tr>
+<tr><td class="nm">나승만</td><td class="z">·</td><td class="">12</td><td class="z">·</td><td class="gen">33-52</td></tr>
+<tr><td class="nm">나종욱</td><td class="">12</td><td class="">12</td><td class="y26">22</td><td class="gen">33-54</td></tr>
+<tr><td class="nm">나승철</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-57</td></tr>
+<tr><td class="nm">나영재</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-59</td></tr>
+<tr><td class="nm">나영선</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-67</td></tr>
+<tr><td class="nm">나승철</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-73</td></tr>
+<tr><td class="nm">나지훈</td><td class="">12</td><td class="z">·</td><td class="z">·</td><td class="gen">33-82</td></tr>
+<tr class="cont"><td colspan="5">▶ 다음 쪽으로 이어집니다</td></tr>
+</tbody></table>
+
+<table class="nbtbl" id="p7"><caption class="chap"><span class="tag">임원·종인 입금내역</span>이사진 (3/3)<span class="cap">이사 (이어서) &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">나&nbsp;&nbsp;갑</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">34-47</td></tr>
+<tr><td class="nm">나성주</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">34-60</td></tr>
+<tr><td class="nm">나병우</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">35-38</td></tr>
+<tr><td class="nm">나광찬</td><td class="z">·</td><td class="">12</td><td class="y26">12</td><td class="gen">36-49</td></tr>
+<tr><td class="nm">나귀채</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">36-53</td></tr>
+<tr><td class="nm">나영채</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">36-54</td></tr>
+<tr><td class="nm">나인채</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">36-59</td></tr>
+<tr><td class="nm">나항도</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">36-69</td></tr>
+<tr class="sum"><td class="nm">소계</td><td class="">178</td><td class="">203</td><td class="y26">82</td><td class="gen"></td></tr>
+<tr class="sum"><td class="nm">임원계</td><td class="">575.5</td><td class="">580</td><td class="y26">246</td><td class="gen"></td></tr>
+</tbody></table>
+
+<table class="nbtbl" id="p8"><caption class="chap"><span class="tag">종인 및 단체</span>종인·단체 (1/2)<span class="cap">임원이 아니신 종인과 단체 &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">나윤경</td><td class="">12</td><td class="z">·</td><td class="z">·</td><td class="gen">광주</td></tr>
+<tr><td class="nm">나행옥</td><td class="">5</td><td class="z">·</td><td class="z">·</td><td class="gen">암태</td></tr>
+<tr><td class="nm">나행수</td><td class="">5</td><td class="z">·</td><td class="z">·</td><td class="gen">목포</td></tr>
+<tr><td class="nm">나병진</td><td class="">10</td><td class="z">·</td><td class="z">·</td><td class="gen">광주</td></tr>
+<tr><td class="nm">나장주</td><td class="">10</td><td class="z">·</td><td class="z">·</td><td class="gen">광주</td></tr>
+<tr><td class="nm">나창주</td><td class="">20</td><td class="z">·</td><td class="z">·</td><td class="gen">광주</td></tr>
+</tbody></table>
+
+<table class="nbtbl" id="p9"><caption class="chap"><span class="tag">종인 및 단체</span>종인·단체 (2/2)<span class="cap">이어서 &nbsp;·&nbsp; 2026. 8. 22. 현재 · 단위 만원</span></caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">나승석</td><td class="">10</td><td class="z">·</td><td class="z">·</td><td class="gen"></td></tr>
+<tr><td class="nm">나○○</td><td class="">10</td><td class="z">·</td><td class="z">·</td><td class="gen">남원</td></tr>
+<tr><td class="nm">나정우</td><td class="">10</td><td class="z">·</td><td class="z">·</td><td class="gen"></td></tr>
+<tr><td class="nm">나계환</td><td class="z">·</td><td class="">30</td><td class="z">·</td><td class="gen">나주</td></tr>
+<tr><td class="nm">대종회</td><td class="z">·</td><td class="">20</td><td class="y26">30</td><td class="gen">나주</td></tr>
+<tr><td class="nm">나덕주</td><td class="z">·</td><td class="z">·</td><td class="y26">10</td><td class="gen">광주</td></tr>
+<tr class="sum"><td class="nm">소계</td><td class="">92</td><td class="">50</td><td class="y26">40</td><td class="gen"></td></tr>
+</tbody></table>
+</div>
+  </div>
+
+  <div class="nav">
+    <button class="pagebtn" id="prev" type="button" aria-label="앞 쪽">‹</button>
+    <div class="pageno"><b id="cur">1</b> / <span id="tot">1</span></div>
+    <button class="pagebtn" id="next" type="button" aria-label="다음 쪽">›</button>
+  </div>
+</div>
+
+<div class="tocwrap" id="tocwrap">
+  <nav class="toc" role="dialog" aria-label="차례">
+    <h2>차 례</h2>
+    <ol id="toclist">
+<li><button type="button" data-go="p1">고문진 · 감사</button></li>
+<li><button type="button" data-go="p2">자문위원</button></li>
+<li><button type="button" data-go="p3">회장단 (1/2)</button></li>
+<li><button type="button" data-go="p4">회장단 (2/2)</button></li>
+<li><button type="button" data-go="p5">이사진 (1/3)</button></li>
+<li><button type="button" data-go="p6">이사진 (2/3)</button></li>
+<li><button type="button" data-go="p7">이사진 (3/3)</button></li>
+<li><button type="button" data-go="p8">종인·단체 (1/2)</button></li>
+<li><button type="button" data-go="p9">종인·단체 (2/2)</button></li>
+</ol>
+  </nav>
+</div>
+
+<script>
+(function(){
+  /* ══ 쪽맞춤은 브라우저에게 맡기고, 클은 「단 자리」만 잰다 ══ */
+  var stage = document.getElementById('stage');
+  var pages = document.getElementById('pages');
+  var elCur = document.getElementById('cur'), elTot = document.getElementById('tot');
+  var bar   = document.getElementById('bar');
+  var prev  = document.getElementById('prev'), next = document.getElementById('next');
+
+  var 자식 = Array.prototype.slice.call(pages.children);
+  var 자리 = [];        /* 자식마다 그려진 왼쪽 자리 */
+  var 단자리 = [0];     /* 쪽마다 scrollLeft 값 — 셈이 아니라 실측 */
+  var page = 0, 쪽수 = 1;
+
+  /* ── 단 자리를 잰다 ────────────────────────────────────────
+     ★셈하지 않는다. 브라우저가 실제로 그린 자리를 그대로 쓴다.
+     단 간격은 일정하지 않게 잡히므로 (폭+틈)×번호 로 맞히면 어긋난다. */
+  function 단재기(){
+    /* 단 하나의 폭 = 상자 폭. 퍼센트로는 줄 수 없어 px 로 못 박는다 */
+    var 폭 = pages.clientWidth;
+    if (!(폭 > 60)) 폭 = Math.max(240, document.documentElement.clientWidth - 44);
+    pages.style.columnWidth = 폭 + 'px';
+
+    /* ★재는 동안 스크롤을 건드리지 않는다.
+       CSS 에 scroll-behavior:smooth 가 걸려 있어서, 재려고 scrollLeft 를
+       0 으로 되돌리면 그것이 「부드러운 스크롤」로 처리된다.
+       그 움직임이 뒤늦게 자리를 0 까지 끌고 가서, 되살려 둔 자리를 덮어썼다.
+       (2026-08-27 규명 — 이어읽기가 안 되던 참까닭)
+       스크롤 값을 더해 주면 문서 좌표가 되므로 건드릴 까닭이 없다. */
+    var 바탕 = pages.getBoundingClientRect().left - pages.scrollLeft;
+
+    /* ★그려지지 않는 자식(<style> 따위)은 쪽으로 세지 않는다.
+       getClientRects() 가 비어 있으면 자리가 0 으로 잡혀, 바탕을 뺀 값이
+       음수(-300)가 된다. 그것이 단자리 맨 앞에 끼어 「빈 첫 쪽」을 만들었다.
+       브라우저는 음수 scrollLeft 를 0 으로 끌어당기므로 1쪽과 2쪽이 같은
+       화면으로 보였다 (2026-09-21 할아버지 지적 → 2026-09-22 잡음).
+       앞의 것 자리를 물려주어, 이어읽기 대목 번호는 그대로 맞는다. */
+    자리 = [];
+    for (var i = 0; i < 자식.length; i++){
+      var rs = 자식[i].getClientRects();
+      if (!rs.length){
+        자리.push(i ? 자리[i-1] : 0);
+        continue;
+      }
+      자리.push(Math.round(rs[0].left - 바탕));
+    }
+    /* ★표가 두 쪽 넘게 걸치면, 위에서는 표의 「첫 쪽 자리」 하나만 잡힌다.
+       그래서 표 뒤쪽(소계만 남은 쪽)이 넘김 목록에서 빠져 두 쪽이 한꺼번에 넘어갔다.
+       (2026-09-22 할아버지 지적 — 27·30·31·32·33쪽)
+       표의 줄(tr)마다 자리를 재어 보태면, 표가 걸친 쪽이 하나도 빠지지 않는다.
+       ⚠좌우로 나뉘는 .pair 는 넣지 않는다 — 오른쪽 사진 자리가 딴 쪽으로 잡힌다. */
+    var 후보 = 자리.slice();
+    var 줄들 = pages.querySelectorAll('tr');
+    for (var q = 0; q < 줄들.length; q++){
+      var rq = 줄들[q].getClientRects();
+      for (var w = 0; w < rq.length; w++) 후보.push(Math.round(rq[w].left - 바탕));
+    }
+    var 정렬 = 후보.sort(function(a,b){ return a-b; });
+    단자리 = [];
+    for (var j = 0; j < 정렬.length; j++)
+      if (정렬[j] >= -1 && (!단자리.length || 정렬[j] - 단자리[단자리.length-1] > 8))
+        단자리.push(정렬[j] < 0 ? 0 : 정렬[j]);
+    if (!단자리.length) 단자리 = [0];
+
+    /* ★실측에서 빠진 칸을 셈으로 메운다.
+       아주 좁고 낮은 화면(Z플립 커버)에서는 표 한 줄이 한 칸보다 커서
+       그 칸 안에 시작하는 것이 하나도 없다. 그런 칸은 위 실측에 안 잡혀
+       넘길 때 건너뛰어졌다 (2026-09-22 — 실제 단 114, 잡힌 것 110).
+       단 간격은 우리가 폭을 px 로 못 박았으므로 (폭 + 틈) 으로 일정하다. */
+    var 틈 = parseFloat(getComputedStyle(pages).columnGap) || 0;
+    var 한칸 = 폭 + 틈;
+    var 참단 = Math.round((pages.scrollWidth + 틈) / 한칸);
+    if (참단 > 단자리.length){
+      for (var c = 0; c < 참단; c++){
+        var 자 = Math.round(c * 한칸), 있나 = false;
+        for (var e = 0; e < 단자리.length; e++)
+          if (Math.abs(단자리[e] - 자) <= 8){ 있나 = true; break; }
+        if (!있나) 단자리.push(자);
+      }
+      단자리.sort(function(a,b){ return a-b; });
+    }
+    쪽수 = 단자리.length;
+    장자리재기();
+  }
+
+  /* ── ★지금 보는 자리(붙임·제목·나눔표시) ── 2026-09-22 할아버지 지시
+     한 장이 여러 쪽에 걸치면 위 띠에 「붙임 3 · 이사진 (2/3)」처럼 보여 준다 */
+  var 장목록 = [];
+  function 장자리재기(){
+    장목록 = [];
+    var 바탕2 = pages.getBoundingClientRect().left - pages.scrollLeft;
+    var 것들 = pages.querySelectorAll('.divider, h2.chap, caption.chap');
+    for (var i = 0; i < 것들.length; i++){
+      var el = 것들[i], rs = el.getClientRects();
+      if (!rs.length) continue;
+      var L = Math.round(rs[0].left - 바탕2), 차 = Infinity, p = 0;
+      for (var t = 0; t < 단자리.length; t++){
+        var d = Math.abs(L - 단자리[t]);
+        if (d < 차){ 차 = d; p = t; }
+      }
+      var 꼬 = el.querySelector('.tag, .dnum');
+      var 제 = '';
+      if (el.classList.contains('divider')){
+        제 = (el.querySelector('.dtitle') || {}).textContent || '';
+      } else {
+        var 벗 = el.cloneNode(true);
+        var 뺄 = 벗.querySelectorAll('.tag, .cap');
+        for (var k = 0; k < 뺄.length; k++) 뺄[k].parentNode.removeChild(뺄[k]);
+        제 = 벗.textContent;
+      }
+      장목록.push({ 쪽: p, 꼬리: 꼬 ? 꼬.textContent.trim() : '', 제목: (제 || '').trim(), 몸: el });
+    }
+    장목록.sort(function(a, b){ return a.쪽 - b.쪽; });
+    /* ★제목 위 꼬리표에 「총 몇 쪽 중 몇 번째」를 붙인다 (2026-09-22 할아버지 지시).
+       제목은 그 장의 첫 쪽에만 뜨므로 언제나 (1/총)이 된다 = 이 장이 몇 쪽짜리인지 알린다 */
+    for (var n = 0; n < 장목록.length; n++){
+      var 태 = 장목록[n].몸 && 장목록[n].몸.querySelector ? 장목록[n].몸.querySelector('.tag') : null;
+      if (!태) continue;
+      var 끝 = (n + 1 < 장목록.length) ? 장목록[n+1].쪽 : 쪽수;
+      var 총장 = Math.max(1, 끝 - 장목록[n].쪽);
+      var 셈 = 태.querySelector('.pt');
+      if (총장 > 1){
+        if (!셈){ 셈 = document.createElement('i'); 셈.className = 'pt'; 태.appendChild(셈); }
+        셈.textContent = '  (1/' + 총장 + ')';
+      } else if (셈){ 태.removeChild(셈); }
+    }
+  }
+
+  function 자리보이기(){
+    var el = document.getElementById('here');
+    if (!el || !장목록.length){ if (el) el.textContent = ''; return; }
+    var 지금 = null, 다음쪽 = 쪽수;
+    for (var i = 0; i < 장목록.length; i++){
+      if (장목록[i].쪽 <= page){ 지금 = 장목록[i]; 다음쪽 = (i + 1 < 장목록.length) ? 장목록[i+1].쪽 : 쪽수; }
+    }
+    if (!지금){ el.textContent = ''; return; }
+    var 총 = Math.max(1, 다음쪽 - 지금.쪽), 몇 = page - 지금.쪽 + 1;
+    var 글 = (지금.꼬리 ? 지금.꼬리 + '  ' : '') + 지금.제목;
+    el.innerHTML = 글.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                 + (총 > 1 ? ' <b>(' + 몇 + '/' + 총 + ')</b>' : '');
+  }
+
+  function 자식의쪽(i){
+    var L = 자리[i], 가장 = 0, 차 = Infinity;
+    for (var t = 0; t < 단자리.length; t++){
+      var d = Math.abs(L - 단자리[t]);
+      if (d < 차){ 차 = d; 가장 = t; }
+    }
+    return 가장;
+  }
+  /* 크기가 바뀌어도 읽던 자리를 지킨다 — 쪽 번호가 아니라 「몇 번째 대목」으로 */
+  function 지금대목(){
+    for (var i = 0; i < 자리.length; i++) if (자식의쪽(i) === page) return i;
+    return 0;
+  }
+
+  function 그리기(즉시){
+    if (page < 0) page = 0;
+    if (page > 쪽수 - 1) page = 쪽수 - 1;
+    /* 즉시 = 다시 나눈 직후(움직임 없이 바로) / 그 밖 = 부드럽게 */
+    pages.style.scrollBehavior = 즉시 ? 'auto' : 'smooth';
+    var 목표 = 단자리[page] || 0;
+    pages.scrollLeft = 목표;
+    /* 그림이 늦게 뜨면 자리가 늦게 잡힌다 — 못 갔으면 한 번 더 */
+    if (Math.abs(pages.scrollLeft - 목표) > 2)
+      requestAnimationFrame(function(){ pages.scrollLeft = 목표; });
+    elCur.textContent = page + 1; elTot.textContent = 쪽수;
+    자리보이기();
+    bar.style.width = (쪽수 < 2 ? 100 : (page / (쪽수 - 1) * 100)) + '%';
+    prev.disabled = (page <= 0); next.disabled = (page >= 쪽수 - 1);
+    /* ★쪽 번호가 아니라 「몇 번째 대목」을 적어 둔다.
+       글씨 크기나 기기가 달라지면 쪽 번호는 뜻이 달라진다.
+       ⚠겉장(첫 쪽)에서는 적지 않는다. 책은 늘 겉장에서 열리므로,
+         적어 버리면 열자마자 지난번 자리가 지워진다. */
+    if (page > 0){
+      try{ localStorage.setItem('napbu대목', 지금대목()); }catch(e){}
+    }
+  }
+
+  /* ★책은 언제나 겉장에서 열린다 (2026-08-27 할아버지 지시).
+     지난번에 읽던 자리가 있으면 겉장에 「○쪽부터 이어 읽기」 단추를 보여 준다.
+     남에게 보여 줄 때 겉장부터 시작되도록, 종이책과 같게. */
+  var 이어대목 = -1;
+  try{
+    var _v = localStorage.getItem('napbu대목');
+    if (_v !== null) 이어대목 = +_v;
+  }catch(e){}
+  var 이어단추 = document.getElementById('이어단추');
+
+  function 이어단추손질(){
+    if (!이어단추) return;
+    if (이어대목 > 0 && 이어대목 < 자식.length){
+      var 쪽 = 자식의쪽(이어대목) + 1;
+      if (쪽 > 1){
+        이어단추.textContent = '이어 읽기';
+        이어단추.hidden = false;
+        return;
+      }
+    }
+    이어단추.hidden = true;
+  }
+
+  function 세기(지킬대목){
+    단재기();
+    if (지킬대목 != null){
+      page = 자식의쪽(지킬대목);
+    }
+    이어단추손질();
+    그리기(true);
+  }
+
+  function 가기(n){
+    var p = Math.max(0, Math.min(쪽수 - 1, n));
+    if (p !== page){ page = p; 그리기(); }
+  }
+  if (이어단추) 이어단추.onclick = function(e){
+    e.stopPropagation();
+    가기(자식의쪽(이어대목));
+  };
+  prev.onclick = function(){ 가기(page - 1); };
+  next.onclick = function(){ 가기(page + 1); };
+
+  /* ── 손가락으로 밀기 ── */
+  var x0 = null, y0 = null, t0 = 0, 손뗀때 = 0;
+  stage.addEventListener('touchstart', function(e){
+    var t = e.changedTouches[0]; x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+  }, {passive:true});
+  stage.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    var 빠름 = (Date.now() - t0) < 500;
+    if (Math.abs(dx) > Math.abs(dy) * 1.4 && (Math.abs(dx) > 48 || (빠름 && Math.abs(dx) > 26))){
+      가기(page + (dx < 0 ? 1 : -1));
+      손뗀때 = Date.now();        /* ★민 때만 찍는다 — 톡 친 때 찍으면 폰에서 톡 치기가 죽는다 */
+    } else if (Math.abs(dx) > 12 || Math.abs(dy) > 12){
+      손뗀때 = Date.now();        /* 쓸어 넘긴 것도 톡 친 것이 아니다 */
+    }
+    x0 = null;
+  }, {passive:true});
+
+  /* ── 좌우 끝을 톡 치기 ── */
+  stage.addEventListener('click', function(e){
+    if (Date.now() - 손뗀때 < 700) return;      /* 민 직후의 클릭은 흘려보낸다 */
+    if (e.target.closest('img')) return;
+    var r = stage.getBoundingClientRect(), x = e.clientX - r.left;
+    if (x < r.width * 0.22) 가기(page - 1);
+    else if (x > r.width * 0.78) 가기(page + 1);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ 가기(page+1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ 가기(page-1); e.preventDefault(); }
+    else if (e.key === 'Home') 가기(0);
+    else if (e.key === 'End') 가기(쪽수 - 1);
+    else if (e.key === 'Escape') 닫기();
+  });
+
+  /* ── 글씨 크기 ── */
+  var fs = 17;
+  try{ var v = localStorage.getItem('gm2610Fs'); if (v) fs = Math.min(24, Math.max(14, +v)); }catch(e){}
+  function 글씨(n){
+    fs = Math.min(24, Math.max(14, n));
+    pages.style.setProperty('--fs', fs + 'px');
+    try{ localStorage.setItem('gm2610Fs', fs); }catch(e){}
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 30);
+  }
+  document.getElementById('bigger').onclick  = function(){ 글씨(fs+1); };
+  document.getElementById('smaller').onclick = function(){ 글씨(fs-1); };
+
+  /* ── 화면 꽉 채우기 ──────────────────────────────────────
+     ★앱스스크립트는 책을 iframe 두 겹으로 감싸고, 그 위에 구글 안내 띠를 붙인다.
+     띠는 우리 바깥이라 우리 코드가 없앨 수 없다.
+     그런데 바깥 틀에 `fullscreen *` 권한이 들어 있어(2026-08-27 실측),
+     이 단추를 누르면 주소줄도 띠도 다 사라지고 화면을 꽉 채운다. */
+  var 꽉 = document.getElementById('full');
+  function 꽉인가(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  /* ★글자(⛶)는 기기에 그 글꼴이 없으면 빈칸으로 나온다(2026-08-27 캡처로 확인).
+     그래서 어디서나 똑같이 보이는 그림(SVG)으로 그린다. */
+  var 그림_켜기 = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M4 9V5h5M15 5h5v4M20 15v5h-5M9 20H4v-5"/></svg>';
+  var 그림_끄기 = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg>';
+  function 꽉얼굴(){ 꽉.innerHTML = 꽉인가() ? 그림_끄기 : 그림_켜기; }
+  if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled){
+    꽉.style.display = 'none';        /* 안 되는 기기(아이폰 사파리 등)에서는 감춘다 */
+  }
+  꽉.onclick = function(){
+    try{
+      if (꽉인가()){
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      } else {
+        var e = document.documentElement;
+        (e.requestFullscreen || e.webkitRequestFullscreen).call(e);
+      }
+    }catch(err){}
+  };
+  document.addEventListener('fullscreenchange', function(){
+    꽉얼굴();
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 220);   /* 크기가 바뀌었으니 다시 나눈다 */
+  });
+  document.addEventListener('webkitfullscreenchange', function(){
+    꽉얼굴();
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 220);
+  });
+  꽉얼굴();
+
+  /* ── 해 · 달 ── */
+  var 해달 = document.getElementById('theme');
+  function 지금어두운가(){
+    var a = document.documentElement.getAttribute('data-theme');
+    if (a === 'dark') return true;
+    if (a === 'light') return false;
+    try{ return window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return false; }
+  }
+  function 단추얼굴(){ 해달.textContent = 지금어두운가() ? '☀' : '☾'; }
+  단추얼굴();
+  해달.onclick = function(){
+    var 어둡게 = !지금어두운가();
+    document.documentElement.setAttribute('data-theme', 어둡게 ? 'dark' : 'light');
+    try{ localStorage.setItem('gm2610Theme', 어둡게 ? 'dark' : 'light'); }catch(e){}
+    단추얼굴();
+  };
+
+  /* ── 차례 ── */
+  var wrap = document.getElementById('tocwrap');
+  function 닫기(){ wrap.classList.remove('on'); }
+  document.getElementById('tocbtn').onclick = function(){ wrap.classList.toggle('on'); };
+  wrap.addEventListener('click', function(e){ if (e.target === wrap) 닫기(); });
+  document.getElementById('toclist').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-go]'); if (!b) return;
+    var 이름 = b.getAttribute('data-go');
+    for (var i = 0; i < 자식.length; i++)
+      if (자식[i].id === 이름){ page = 자식의쪽(i); break; }
+    닫기(); 그리기();
+  });
+
+  /* ── 크기가 바뀔 때 ── */
+  var 늦게 = null;
+  function 다시(){
+    var 대목 = 지금대목();
+    clearTimeout(늦게);
+    늦게 = setTimeout(function(){ 세기(대목); }, 140);
+  }
+  window.addEventListener('resize', 다시);
+  window.addEventListener('orientationchange', 다시);
+
+  /* ── 첫 그림 ── */
+  pages.style.setProperty('--fs', fs + 'px');
+  세기();
+  if (document.fonts && document.fonts.ready)
+    document.fonts.ready.then(function(){ setTimeout(function(){ 세기(지금대목()); }, 40); });
+  window.addEventListener('load', function(){
+    setTimeout(function(){ 세기(지금대목()); }, 60);
+  });
+})();
+</script>
+</body>
+</html>
