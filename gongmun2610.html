@@ -948,6 +948,17 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
        표의 줄(tr)마다 자리를 재어 보태면, 표가 걸친 쪽이 하나도 빠지지 않는다.
        ⚠좌우로 나뉘는 .pair 는 넣지 않는다 — 오른쪽 사진 자리가 딴 쪽으로 잡힌다. */
     var 후보 = 자리.slice();
+    /* ★글 단락이 두 칸에 걸치면, 뒷조각이 있는 칸이 넘김 목록에서 빠졌다.
+       위에서 요소마다 getClientRects()[0] 하나만 봤기 때문이다.
+       (2026-09-23 할아버지 「9쪽에서 10쪽 갈 때 [세워져] 다음 글이 그냥 지나간다」)
+       첫 조각은 이미 자리에 들어 있으니 둘째 조각부터 보탠다.
+       ⚠.pair 는 뺀다 — 좌우로 나뉘어 오른쪽 사진 자리가 딴 칸으로 잡힌다. */
+    for (var s2 = 0; s2 < 자식.length; s2++){
+      if (자식[s2].classList && 자식[s2].classList.contains('pair')) continue;
+      var rs2 = 자식[s2].getClientRects();
+      for (var t2 = 1; t2 < rs2.length; t2++)
+        후보.push(Math.round(rs2[t2].left - 바탕));
+    }
     var 줄들 = pages.querySelectorAll('tr');
     for (var q = 0; q < 줄들.length; q++){
       var rq = 줄들[q].getClientRects();
