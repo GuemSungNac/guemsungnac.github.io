@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark light">
 <base target="_top">   <!-- 앱스스크립트는 책을 iframe 안에 넣는다. 링크가 그 안에 갇히지 않게 -->
-<title>제21대 임원·종인 입금내역</title>
+<title>제21대 임원·종인 납부내역</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
@@ -434,44 +434,52 @@ a.dl{display:inline-block;margin:.4em auto;padding:.7em 1.15em;
 .pages .q{color:var(--dim);font-size:.9em}
 
 /* ── 납부내역 겉장 ── */
-.coin{width:96px;height:96px;display:block;margin:0 auto .55em;
+.coin{width:92px;height:92px;display:block;margin:0 auto .6em;
       filter:drop-shadow(0 3px 8px rgba(0,0,0,.18))}
-.upd{font-size:.92em;color:var(--seal,#A33A2E);margin:.1em 0 .75em;letter-spacing:.02em}
+.subtitle{font-family:'Noto Serif KR',serif;font-size:.92em;font-weight:700;
+          color:var(--seal,#A33A2E);letter-spacing:.02em;margin:.1em 0 .8em;opacity:.95}
+.upd{font-size:.94em;color:var(--seal,#A33A2E);margin:.2em 0 .2em;letter-spacing:.02em}
 .upd b{font-weight:800}
-.acct{border:1.5px solid var(--gold,#B8860B);border-radius:12px;
-      padding:.6em 1.1em;margin:.2em auto .9em;max-width:17.5em;
+.cover .cover-title{margin-bottom:.4em}
+.cover .cover-sub{margin-bottom:.55em}
+@media (max-height:760px){
+  .coin{width:72px;height:72px;margin-bottom:.45em}
+  .cover-title{font-size:1.6em}
+  .subtitle{font-size:.86em;margin-bottom:.6em}
+}
+@media (max-height:600px){
+  .coin{width:54px;height:54px}
+  .cover-title{font-size:1.38em}
+}
+
+/* ── 안내 장의 계좌 상자 ── */
+/* ★상자를 감싸서 가운데에 놓는다.
+   상자 자체에 margin:auto 를 주면 왼쪽이 밀려, 넘김 셈이 새 칸으로 잘못 센다
+   (2026-09-22 — 넓은 화면에서 쪽이 하나 더 잡혔다) */
+.acctwrap{text-align:center;margin:.65em 0}
+.acct{display:inline-block;border:1.5px solid var(--gold,#B8860B);border-radius:12px;
+      padding:.5em 1.1em;margin:0;max-width:18em;text-align:center;
       background:rgba(184,134,11,.07)}
 .acctline{font-size:.74em;letter-spacing:.16em;color:var(--seal,#A33A2E);
           margin:0 0 .3em;font-weight:700}
-.acctno{font-size:1.1em;font-weight:800;margin:0 0 .2em;letter-spacing:.01em;
+.acctno{font-size:1.08em;font-weight:800;margin:0 0 .2em;
         font-family:'Noto Sans KR',sans-serif}
 .acctnm{font-size:.84em;color:var(--dim,#4E585D);margin:0}
-.cover-note{font-size:.8em;line-height:1.7;color:var(--dim,#4E585D);
-            margin:0 0 1.1em;opacity:.9}
-.nbtbl tr.grp td{background:#1f3864;color:#fff;font-weight:700;
-                 text-align:left;padding-left:.6em;letter-spacing:.06em}
-/* ★겉장이 한 쪽을 넘지 않게 — 화면이 낮으면 더 줄인다 */
-.cover .cover-title{margin-bottom:.35em}
-.cover .cover-sub{margin-bottom:.65em}
-@media (max-height:760px){
-  .coin{width:74px;height:74px;margin-bottom:.4em}
-  .cover-title{font-size:1.62em}
-  .acct{padding:.5em 1em;margin:.15em auto .7em}
-  .acctno{font-size:1em}
-  .cover-note{font-size:.74em;margin-bottom:.8em}
-}
-@media (max-height:620px){
-  .coin{width:58px;height:58px}
-  .cover-title{font-size:1.42em}
-  .subtitle{font-size:.84em;margin-bottom:.5em}
-}
 
-.subtitle{font-family:'Noto Serif KR',serif;font-size:.92em;font-weight:700;
-          color:var(--seal,#A33A2E);letter-spacing:.02em;margin:.1em 0 .7em;
-          opacity:.95}
-
-/* ★두 글자 이름의 가운데 빈 자리 — 한 글자 폭 (「나 갑」의 갑이 「나성주」의 주와 나란히) */
+/* ── 표를 한 쪽에 열두 줄까지 담는다 (2026-09-22 할아버지 지시)
+      폰에서 아홉 줄밖에 안 들어가던 것을 줄 높이를 낮춰 맞춘다 ── */
+.nbtbl{font-size:.9em}
+.nbtbl th,.nbtbl td{padding:.2em .22em;line-height:1.3}
+.nbtbl td.nm{padding-left:.45em}
+.nbtbl td.gen{font-size:.84em}
 .nbtbl td.nm i.sp{display:inline-block;width:1em;font-style:normal}
+.nbtbl tr.grp td{background:#1f3864;color:#fff;font-weight:700;
+                 text-align:left;padding-left:.5em;letter-spacing:.06em}
+@media (max-width:360px){ .nbtbl{font-size:.84em} }
+
+/* 안내 장이 한 쪽에 들게 여백을 줄인다 */
+#p0 + p, #p0 ~ p{margin-bottom:.6em}
+#p0{margin-bottom:.5em}
 </style>
 </head>
 <body>
@@ -509,31 +517,18 @@ a.dl{display:inline-block;margin:.4em auto;padding:.7em 1.15em;
   <text x="94" y="67" text-anchor="middle" font-size="15" font-weight="700" fill="#6B5316" font-family="'Noto Serif KR',serif">寶</text>
 </svg>
 
-<h1 class="cover-title">제21대 임원·종인<br>입금내역</h1>
+<h1 class="cover-title">제21대<br>임원·종인 납부내역</h1>
 <p class="subtitle">호남종친회 총무이사의 비밀장부</p>
 <p class="cover-sub">금성나씨 호남종친회</p>
 
-<!-- ★고친 날 — 갱신할 때 이 두 줄만 바꾸면 된다 ▼▼▼ -->
+<!-- ★고친 날 — 갱신할 때 이 한 줄만 바꾸면 된다 ▼▼▼ -->
 <p class="upd"><b>2026. 9. 22.</b> 현재 &nbsp;·&nbsp; 단위 만원</p>
 <!-- ▲▲▲ -->
 
-<div class="acct">
-  <p class="acctline">회비 계좌</p>
-  <p class="acctno">농협 351-0424-6879-13</p>
-  <p class="acctnm">금성나씨호남종친회</p>
-</div>
-
-<p class="cover-sub" style="font-size:.88em;line-height:1.8">
-본 종친회는 임원 여러분의 회비로 운영됩니다.<br>
-총회·이사회·경조사·문중 행사가 모두 이 회비로.</p>
-
-<p class="cover-note">
-「·」는 아직 내지 않으신 것입니다<br>
-연말 장학생 추천은 그해 회비를 납부하신 임원만</p>
-
-<p class="cover-sub" style="opacity:.75">손가락으로 밀거나 좌우 끝을 톡 치면 넘어갑니다 →</p>
+<p class="cover-sub" style="opacity:.75;margin-top:1.2em">손가락으로 밀거나 좌우 끝을 톡 치면 넘어갑니다 →</p>
 <button class="cover-go" id="이어단추" type="button" hidden></button>
 </section>
+
 
 <style>
 .nbtbl{width:100%;border-collapse:collapse;font-size:.95em;margin:.5em 0}
@@ -594,7 +589,25 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 @media (max-height:420px){.pages img{max-height:40vh}.nbtbl{font-size:.8em}}
 </style>
 
-<table class="nbtbl" id="p1"><caption class="chap"><span class="tag">임원·종인 납부내역 &nbsp;2/10</span>고문진 · 감사</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<h2 class="chap" id="p0"><span class="tag">안 내</span>보시는 법</h2>
+
+<p class="li">○ 손가락으로 밀거나 좌우 끝을 톡 칩니다</p>
+<p class="li">○ <b>가－ 가＋</b> 로 글씨를 줄이고 키웁니다</p>
+<p class="li">○ <b>☰</b> 를 누르면 차례가 나옵니다</p>
+<p class="li">○ <b>「·」</b> 아직 내지 않으신 것 &nbsp;·&nbsp; <b>「卒」</b> 별세하신 분</p>
+
+<div class="acctwrap"><div class="acct">
+  <p class="acctline">회비 계좌</p>
+  <p class="acctno">농협 351-0424-6879-13</p>
+  <p class="acctnm">금성나씨호남종친회</p>
+</div></div>
+
+<p>본 종친회는 임원 여러분의 회비로 운영됩니다. 총회·이사회·경조사·문중 행사가 모두 이 회비로 이루어집니다.</p>
+
+<p>※ 연말 장학생 추천은 그해 회비를 <b>납부하신 임원만이</b> 하실 수 있습니다.</p>
+
+
+<table class="nbtbl" id="p1"><caption class="chap"><span class="tag">납부내역 &nbsp;1/9</span>고문진 · 감사</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
 <tr><td class="nm">나영창</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">29-36</td></tr>
 <tr><td class="nm">나성식</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">30-57</td></tr>
 <tr><td class="nm">나승판</td><td class="z">·</td><td class="">24</td><td class="z">·</td><td class="gen">33-34</td></tr>
@@ -609,7 +622,7 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <tr class="sum"><td class="nm">소계</td><td class="">12</td><td class="">29</td><td class="y26">12</td><td class="gen"></td></tr>
 </tbody></table>
 
-<table class="nbtbl" id="p2"><caption class="chap"><span class="tag">임원·종인 납부내역 &nbsp;3/10</span>자문위원</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<table class="nbtbl" id="p2"><caption class="chap"><span class="tag">납부내역 &nbsp;2/9</span>자문위원</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
 <tr><td class="nm">나문식</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">30-40</td></tr>
 <tr><td class="nm">나준식</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">30-41</td></tr>
 <tr><td class="nm">나맹호</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">31-38</td></tr>
@@ -621,7 +634,7 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <tr class="sum"><td class="nm">소계</td><td class="">60</td><td class="">60</td><td class="y26">60</td><td class="gen"></td></tr>
 </tbody></table>
 
-<table class="nbtbl" id="p3"><caption class="chap"><span class="tag">임원·종인 납부내역 &nbsp;4/10</span>회장단 (1/2)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<table class="nbtbl" id="p3"><caption class="chap"><span class="tag">납부내역 &nbsp;3/9</span>회장단 (1/2)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
 <tr><td class="nm">나승범</td><td class="">150</td><td class="">100</td><td class="z">·</td><td class="gen">회장</td></tr>
 <tr><td class="nm">나영길</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">수석</td></tr>
 <tr><td class="nm">나병열</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">31-49</td></tr>
@@ -631,10 +644,9 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <tr><td class="nm">나승묵</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">33-42</td></tr>
 <tr><td class="nm">나승만</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">33-47</td></tr>
 <tr><td class="nm">나상근</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-49</td></tr>
-<tr class="cont"><td colspan="5">▶ 다음 쪽으로 이어집니다</td></tr>
 </tbody></table>
 
-<table class="nbtbl" id="p4"><caption class="chap"><span class="tag">임원·종인 납부내역 &nbsp;5/10</span>회장단 (2/2)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<table class="nbtbl" id="p4"><caption class="chap"><span class="tag">납부내역 &nbsp;4/9</span>회장단 (2/2)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
 <tr><td class="nm">나승병</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-54</td></tr>
 <tr><td class="nm">나금주</td><td class="">12</td><td class="z">·</td><td class="y26">24</td><td class="gen">34-49</td></tr>
 <tr><td class="nm">나의갑</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">34-49</td></tr>
@@ -646,7 +658,7 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <tr class="sum"><td class="nm">소계</td><td class="">258</td><td class="">208</td><td class="y26">72</td><td class="gen"></td></tr>
 </tbody></table>
 
-<table class="nbtbl" id="p5"><caption class="chap"><span class="tag">임원·종인 납부내역 &nbsp;6/10</span>이사진 (1/3)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<table class="nbtbl" id="p5"><caption class="chap"><span class="tag">납부내역 &nbsp;5/9</span>이사진 (1/3)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
 <tr><td class="nm">라정호</td><td class="z">·</td><td class="">5</td><td class="z">·</td><td class="gen">총무</td></tr>
 <tr><td class="nm">나영식</td><td class="z">·</td><td class="">26</td><td class="z">·</td><td class="gen">재무</td></tr>
 <tr><td class="nm">나홍주</td><td class="z">·</td><td class="">10</td><td class="z">·</td><td class="gen">홍보</td></tr>
@@ -656,10 +668,9 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <tr><td class="nm">나송환</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">31-57</td></tr>
 <tr><td class="nm">나병헌</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">31-60</td></tr>
 <tr><td class="nm">나석환</td><td class="z">·</td><td class="z">·</td><td class="y26">신임</td><td class="gen">31-63</td></tr>
-<tr class="cont"><td colspan="5">▶ 다음 쪽으로 이어집니다</td></tr>
 </tbody></table>
 
-<table class="nbtbl" id="p6"><caption class="chap"><span class="tag">임원·종인 납부내역 &nbsp;7/10</span>이사진 (2/3)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<table class="nbtbl" id="p6"><caption class="chap"><span class="tag">납부내역 &nbsp;6/9</span>이사진 (2/3)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
 <tr><td class="nm">나종현</td><td class="">12</td><td class="">42</td><td class="y26">12</td><td class="gen">32-38</td></tr>
 <tr><td class="nm">나승채</td><td class="">58</td><td class="z">·</td><td class="z">·</td><td class="gen">33-49</td></tr>
 <tr><td class="nm">나찬영</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">33-50</td></tr>
@@ -669,11 +680,10 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <tr><td class="nm">나영재</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-59</td></tr>
 <tr><td class="nm">나영선</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-67</td></tr>
 <tr><td class="nm">나승철</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">33-73</td></tr>
-<tr><td class="nm">나지훈</td><td class="">12</td><td class="z">·</td><td class="z">·</td><td class="gen">33-82</td></tr>
-<tr class="cont"><td colspan="5">▶ 다음 쪽으로 이어집니다</td></tr>
 </tbody></table>
 
-<table class="nbtbl" id="p7"><caption class="chap"><span class="tag">임원·종인 납부내역 &nbsp;8/10</span>이사진 (3/3)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<table class="nbtbl" id="p7"><caption class="chap"><span class="tag">납부내역 &nbsp;7/9</span>이사진 (3/3)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<tr><td class="nm">나지훈</td><td class="">12</td><td class="z">·</td><td class="z">·</td><td class="gen">33-82</td></tr>
 <tr><td class="nm">나<i class="sp"></i>갑</td><td class="">12</td><td class="">12</td><td class="z">·</td><td class="gen">34-47</td></tr>
 <tr><td class="nm">나성주</td><td class="z">·</td><td class="z">·</td><td class="z">·</td><td class="gen">34-60</td></tr>
 <tr><td class="nm">나병우</td><td class="">12</td><td class="">12</td><td class="y26">12</td><td class="gen">35-38</td></tr>
@@ -686,7 +696,7 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <tr class="sum"><td class="nm">임원계</td><td class="">575.5</td><td class="">580</td><td class="y26">246</td><td class="gen"></td></tr>
 </tbody></table>
 
-<table class="nbtbl" id="p8"><caption class="chap"><span class="tag">임원·종인 납부내역 &nbsp;9/10</span>종인 · 단체 (1/2)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<table class="nbtbl" id="p8"><caption class="chap"><span class="tag">납부내역 &nbsp;8/9</span>종인 · 단체 (1/2)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
 <tr><td class="nm">나윤경</td><td class="">12</td><td class="z">·</td><td class="z">·</td><td class="gen">광주</td></tr>
 <tr><td class="nm">나행옥</td><td class="">5</td><td class="z">·</td><td class="z">·</td><td class="gen">암태</td></tr>
 <tr><td class="nm">나행수</td><td class="">5</td><td class="z">·</td><td class="z">·</td><td class="gen">목포</td></tr>
@@ -695,7 +705,7 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
 <tr><td class="nm">나창주</td><td class="">20</td><td class="z">·</td><td class="z">·</td><td class="gen">광주</td></tr>
 </tbody></table>
 
-<table class="nbtbl" id="p9"><caption class="chap"><span class="tag">임원·종인 납부내역 &nbsp;10/10</span>종인 · 단체 (2/2)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
+<table class="nbtbl" id="p9"><caption class="chap"><span class="tag">납부내역 &nbsp;9/9</span>종인 · 단체 (2/2)</caption><thead><tr><th>성함</th><th>24년</th><th>25년</th><th>26년</th><th>世-生</th></tr></thead><tbody>
 <tr><td class="nm">나승석</td><td class="">10</td><td class="z">·</td><td class="z">·</td><td class="gen"></td></tr>
 <tr><td class="nm">나○○</td><td class="">10</td><td class="z">·</td><td class="z">·</td><td class="gen">남원</td></tr>
 <tr><td class="nm">나정우</td><td class="">10</td><td class="z">·</td><td class="z">·</td><td class="gen"></td></tr>
@@ -718,6 +728,7 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
   <nav class="toc" role="dialog" aria-label="차례">
     <h2>차 례</h2>
     <ol id="toclist">
+<li><button type="button" data-go="p0">보시는 법</button></li>
 <li><button type="button" data-go="p1">고문진 · 감사</button></li>
 <li><button type="button" data-go="p2">자문위원</button></li>
 <li><button type="button" data-go="p3">회장단 (1/2)</button></li>
@@ -788,10 +799,15 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
       var rq = 줄들[q].getClientRects();
       for (var w = 0; w < rq.length; w++) 후보.push(Math.round(rq[w].left - 바탕));
     }
+    var 한칸여유 = Math.max(8, (폭 + (parseFloat(getComputedStyle(pages).columnGap) || 0)) / 4);
     var 정렬 = 후보.sort(function(a,b){ return a-b; });
     단자리 = [];
     for (var j = 0; j < 정렬.length; j++)
-      if (정렬[j] >= -1 && (!단자리.length || 정렬[j] - 단자리[단자리.length-1] > 8))
+      /* ★같은 칸으로 묶는 여유 = 한 칸의 1/4.
+         8px 로 잡았더니 가운데 정렬된 상자(margin:auto)가 17px 밀려 있어
+         새 칸으로 잘못 세어졌다 (2026-09-22 납부내역 계좌 상자).
+         칸 사이는 한 칸(폭+틈)만큼 떨어져 있으므로 1/4 은 넉넉하고도 안전하다. */
+      if (정렬[j] >= -1 && (!단자리.length || 정렬[j] - 단자리[단자리.length-1] > 한칸여유))
         단자리.push(정렬[j] < 0 ? 0 : 정렬[j]);
     if (!단자리.length) 단자리 = [0];
 
@@ -803,7 +819,12 @@ sup.fnm{color:var(--seal,#A33A2E);font-weight:700;font-size:.62em;vertical-align
     var 틈 = parseFloat(getComputedStyle(pages).columnGap) || 0;
     var 한칸 = 폭 + 틈;
     var 참단 = Math.round((pages.scrollWidth + 틈) / 한칸);
-    if (참단 > 단자리.length){
+    /* ★한 칸 차이는 메우지 않는다.
+       마지막 단 뒤에 붙는 여백 때문에 scrollWidth 가 조금 커져,
+       없는 칸을 하나 더 만들어 마지막 쪽이 두 번 보이던 일이 있었다
+       (2026-09-22 — 납부내역 11쪽인데 12쪽으로 잡혔다).
+       Z플립 커버처럼 정말 빠진 때는 서너 칸씩 모자라므로 그때만 메운다. */
+    if (참단 - 단자리.length >= 2){
       for (var c = 0; c < 참단; c++){
         var 자 = Math.round(c * 한칸), 있나 = false;
         for (var e = 0; e < 단자리.length; e++)
