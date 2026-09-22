@@ -89,10 +89,12 @@ button:disabled{opacity:.3;cursor:default}
 #첫안내 button{width:100%;padding:13px;font-size:18px;border-radius:10px;border:1px solid var(--edge);
   background:var(--seal);color:#fff;cursor:pointer}
 /* ★이어 보기 띠 — 늘 1쪽(표지)부터 열되, 지난번 자리를 여쭌다 (2026-09-20) */
-#이어보기{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;z-index:55;display:none;
-  align-items:center;gap:10px;padding:10px 12px 10px 16px;border-radius:26px;
+#이어보기{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:55;display:none;
+  align-items:center;justify-content:center;gap:10px;row-gap:8px;flex-wrap:wrap;
+  padding:10px 14px;border-radius:26px;
   background:var(--sheet);color:var(--ink);border:1px solid var(--edge);box-shadow:var(--shadow);
-  font-size:16px;max-width:calc(100vw - 24px);white-space:nowrap}
+  font-size:16px;max-width:calc(100vw - 24px);box-sizing:border-box}
+#이어보기 span{white-space:nowrap}   /* ★글은 통째로, 좁으면 단추가 아랫줄로 (2026-09-20 「이어보까지 뜨네, X가 안보인다」) */
 #이어보기.보임{display:flex}
 #이어보기 b{font-size:18px;color:var(--seal)}
 #이어가기{padding:8px 16px;border-radius:18px;background:var(--seal);color:#fff;font-size:16px;cursor:pointer;border:0}
