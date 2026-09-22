@@ -441,6 +441,31 @@ a.dl{display:inline-block;margin:.4em auto;padding:.7em 1.15em;
 .nbtbl tr.grp td{background:#1f3864;color:#fff;font-weight:700;
                  text-align:left;padding-left:.5em;letter-spacing:.06em}
 @media (max-width:360px){ .nbtbl{font-size:.84em} }
+
+/* ★겉장이 한 쪽에 들게 — 화면이 낮을수록 그림과 여백을 줄인다
+   (2026-09-22 할아버지 폰에서 「손가락으로 밀거나…」 줄이 잘렸다) */
+.cover .cover-sub{margin-bottom:.8em}
+.cover img{max-height:34vh}
+@media (max-height:820px){
+  .cover-seal{width:40px;height:40px;margin:.4em auto .7em}
+  .cover-seal span{font-size:25px}
+  .cover-title{font-size:1.72em;margin-bottom:.4em}
+  .cover .cover-sub{margin-bottom:.55em;font-size:.86em}
+  .cover img{max-height:26vh;width:58% !important;margin:.45em auto !important}
+}
+@media (max-height:660px){
+  .cover-seal{width:34px;height:34px;margin:.2em auto .5em}
+  .cover-seal span{font-size:21px}
+  .cover-title{font-size:1.5em}
+  .cover .cover-sub{margin-bottom:.42em;font-size:.82em}
+  .cover img{max-height:20vh;width:48% !important}
+}
+
+/* ★한 장이 여러 쪽에 걸칠 때 마지막 쪽이 헐렁하던 것 —
+   줄간격과 문단 사이를 조금 좁혀 한 쪽에 더 담는다. 글은 그대로다 */
+.pages{line-height:1.78}
+.pages p{margin:0 0 .78em}
+.pages p.li{margin:0 0 .38em}
 </style>
 </head>
 <body>
