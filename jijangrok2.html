@@ -21,6 +21,14 @@
 </script>
 
 <style>
+.findbar{display:none;align-items:center;gap:6px;padding:6px 14px 8px}
+.findbar.on{display:flex}
+.findbar input{flex:1;min-width:0;height:34px;border:1px solid var(--edge);border-radius:8px;
+  background:var(--sheet);color:var(--ink);font-size:16px;padding:0 10px}
+.findbar .cnt{font-size:12.5px;color:var(--faint);min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+.pages mark.hit{background:var(--seal);color:#fff;border-radius:2px;padding:0 1px}
+.pages .hitbox{outline:2px solid var(--seal);outline-offset:3px}
+
 /* ── 지장록 권2 (2026-09-27) ── */
 .myeon{text-align:center !important;color:var(--faint);font-size:.82em;letter-spacing:.18em;margin:1.3em 0 .5em;break-after:avoid}
 .eum{font-family:'Noto Sans KR',sans-serif;font-size:.86em;line-height:1.75;color:var(--dim);margin:.1em 0 .55em;text-align:left !important}
@@ -360,12 +368,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <span class="name">한글로 읽는 우리 선조 이야기</span>
     <span class="sp"></span>
     <button class="iconbtn" id="full" type="button" aria-label="화면 꽉 채우기" title="화면 꽉 채우기"></button>
+    <button class="iconbtn" id="findbtn" type="button" aria-label="찾기" title="찾기"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
     <button class="iconbtn" id="theme" type="button" aria-label="밝게 어둡게">☾</button>
     <button class="iconbtn small" id="smaller" type="button" aria-label="글씨 작게">가－</button>
     <button class="iconbtn" id="bigger" type="button" aria-label="글씨 크게">가＋</button>
     <button class="iconbtn" id="tocbtn" type="button" aria-label="차례">☰</button>
   </div>
   <div class="progress"><i id="bar"></i></div>
+  <div class="findbar" id="findbar"><input id="findq" type="search" placeholder="한자·한글로 찾기 (예: 泓漸 · 홍점)" enterkeyhint="search" autocomplete="off"><span class="cnt" id="findcnt"></span><button class="iconbtn" id="findprev" type="button" aria-label="앞 결과">▲</button><button class="iconbtn" id="findnext" type="button" aria-label="다음 결과">▼</button><button class="iconbtn" id="findclose" type="button" aria-label="찾기 닫기">✕</button></div>
 
   <div class="stage" id="stage">
     <div class="pages" id="pages"><section class="cover">
@@ -4803,6 +4813,76 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     for (var i = 0; i < 자식.length; i++)
       if (자식[i].id === 이름){ page = 자식의쪽(i); break; }
     닫기(); 그리기();
+  });
+
+
+  /* ── 찾기(돋보기) ── 한자·한글 · 띄어쓰기 무시 · 찾은 대목으로 쪽을 옮기고 글자에 색 */
+  var 찾기판 = document.getElementById('findbar'), 찾기칸 = document.getElementById('findq');
+  var 찾기수 = document.getElementById('findcnt'), 찾은 = [], 찾은번째 = -1, 찾은말 = '';
+  function 빈칸빼기(t){ return t.replace(/\s+/g, ''); }
+  function 대목글(el){
+    var t = el.textContent;
+    var 그림 = el.querySelectorAll('img[alt]');
+    for (var k = 0; k < 그림.length; k++) t += 그림[k].alt;
+    return 빈칸빼기(t);
+  }
+  function 표시지우기(){
+    var ms = pages.querySelectorAll('mark.hit');
+    for (var k = 0; k < ms.length; k++){ var p = ms[k].parentNode; p.replaceChild(document.createTextNode(ms[k].textContent), ms[k]); p.normalize(); }
+    var bs = pages.querySelectorAll('.hitbox');
+    for (var k2 = 0; k2 < bs.length; k2++) bs[k2].classList.remove('hitbox');
+  }
+  function 글자에색(el, 말){
+    /* 띄어쓰기 없이 그대로 있는 곳만 색칠 — 없으면 대목 테두리만 */
+    var 걸음 = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false), 칠함 = false, 마디, 모음 = [];
+    while ((마디 = 걸음.nextNode())) 모음.push(마디);
+    모음.forEach(function(n){
+      var t = n.nodeValue, i = t.indexOf(말);
+      if (i < 0) return;
+      var 조각 = document.createDocumentFragment(), 앞 = 0;
+      while (i >= 0){
+        조각.appendChild(document.createTextNode(t.slice(앞, i)));
+        var m = document.createElement('mark'); m.className = 'hit'; m.textContent = t.substr(i, 말.length); 조각.appendChild(m);
+        앞 = i + 말.length; i = t.indexOf(말, 앞);
+      }
+      조각.appendChild(document.createTextNode(t.slice(앞)));
+      n.parentNode.replaceChild(조각, n); 칠함 = true;
+    });
+    if (!칠함) el.classList.add('hitbox');
+  }
+  function 찾기가기(n){
+    if (!찾은.length) return;
+    찾은번째 = (n + 찾은.length) % 찾은.length;
+    표시지우기();
+    var i = 찾은[찾은번째];
+    글자에색(자식[i], 찾은말);
+    찾기수.textContent = (찾은번째 + 1) + ' / ' + 찾은.length;
+    page = 자식의쪽(i); 그리기(true);
+  }
+  function 찾기(){
+    var 말 = 빈칸빼기(찾기칸.value);
+    if (!말){ 표시지우기(); 찾은 = []; 찾기수.textContent = ''; return; }
+    if (말 === 찾은말 && 찾은.length){ 찾기가기(찾은번째 + 1); return; }
+    찾은말 = 말; 찾은 = []; 찾은번째 = -1;
+    for (var i = 1; i < 자식.length; i++) if (대목글(자식[i]).indexOf(말) >= 0) 찾은.push(i);
+    if (!찾은.length){ 표시지우기(); 찾기수.textContent = '없음'; return; }
+    /* 지금 쪽 뒤에서 가장 가까운 것부터 */
+    var 첫 = 0;
+    for (var k = 0; k < 찾은.length; k++) if (자식의쪽(찾은[k]) >= page){ 첫 = k; break; }
+    찾기가기(첫);
+  }
+  function 찾기닫기(){ 찾기판.classList.remove('on'); 표시지우기(); 찾기칸.blur(); setTimeout(function(){ 세기(지금대목()); }, 30); }
+  document.getElementById('findbtn').onclick = function(){
+    if (찾기판.classList.contains('on')){ 찾기닫기(); return; }
+    찾기판.classList.add('on'); setTimeout(function(){ 세기(지금대목()); 찾기칸.focus(); }, 30);
+  };
+  document.getElementById('findnext').onclick = function(){ 찾은.length && 찾은말 === 빈칸빼기(찾기칸.value) ? 찾기가기(찾은번째 + 1) : 찾기(); };
+  document.getElementById('findprev').onclick = function(){ 찾은.length ? 찾기가기(찾은번째 - 1) : 찾기(); };
+  document.getElementById('findclose').onclick = 찾기닫기;
+  찾기판.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); e.shiftKey ? 찾기가기(찾은번째 - 1) : 찾기(); }
+    else if (e.key === 'Escape') 찾기닫기();
+    e.stopPropagation();          /* ★검색칸에서 띄어쓰기·화살표가 쪽 넘기기로 새지 않게 */
   });
 
   /* ── 크기가 바뀔 때 ── */
