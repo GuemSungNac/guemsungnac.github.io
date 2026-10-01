@@ -167,7 +167,7 @@ for (let v = 1; v <= 1; v++) {
   c.onclick = () => { 자취.push([권, 쪽]); 가기(v, 1); 차례(false); };
   $('차례권').appendChild(c);
 }
-function 파일(v, p) { return 'gyebodo25/' + String(p).padStart(4, '0') + '.webp'; }
+function 파일(v, p) { return (p < 25 ? '1' : p < 50 ? '2' : '3') + '/gyebodo25/' + String(p).padStart(4, '0') + '.webp'; }   /* 깃허브에 25장씩 1·2·3 폴더로 올라감 (10-01) */
 
 let 배율 = 1;          // 1 = 쪽 맞춤. ★쪽을 넘겨도 그대로 둔다(사이트 폰 동작)
 try { 배율 = Math.max(1, Math.min(6, +localStorage.getItem('계보도25배율') || 1)); } catch (e) {}
