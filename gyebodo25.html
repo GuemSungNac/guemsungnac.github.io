@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>금성나씨 계보도 25세</title>
+<script>
+(function(){ let v='dark';
+  try{ if(localStorage.getItem('계보도25밝기')==='light') v='light'; }catch(e){}
+  document.documentElement.dataset.theme=v; })();
+</script>
+<style>
+/* 빛깔은 플립북 틀(index.html)을 따른다 — 강안개 바탕 · 먹 · 관인 붉은빛 */
+:root{
+  --paper:#EEF0EE; --sheet:#F7F8F6; --ink:#14191C; --dim:#4E585D; --faint:#8E979B;
+  --edge:#D5DAD8; --seal:#A33A2E; --river:#3E6B6E; --oldbg:#E7EAE6;
+  --shadow:0 2px 6px rgba(31,38,42,.10),0 18px 48px rgba(31,38,42,.16);
+}
+:root[data-theme="dark"]{
+  --paper:#12171A; --sheet:#171D21; --ink:#F0F4F2; --dim:#B4BFC1; --faint:#8A9497;
+  --edge:#2A3338; --seal:#D9695B; --river:#6FA9A6; --oldbg:#1D2529;
+  --shadow:0 2px 6px rgba(0,0,0,.5),0 18px 48px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--paper);color:var(--ink);
+  font-family:"Noto Serif KR","맑은 고딕","Malgun Gothic",serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:disabled{opacity:.3;cursor:default}
+
+/* 머리줄 */
+.bar{position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;gap:6px;
+  padding:0 18px;z-index:5;background:var(--paper)}
+.title{font-size:20px;font-weight:600;letter-spacing:.04em;margin-right:14px;white-space:nowrap}
+.title small{font-size:15px;color:var(--dim);font-weight:400;margin-left:8px}
+.gwon{display:flex;gap:2px}
+.gwon button{height:36px;padding:0 14px;border-radius:18px;font-size:16px;color:var(--dim)}
+.gwon button:hover{background:var(--oldbg);color:var(--ink)}
+.gwon button.on{background:var(--seal);color:#fff}
+.sp{flex:1}
+.iconbtn{height:40px;min-width:40px;padding:0 10px;border-radius:20px;font-size:18px;color:var(--dim)}
+.iconbtn:hover{background:var(--oldbg);color:var(--ink)}
+#뒤로{color:var(--seal);font-size:16px}
+.progress{position:fixed;top:56px;left:18px;right:18px;height:2px;background:var(--edge);border-radius:2px;z-index:5}
+.progress i{display:block;height:100%;width:0;background:var(--seal);transition:width .25s ease}
+
+/* 무대 */
+/* ★확대는 쪽 그림만 — 무대가 스크롤 상자, 머리줄·아랫줄은 붙박이 (2026-09-19 사이트 폰 동작 분석) */
+.stage{position:fixed;top:66px;bottom:62px;left:0;right:0;overflow:auto;perspective:2400px}
+#판{min-width:100%;min-height:100%;display:flex;align-items:center;justify-content:center;padding:8px 70px}
+.stage.확대{cursor:grab} .stage.확대.끄는중{cursor:grabbing}
+.stage.확대 .edge{display:none}
+.배율{font-size:15px;color:var(--dim);min-width:52px;text-align:center}
+.edge{position:absolute;top:0;bottom:0;width:calc(50% - 40px);cursor:pointer;z-index:1}
+.edge.l{left:0} .edge.r{right:0}
+.edge:hover::after{content:attr(data-글);position:absolute;top:50%;transform:translateY(-50%);
+  font-size:64px;color:var(--faint);opacity:.55}
+.edge.l:hover::after{right:calc(var(--반폭) + 24px)} .edge.r:hover::after{left:calc(var(--반폭) + 24px)}
+.sheet{position:relative;z-index:2;background:#fff;box-shadow:var(--shadow);
+  transform-origin:left center;will-change:transform}
+.sheet img{display:block;width:100%;height:100%;user-select:none;-webkit-user-drag:none}
+.sheet.넘김앞{animation:넘앞 .32s ease-in forwards}
+.sheet.넘김뒤{animation:넘뒤 .32s ease-in forwards}
+.sheet.들어옴{animation:들어 .28s ease-out}
+@keyframes 넘앞{to{transform:rotateY(-72deg) translateX(-6%);opacity:.15}}
+@keyframes 넘뒤{from{transform-origin:right center}to{transform:rotateY(72deg) translateX(6%);opacity:.15}}
+@keyframes 들어{from{opacity:.25;transform:scale(.985)}to{opacity:1;transform:none}}
+
+/* 누를 곳 */
+.표{position:absolute;border:2px solid rgba(214,160,0,.75);border-radius:4px;
+  background:rgba(242,194,0,.12);cursor:pointer;z-index:3}
+.표:hover{background:rgba(242,194,0,.40);border-color:#d6a000}
+.표.卷{border-color:rgba(0,140,220,.8);background:rgba(0,170,255,.13)}
+.표.卷:hover{background:rgba(0,170,255,.40)}
+.표.깜{animation:깜 1.1s ease-out 3}
+@keyframes 깜{0%{box-shadow:0 0 0 0 rgba(163,58,46,.95);background:rgba(163,58,46,.55)}
+  100%{box-shadow:0 0 0 22px rgba(163,58,46,0)}}
+
+/* 아랫줄 */
+.foot{position:fixed;bottom:0;left:0;right:0;height:62px;display:flex;align-items:center;
+  justify-content:center;gap:22px;z-index:5}
+.pagebtn{width:52px;height:44px;border-radius:22px;font-size:30px;line-height:1;color:var(--dim)}
+.pagebtn:hover:not(:disabled){background:var(--oldbg);color:var(--ink)}
+.pageno{font-size:18px;color:var(--dim);min-width:170px;text-align:center}
+.pageno b{color:var(--ink);font-size:21px}
+.pageno input{width:74px;font:inherit;font-size:20px;font-weight:700;text-align:center;
+  color:var(--ink);background:transparent;border:0;border-bottom:1px dashed var(--faint)}
+.hint{position:fixed;bottom:20px;right:22px;font-size:14px;color:var(--faint)}
+
+/* 말풍선 · 차례 */
+#말{position:fixed;pointer-events:none;background:var(--ink);color:var(--paper);padding:5px 10px;
+  border-radius:6px;font-size:15px;display:none;z-index:9;white-space:nowrap}
+.toc{position:fixed;top:0;right:0;bottom:0;width:340px;background:var(--sheet);z-index:8;
+  box-shadow:var(--shadow);border-left:2px solid var(--seal);padding:22px 22px;overflow:auto;
+  transform:translateX(105%);transition:transform .25s ease}
+.toc.열림{transform:none}
+.toc h3{margin:18px 0 8px;font-size:16px;color:var(--seal);letter-spacing:.06em}
+.toc button.줄{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:8px;font-size:17px}
+.toc button.줄:hover{background:var(--oldbg)}
+.toc button.줄 small{color:var(--faint);margin-left:8px;font-size:14px}
+.toc .닫{position:absolute;top:14px;right:14px}
+.toc .빈{color:var(--faint);font-size:15px;padding:6px 12px}
+@media (max-width:640px){
+  .bar{padding:0 10px;height:50px} .title{font-size:17px;margin-right:4px} .title small{display:none}
+  .progress{top:50px;left:10px;right:10px} .stage{top:56px;bottom:56px}
+  #판{padding:4px 2px} .edge{display:none}
+  .foot{gap:2px;height:56px} .pagebtn{width:36px;height:40px;font-size:24px}
+  .pageno{min-width:96px;font-size:15px} .pageno input{width:44px;font-size:18px}
+  .배율{min-width:44px;font-size:13px} .hint{display:none}
+  .foot span[style]{display:none}
+}
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="title">錦城羅氏 系譜圖<small>11世~25世 · 상계 보충 · 파 표시</small></div>
+  <div class="gwon" id="권줄"></div>
+  <div class="sp"></div>
+  <button class="iconbtn" id="뒤로" title="누르기 전 쪽으로 (Backspace)">⟲ 뒤로</button>
+  <button class="iconbtn" id="꽉" title="화면 꽉 채우기 (F11과 같음)">⛶</button>
+  <button class="iconbtn" id="밝기" title="밝게 · 어둡게">☾</button>
+  <button class="iconbtn" id="차례단추" title="차례">☰</button>
+</div>
+<div class="progress"><i id="막대"></i></div>
+
+<div class="stage" id="무대">
+  <div class="edge l" id="왼끝" data-글="‹" title="앞 쪽"></div>
+  <div id="판"><div class="sheet" id="쪽"><img id="그림" alt=""></div></div>
+  <div class="edge r" id="오른끝" data-글="›" title="다음 쪽"></div>
+</div>
+
+<div class="foot">
+  <button class="pagebtn" id="열앞" title="10쪽 앞">«</button>
+  <button class="pagebtn" id="앞쪽" title="앞 쪽 (←)">‹</button>
+  <div class="pageno"><input id="쪽칸" inputmode="numeric" title="쪽 번호 넣고 Enter"> / <span id="끝쪽"></span></div>
+  <button class="pagebtn" id="다음쪽" title="다음 쪽 (→)">›</button>
+  <button class="pagebtn" id="열뒤" title="10쪽 뒤">»</button>
+  <span style="width:18px"></span>
+  <button class="pagebtn" id="줄임" title="줄이기 (−)">−</button>
+  <button class="배율" id="배율표" title="눌러서 쪽 맞춤으로 (0)">100%</button>
+  <button class="pagebtn" id="키움" title="키우기 (+ · Ctrl+휠 · 두 번 누르기)">＋</button>
+</div>
+<div class="hint" id="알림"></div>
+
+<aside class="toc" id="차례">
+  <button class="iconbtn 닫" id="차례닫기">✕</button>
+  <h3>권</h3><div id="차례권"></div>
+  <h3>다녀온 자리</h3><div id="차례자취"></div>
+  <h3>쓰는 법</h3>
+  <div class="빈">0쪽 = 주석 변경 안내<br>빨강 = 정묘보(1987) 기준 파<br>파랑 = 지금 문중(파악 중)<br><br>← → 넘기기 · 쪽 번호 눌러 바로 가기</div>
+</aside>
+<div id="말"></div>
+
+<script>
+const 자료 = {};
+const 쪽수 = {1: 72};       // 권별 마지막 파일 번호
+const 원W = 1400, 원H = 1736;
+const 종이름 = ['見下', '見上', '卷'];
+let 권 = 1, 쪽 = 1, 자취 = [], 다녀옴 = [], 넘기는중 = false;
+const $ = id => document.getElementById(id);
+
+for (let v = 1; v <= 1; v++) {
+  const b = document.createElement('button'); b.textContent = v + '권'; b.dataset.v = v;
+  b.style.display = 'none';
+  $('권줄').appendChild(b);
+  const c = document.createElement('button'); c.className = '줄';
+  c.innerHTML = '계보도<small>' + 쪽수[v] + '쪽 · 0쪽 = 안내</small>';
+  c.onclick = () => { 자취.push([권, 쪽]); 가기(v, 1); 차례(false); };
+  $('차례권').appendChild(c);
+}
+function 파일(v, p) { return 'gyebodo25/' + String(p).padStart(4, '0') + '.webp'; }
+
+let 배율 = 1;          // 1 = 쪽 맞춤. ★쪽을 넘겨도 그대로 둔다(사이트 폰 동작)
+try { 배율 = Math.max(1, Math.min(6, +localStorage.getItem('계보도25배율') || 1)); } catch (e) {}
+function 크기() {
+  const 무 = $('무대');
+  const 기본 = Math.min((무.clientHeight - 16) / 원H, (무.clientWidth - (무.clientWidth < 640 ? 8 : 140)) / 원W);
+  const 배 = 기본 * 배율;
+  const w = Math.round(원W * 배), h = Math.round(원H * 배);
+  $('쪽').style.width = w + 'px'; $('쪽').style.height = h + 'px';
+  document.documentElement.style.setProperty('--반폭', Math.round(Math.min(w, 무.clientWidth) / 2) + 'px');
+  무.classList.toggle('확대', 배율 > 1.001);
+  $('배율표').textContent = Math.round(배율 * 100) + '%';
+}
+// 새 배율로 — (cx,cy)=무대 안 자리, 그 자리 아래 글자가 그대로 손가락·마우스 밑에 남게
+function 확대(새, cx, cy) {
+  const 무 = $('무대'), 쪽판 = $('쪽');
+  if (cx == null) { cx = 무.clientWidth / 2; cy = 무.clientHeight / 2; }
+  const m = 무.getBoundingClientRect(), r = 쪽판.getBoundingClientRect();
+  const fx = (m.left + cx - r.left) / r.width, fy = (m.top + cy - r.top) / r.height;
+  배율 = Math.max(1, Math.min(6, 새));
+  크기();
+  const r2 = 쪽판.getBoundingClientRect();
+  무.scrollLeft += (r2.left + fx * r2.width) - (m.left + cx);
+  무.scrollTop += (r2.top + fy * r2.height) - (m.top + cy);
+  try { localStorage.setItem('계보도25배율', 배율); } catch (e) {}
+}
+
+function 그리기(v, p, 표시자리) {
+  권 = v; 쪽 = p;
+  $('그림').src = 파일(v, p);
+  // 앞뒤 쪽 미리 불러 두기 (넘길 때 빈 종이가 안 보이게)
+  [p - 1, p + 1].forEach(q => { if (q >= 0 && q <= 쪽수[v]) { const i = new Image(); i.src = 파일(v, q); } });
+  document.querySelectorAll('#권줄 button').forEach(b => b.classList.toggle('on', +b.dataset.v === v));
+  $('쪽칸').value = p; $('끝쪽').textContent = 쪽수[v];
+  $('앞쪽').disabled = p <= 0; $('다음쪽').disabled = p >= 쪽수[v];
+  $('뒤로').disabled = 자취.length === 0;
+  $('뒤로').textContent = '⟲ 뒤로' + (자취.length ? ' ' + 자취.length : '');
+  $('막대').style.width = (p / 쪽수[v] * 100) + '%';
+  const 쪽판 = $('쪽');
+  쪽판.querySelectorAll('.표').forEach(e => e.remove());
+  const 목 = (자료[v] || {})[p] || [];
+  let 깜자리 = null;
+  목.forEach(([x0, y0, x1, y1, w, n, 종]) => {
+    const e = document.createElement('div');
+    e.className = '표' + (종 === 2 ? ' 卷' : '');
+    e.style.left = (x0 / 원W * 100) + '%'; e.style.top = (y0 / 원H * 100) + '%';
+    e.style.width = ((x1 - x0) / 원W * 100) + '%'; e.style.height = ((y1 - y0) / 원H * 100) + '%';
+    e.dataset.갈 = w + '-' + n;
+    e.dataset.말 = 종이름[종] + ' → ' + (w !== v ? w + '권 ' : '') + n + '쪽';
+    e.onclick = ev => { ev.stopPropagation(); if (끌었음) return; 자취.push([권, 쪽]); 가기(w, n, [v, p]); };
+    e.onmouseenter = () => { $('말').textContent = e.dataset.말; $('말').style.display = 'block'; };
+    e.onmouseleave = () => { $('말').style.display = 'none'; };
+    쪽판.appendChild(e);
+    if (표시자리 && w === 표시자리[0] && n === 표시자리[1]) 깜자리 = 깜자리 || e;
+  });
+  if (깜자리) {
+    깜자리.classList.add('깜');
+    if (배율 > 1.001) 깜자리.scrollIntoView({ block: 'center', inline: 'center' });   // 키운 채 건너가면 그 표시를 보여 준다
+  }
+  $('알림').textContent = 목.length ? '누를 곳 ' + 목.length + '개' : '';
+  $('말').style.display = 'none';
+  history.replaceState(null, '', '#' + v + '-' + p);
+  try { localStorage.setItem('계보도25자리', v + '-' + p); } catch (e) {}
+  const 키 = v + '-' + p;
+  if (표시자리) { 다녀옴 = [키].concat(다녀옴.filter(x => x !== 키)).slice(0, 12); 차례자취(); }
+}
+
+// 넘김 : 같은 권에서 한 쪽 앞뒤로 갈 때만 종이 넘기는 움직임, 건너뛰기는 스며들기
+function 가기(v, p, 표시자리) {
+  v = +v; p = +p;
+  if (!(v >= 1 && v <= 1) || isNaN(p)) return;
+  p = Math.max(0, Math.min(쪽수[v], p));
+  const 시트 = $('쪽');
+  const 한장 = v === 권 && Math.abs(p - 쪽) === 1 && !표시자리;
+  if (배율 > 1.001) {            // ★키운 채 넘김 : 움직임 없이 바꾸기만 — 배율·보던 자리 그대로
+    그리기(v, p, 표시자리);
+  } else if (한장 && !넘기는중 && !바로) {
+    넘기는중 = true;
+    시트.classList.add(p > 쪽 ? '넘김앞' : '넘김뒤');
+    setTimeout(() => {
+      시트.classList.remove('넘김앞', '넘김뒤');
+      그리기(v, p); 시트.classList.add('들어옴');
+      setTimeout(() => { 시트.classList.remove('들어옴'); 넘기는중 = false; }, 290);
+    }, 300);
+  } else if (!넘기는중) {
+    그리기(v, p, 표시자리);
+    시트.classList.remove('들어옴'); void 시트.offsetWidth; 시트.classList.add('들어옴');
+  }
+}
+let 바로 = false;   // 자가검사 때는 움직임 없이 곧바로
+
+function 차례자취() {
+  $('차례자취').innerHTML = '';
+  if (!다녀옴.length) { $('차례자취').innerHTML = '<div class="빈">아직 없습니다</div>'; return; }
+  다녀옴.forEach(k => {
+    const [v, p] = k.split('-'); const b = document.createElement('button'); b.className = '줄';
+    b.innerHTML = v + '권 ' + p + '쪽'; b.onclick = () => { 자취.push([권, 쪽]); 가기(v, p); 차례(false); };
+    $('차례자취').appendChild(b);
+  });
+}
+function 차례(열) { $('차례').classList.toggle('열림', 열); }
+
+document.addEventListener('mousemove', ev => {
+  $('말').style.left = (ev.clientX + 14) + 'px'; $('말').style.top = (ev.clientY + 16) + 'px';
+});
+$('뒤로').onclick = () => { if (자취.length) { const [v, p] = 자취.pop(); 가기(v, p); } };
+$('앞쪽').onclick = $('왼끝').onclick = () => 가기(권, 쪽 - 1);
+$('다음쪽').onclick = $('오른끝').onclick = () => 가기(권, 쪽 + 1);
+$('쪽칸').onkeydown = ev => { if (ev.key === 'Enter') { 자취.push([권, 쪽]); 가기(권, $('쪽칸').value); $('쪽칸').blur(); } };
+$('쪽칸').onfocus = () => $('쪽칸').select();
+$('차례단추').onclick = () => 차례(!$('차례').classList.contains('열림'));
+$('차례닫기').onclick = () => 차례(false);
+$('꽉').onclick = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); };
+$('밝기').onclick = () => {
+  const t = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t; $('밝기').textContent = t === 'dark' ? '☾' : '☀';
+  try { localStorage.setItem('계보도25밝기', t); } catch (e) {}
+};
+$('밝기').textContent = document.documentElement.dataset.theme === 'dark' ? '☾' : '☀';
+document.addEventListener('keydown', ev => {
+  if (ev.target.tagName === 'INPUT') return;
+  if (ev.key === 'ArrowRight' || ev.key === 'PageDown' || ev.key === ' ') { ev.preventDefault(); 가기(권, 쪽 + 1); }
+  else if (ev.key === 'ArrowLeft' || ev.key === 'PageUp') { ev.preventDefault(); 가기(권, 쪽 - 1); }
+  else if (ev.key === 'Backspace') { ev.preventDefault(); $('뒤로').click(); }
+  else if (ev.key === 'Escape') 차례(false);
+  else if (ev.key === '+' || ev.key === '=') 확대(배율 * 1.25);
+  else if (ev.key === '-') 확대(배율 / 1.25);
+  else if (ev.key === '0') 확대(1);
+});
+$('열앞').onclick = () => 가기(권, 쪽 - 10);
+$('열뒤').onclick = () => 가기(권, 쪽 + 10);
+$('키움').onclick = () => 확대(배율 * 1.25);
+$('줄임').onclick = () => 확대(배율 / 1.25);
+$('배율표').onclick = () => 확대(1);
+const 무대 = $('무대');
+// 휠 : Ctrl+휠 = 확대 · 키운 상태 = 화면 옮기기(브라우저 기본) · 쪽 맞춤 = 쪽 넘기기
+무대.addEventListener('wheel', ev => {
+  const m = 무대.getBoundingClientRect();
+  if (ev.ctrlKey) { ev.preventDefault(); 확대(배율 * (ev.deltaY < 0 ? 1.15 : 1 / 1.15), ev.clientX - m.left, ev.clientY - m.top); return; }
+  if (배율 > 1.001) return;
+  if (Math.abs(ev.deltaY) < 30) return; ev.preventDefault(); 가기(권, 쪽 + (ev.deltaY > 0 ? 1 : -1));
+}, { passive: false });
+// 두 번 누르기 : 쪽 맞춤 ↔ 2.5배 (누른 자리 중심)
+$('쪽').addEventListener('dblclick', ev => {
+  const m = 무대.getBoundingClientRect();
+  확대(배율 > 1.001 ? 1 : 2.5, ev.clientX - m.left, ev.clientY - m.top);
+});
+// 끌어서 옮기기 (키운 상태) — 조금이라도 끌었으면 네모 누름은 무시
+let 끌기 = null, 끌었음 = false;
+무대.addEventListener('mousedown', ev => {
+  if (배율 <= 1.001 || ev.button !== 0) return;
+  끌기 = { x: ev.clientX, y: ev.clientY, l: 무대.scrollLeft, t: 무대.scrollTop }; 끌었음 = false;
+  무대.classList.add('끄는중'); ev.preventDefault();
+});
+window.addEventListener('mousemove', ev => {
+  if (!끌기) return;
+  const dx = ev.clientX - 끌기.x, dy = ev.clientY - 끌기.y;
+  if (Math.abs(dx) + Math.abs(dy) > 4) 끌었음 = true;
+  무대.scrollLeft = 끌기.l - dx; 무대.scrollTop = 끌기.t - dy;
+});
+window.addEventListener('mouseup', () => { 끌기 = null; 무대.classList.remove('끄는중'); setTimeout(() => 끌었음 = false, 0); });
+// 두 손가락 벌리기·오므리기 (터치 화면)
+let 집기 = null;
+무대.addEventListener('touchstart', ev => {
+  if (ev.touches.length === 2) {
+    const [a, b] = ev.touches, m = 무대.getBoundingClientRect();
+    집기 = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), 배: 배율,
+            cx: (a.clientX + b.clientX) / 2 - m.left, cy: (a.clientY + b.clientY) / 2 - m.top };
+  }
+}, { passive: true });
+무대.addEventListener('touchmove', ev => {
+  if (!집기 || ev.touches.length !== 2) return;
+  ev.preventDefault();
+  const [a, b] = ev.touches;
+  확대(집기.배 * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / 집기.d, 집기.cx, 집기.cy);
+}, { passive: false });
+무대.addEventListener('touchend', () => { 집기 = null; });
+// 한 손가락 밀기 = 쪽 넘기기 (왼쪽으로 밀면 다음 쪽). 키운 상태면 가장자리에 닿은 뒤 민 것만 넘김
+let 밀기 = null;
+무대.addEventListener('touchstart', ev => {
+  밀기 = ev.touches.length === 1 ? { x: ev.touches[0].clientX, y: ev.touches[0].clientY,
+    l: 무대.scrollLeft, 끝: 무대.scrollWidth - 무대.clientWidth } : null;
+}, { passive: true });
+무대.addEventListener('touchend', ev => {
+  if (!밀기 || 집기) { 밀기 = null; return; }
+  const t = ev.changedTouches[0], dx = t.clientX - 밀기.x, dy = t.clientY - 밀기.y;
+  const 옆밀기 = Math.abs(dx) > 60 && Math.abs(dy) < Math.abs(dx) * 0.6;
+  if (옆밀기) {
+    const 맞춤 = 배율 <= 1.001;
+    const 오른끝닿음 = 밀기.l >= 밀기.끝 - 2, 왼끝닿음 = 밀기.l <= 2;
+    if (dx < 0 && (맞춤 || 오른끝닿음)) 가기(권, 쪽 + 1);
+    else if (dx > 0 && (맞춤 || 왼끝닿음)) 가기(권, 쪽 - 1);
+  }
+  밀기 = null;
+}, { passive: true });
+window.addEventListener('resize', 크기);
+
+// 시작 자리 : 주소 #권-쪽 → 지난번 자리 → 1권 1쪽
+const 첫주소 = decodeURIComponent(location.hash);   // 그리기()가 주소를 덮어쓰기 전에 받아 둔다
+let 첫 = 첫주소.slice(1);
+if (!/^\d-\d+/.test(첫)) { try { 첫 = localStorage.getItem('계보도25자리') || ''; } catch (e) { 첫 = ''; } }
+const m = /^(\d)-(\d+)/.exec(첫) || [0, 1, 0];
+크기(); 차례자취();
+그리기(+m[1], +m[2]);
+
+// ★자가검사 : 주소 끝에 &검사 가 붙으면 스스로 눌러 보고 결과를 본문에 적는다
+if (첫주소.includes('검사')) {
+  바로 = true;
+  const 결 = [];
+  const 누르기 = 갈 => { const e = document.querySelector('.표[data-갈="' + 갈 + '"]'); if (!e) return false; e.click(); return true; };
+  가기(1, 14);
+  결.push('14쪽표시=' + document.querySelectorAll('.표').length);
+  결.push('紩見下40=' + 누르기('1-40') + '→' + 권 + '-' + 쪽);
+  결.push('깜=' + (document.querySelector('.표.깜') || {}).dataset?.갈);
+  $('뒤로').click(); 결.push('뒤로→' + 권 + '-' + 쪽);
+  가기(1, 96);
+  결.push('96卷=' + 누르기('4-2137') + '→' + 권 + '-' + 쪽 + ' 깜=' + (document.querySelector('.표.깜') || {}).dataset?.갈);
+  $('뒤로').click(); 결.push('뒤로→' + 권 + '-' + 쪽 + ' 자취' + 자취.length);
+  가기(5, 쪽수[5]); $('다음쪽').click(); 결.push('끝넘기→' + 권 + '-' + 쪽);
+  가기(1, 0); $('앞쪽').click(); 결.push('첫넘기→' + 권 + '-' + 쪽);
+  결.push('끝쪽=' + [1, 2, 3, 4, 5].map(v => 쪽수[v]).join(','));
+  가기(1, 14); 확대(2); 무대.scrollTop = 300; 무대.scrollLeft = 200;
+  const 앞자리 = [무대.scrollLeft, 무대.scrollTop];
+  $('다음쪽').click();
+  결.push('키운채넘김→' + 권 + '-' + 쪽 + ' 배율' + 배율 + ' 자리' + (무대.scrollLeft === 앞자리[0] && 무대.scrollTop === 앞자리[1] ? '같음' : '다름' + [무대.scrollLeft, 무대.scrollTop]));
+  $('열뒤').click(); 결.push('10뒤→' + 쪽);
+  확대(1); 결.push('맞춤→배율' + 배율);
+  const d = document.createElement('pre'); d.id = '검사결과'; d.textContent = 결.join(' | '); document.body.appendChild(d);
+}
+</script>
+</body>
+</html>
