@@ -1,0 +1,1506 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<base target="_top">   <!-- 앱스스크립트는 책을 iframe 안에 넣는다. 링크가 그 안에 갇히지 않게 -->
+<title>우리 선조 묘산도 ― 나씨지장록 갑진본 권1 · 사당 그림·묘산도 50面</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+
+<script>
+/* ★기본은 「달」 — 어두운 바탕. 밝게 보시려면 해 단추를 누른다.
+   글이 그려지기 전에 정해야 밝은 화면이 번쩍하지 않는다. */
+(function(){
+  var v = 'dark';
+  try{ if(localStorage.getItem('jijangrok_myosan1Theme') === 'light') v = 'light'; }catch(e){}
+  document.documentElement.setAttribute('data-theme', v);
+})();
+</script>
+
+<style>
+.findbar{display:none;align-items:center;gap:6px;padding:6px 14px 8px}
+.findbar.on{display:flex}
+.findbar input{flex:1;min-width:0;height:34px;border:1px solid var(--edge);border-radius:8px;
+  background:var(--sheet);color:var(--ink);font-size:16px;padding:0 10px}
+.findbar .cnt{font-size:12.5px;color:var(--faint);min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+.pages mark.hit{background:var(--seal);color:#fff;border-radius:2px;padding:0 1px}
+.pages .hitbox{outline:2px solid var(--seal);outline-offset:3px}
+
+/* ── 지장록 3차 : 해석만 · 원본 사진 · 주석 단추 (2026-10-01) ── */
+.gj{height:1em;width:auto;vertical-align:-.13em;display:inline}
+.pages p.ii{margin-top:-.95em}
+:root[data-theme="dark"] .gj:not(.gb){filter:invert(1)}
+:root[data-theme="dark"] .gj.gb{filter:brightness(2.4) saturate(.7)}
+h2.chap.vol{text-align:center;letter-spacing:.2em}
+button.wb,span.wbx{font:800 .7em/1 'Noto Sans KR',sans-serif;color:#ffb020;background:rgba(255,176,32,.14);border:2px solid #ffb020;border-radius:1em;padding:.3em .65em;margin:0 .45em .1em 0;vertical-align:.14em;cursor:pointer}
+:root[data-theme="light"] button.wb,:root[data-theme="light"] span.wbx{color:#b35c00;border-color:#d97a00;background:rgba(217,122,0,.1)}
+button.wb::before,span.wbx::before{content:"묘산도"}
+span.wbx,span.mbx{font-size:.8em;vertical-align:0}
+span.wbx::before{content:""}
+.pages p.nm{margin:.15em 0 .55em}
+.pages p.mbp{text-align:right !important;margin:.1em 0 .9em}
+.pages p.ms{text-align:left !important;margin:.25em 0 .45em;text-indent:0}
+.pages b.mk{display:inline-block;font:700 .78em/1.5 'Noto Sans KR',sans-serif;color:var(--accent,#9a3b1b);border:1px solid currentColor;border-radius:.5em;padding:0 .45em;margin-right:.4em}
+.pages b.mk2{font:700 .8em/1 'Noto Sans KR',sans-serif;color:var(--dim)}
+.pages span.sep{color:var(--dim)}
+.pages p.mj{text-align:left !important;margin:.05em 0 .05em .6em;text-indent:0}
+.pages p.mj.in{margin-left:2.2em}
+.pages p.mj .no{display:inline-block;min-width:2.2em;color:var(--dim)}
+.pages p.mg{text-align:left !important;margin:.5em 0 .1em .3em;font-weight:700}
+.pages p.mbp2{text-align:center !important;margin:.8em 0 1.2em}
+.pages p.mbp2 button.wb{font-size:.95em;padding:.45em 1.2em}
+button.mb,span.mbx{font:600 .72em/1 'Noto Sans KR',sans-serif;color:var(--dim);background:transparent;border:1px solid currentColor;border-radius:1em;padding:.35em .8em;cursor:pointer}
+button.mb::before{content:"주석 보기 (" attr(data-n) ")"}
+/* 원본 창 · 주석 창 */
+.ov{position:fixed;inset:0;z-index:9000;display:none;flex-direction:column;background:#111;color:#eee;touch-action:none}
+.ov.on{display:flex}
+.ov .ovbar{display:flex;align-items:center;gap:6px;padding:8px 10px;font:600 14px/1.3 'Noto Sans KR',sans-serif}
+.ov .ovbar .cap{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov .ovbar button{min-width:40px;height:40px;border-radius:20px;border:1px solid #666;background:#222;color:#eee;font:600 16px/1 sans-serif}
+.ov .ovbar button:disabled{opacity:.3}
+.ov .stagei{flex:1;overflow:auto;position:relative;touch-action:pan-x pan-y}
+.ov .stagei .pw{position:relative;margin:0 auto}
+.ov .stagei img{display:block;width:100%;height:100%;max-width:none;user-select:none;-webkit-user-drag:none;background:#ddd}
+.ov .hl{position:absolute;display:none;border:1px solid #ffd400;pointer-events:none}
+.ov .hint{font:12px/1.4 'Noto Sans KR',sans-serif;color:#aaa;text-align:center;padding:4px 0 10px}
+.ov.memo{background:rgba(0,0,0,.55);justify-content:flex-end}
+.ov.memo .sheet{background:var(--paper,#fbf8f1);color:var(--ink,#222);max-height:78vh;overflow:auto;border-radius:16px 16px 0 0;padding:14px 18px 26px;font-size:15px;line-height:1.7;touch-action:pan-y}
+.ov.memo .sheet h3{font-size:16px;margin:0 0 .6em;padding-right:44px}
+.ov.memo .sheet p{margin:.1em 0 .7em;text-align:left}
+.ov.memo .sheet .x{position:sticky;top:0;float:right;min-width:40px;height:40px;border-radius:20px;border:1px solid #999;background:transparent;color:inherit;font:600 16px/1 sans-serif}
+
+/* ── 빛깔 : 새벽 강안개 바탕 · 푸른 기미의 먹 · 호구단자 관인의 붉은빛 ── */
+:root{
+  --paper:#EEF0EE;      /* 강안개 */
+  --sheet:#F7F8F6;      /* 글이 앉는 자리 */
+  --ink:#14191C;        /* 먹 — 밝은 바탕에서 흐려 보이지 않게 진하게 */
+  --dim:#4E585D;        /* 흐린 먹 */
+  --faint:#8E979B;
+  --edge:#D5DAD8;
+  --seal:#A33A2E;       /* 관인 붉은빛 */
+  --river:#3E6B6E;      /* 영산강 청록 */
+  --oldbg:#E7EAE6;      /* 옛 책 말씀 자리 */
+  --shadow:0 1px 3px rgba(31,38,42,.08),0 12px 32px rgba(31,38,42,.10);
+  --edgefade:rgba(31,38,42,.10);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#12171A; --sheet:#171D21; --ink:#F0F4F2; --dim:#B4BFC1; --faint:#8A9497;
+    --edge:#2A3338; --seal:#E07A6C; --river:#7FBAB6; --oldbg:#1D2529;
+    --shadow:0 1px 3px rgba(0,0,0,.5),0 14px 38px rgba(0,0,0,.55);
+    --edgefade:rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#12171A; --sheet:#171D21; --ink:#F0F4F2; --dim:#B4BFC1; --faint:#8A9497;
+  --edge:#2A3338; --seal:#D9695B; --river:#6FA9A6; --oldbg:#1D2529;
+  --shadow:0 1px 3px rgba(0,0,0,.5),0 14px 38px rgba(0,0,0,.55);
+  --edgefade:rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+/* ★문서가 옆으로 넓어지지 못하게 못 박는다.
+   쪽 상자 마흔 개가 옆으로 늘어서 있어서, 가리기만 해서는
+   문서 폭이 그만큼 넓어진 채로 남는다. PC 는 그냥 자르지만
+   폰은 그 넓은 폭에 맞춰 화면을 잡아 「책이 화면보다 크다」가 된다. */
+html,body{
+  height:100%;margin:0;overscroll-behavior:none;
+  width:100%;max-width:100%;overflow-x:hidden;
+}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'Noto Sans KR','Malgun Gothic',sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--seal);outline-offset:3px;border-radius:3px}
+
+/* ── 틀 ── */
+.book{height:100dvh;width:100%;max-width:100%;overflow:hidden;
+      display:grid;grid-template-rows:auto 1fr auto;gap:0}
+/* ★칸이 「제 속의 내용만큼」 넓어지려 드는 것을 막는다.
+   이것이 없으면 제목줄·단추줄이 안 줄어들어 좁은 폰에서 화면 밖으로 나간다.
+   (min-width 의 기본값이 auto 라서 생긴 일 — 2026-08-27 규명) */
+.book > *{min-width:0}
+.bar .name{min-width:0}
+.pageno{min-width:0}
+
+.bar{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px 8px;
+}
+.bar .name{
+  font-family:'Noto Serif KR',serif;font-weight:700;font-size:15px;
+  letter-spacing:.02em;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.bar .sp{flex:1}
+.iconbtn{
+  min-width:38px;height:34px;padding:0 8px;white-space:nowrap;border-radius:8px;color:var(--dim);
+  display:grid;place-items:center;font-size:14px;font-weight:700;
+}
+.iconbtn:hover{background:var(--oldbg);color:var(--ink)}
+.iconbtn.small{font-size:12px}
+.iconbtn svg{display:block}
+
+@media (max-width:400px){
+  .bar{gap:6px;padding:10px 12px 8px}
+  .bar .name{font-size:14px}
+  .iconbtn{min-width:34px;padding:0 6px}
+}
+.progress{height:2px;background:var(--edge);margin:0 16px;border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--seal);transition:width .25s ease}
+
+/* ── 글이 흐르는 자리 ──────────────────────────────────────────
+   ★쪽 나누기는 브라우저의 「여러 단(multi-column)」에 맡긴다.
+   전자책 표준 리더(Readium·epub.js)가 모두 쓰는 방법이다.
+   · column-fill:auto + 높이 고정  → 한 단이 화면 높이만큼 차면 다음 단으로
+   · 단 하나 = 한 쪽
+   · 넘기기 = scrollLeft — 실제로 그려진 단 자리를 재서 그 값으로 간다
+   클이 쪽을 만들지 않으므로 넘칠 수가 없다. */
+.stage{position:relative;overflow:hidden}
+
+.pages{
+  height:100%;
+  /* 글 폭 — 좁은 화면은 좌우 22px 씩, 넓은 화면은 읽기 좋은 폭까지만 */
+  width:calc(100% - 44px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));
+  max-width:var(--글폭,680px);
+  margin:0 auto;
+  padding:14px 0 6px;          /* 위아래 여백은 모든 단에 함께 든다 */
+  overflow:hidden;             /* 손가락으로 아무 데나 멈추지 못하게 */
+  column-fill:auto;            /* ★한 단을 끝까지 채우고 다음 단으로 */
+  column-gap:64px;             /* 옆 단이 비치지 않게 넉넉히 */
+  scroll-behavior:smooth;
+  font-size:var(--fs,17px);
+  font-weight:500;
+  line-height:1.9;
+  /* ★한글은 낱말 안에서 끊지 않는다 — 좁은 폰에서 「고을」이 「고/을」로,
+     「되었습니다」가 「되었습/니다」로 갈라졌다 (2026-09-03 할아버지 지적).
+     p 에만 걸려 있어 제목(.chap)·인용(.old)·상자(.point)가 새어 나갔다.
+     그릇에 걸면 모든 자식이 물려받는다. */
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+/* 문단·그림·네모상자가 쪽 경계에서 두 동강 나지 않게 */
+.pages > *{
+  break-inside:avoid;
+  -webkit-column-break-inside:avoid;
+  page-break-inside:avoid;
+}
+@media (prefers-reduced-motion:reduce){ .pages{scroll-behavior:auto} }
+
+/* ★왼쪽 맞춤 — 양쪽 맞춤은 어절 사이가 크게 벌어져 어린이 눈에 거슬린다
+   (한글은 낱말 안에서 끊지 않으므로 벌어짐이 심하다. 2026-08-27 눈으로 확인) */
+.pages p{orphans:2;widows:2;margin:0 0 .95em;text-align:left;word-break:keep-all}
+.pages p.li{margin:0 0 .45em;padding-left:1.1em;text-indent:-1.1em;text-align:left}
+
+.chap{
+  font-family:'Noto Serif KR',serif;font-weight:800;
+  font-size:1.32em;line-height:1.45;letter-spacing:-.01em;
+  margin:1.5em 0 .7em;color:var(--ink);text-wrap:balance;
+  break-after:avoid;
+}
+.chap:first-child{margin-top:0}
+.chap::before{
+  content:"";display:block;width:34px;height:3px;background:var(--seal);
+  margin-bottom:.5em;border-radius:2px;
+}
+.sub{
+  font-family:'Noto Serif KR',serif;font-weight:700;
+  font-size:1.08em;line-height:1.5;color:var(--river);
+  margin:1.3em 0 .55em;padding-bottom:.35em;
+  border-bottom:1px solid var(--edge);
+  text-wrap:balance;break-after:avoid;
+}
+
+/* 옛 책의 말씀 — 글꼴이 바뀐다. 지금 목소리와 옛 목소리를 가른다 */
+.old{
+  font-family:'Noto Serif KR',serif;font-size:1.02em;line-height:1.8;
+  margin:.9em 0 1em;padding:.7em .95em .7em 1.05em;
+  background:var(--oldbg);border-left:3px solid var(--river);
+  color:var(--ink);break-inside:avoid;
+}
+.old[data-tag="물음"]{border-left-color:var(--seal)}
+.old[data-tag="답"]{border-left-color:var(--seal);opacity:.94}
+
+/* 결론 — 네모 상자 */
+.point{
+  border:1px solid var(--seal);border-radius:2px;
+  padding:.75em .95em;margin:1em 0 1.1em;
+  font-weight:500;color:var(--ink);background:var(--sheet);
+  break-inside:avoid;text-align:left !important;
+}
+/* 본관이 바뀌는 자리 */
+.mark{
+  font-weight:700;color:var(--seal);letter-spacing:.01em;
+  margin:.8em 0 .6em !important;text-align:left !important;
+  break-inside:avoid;
+}
+
+.pic{margin:1.1em 0 1.2em;break-inside:avoid}
+.pic img{
+  display:block;width:100%;height:auto;border-radius:2px;
+  border:1px solid var(--edge);background:var(--sheet);
+  aspect-ratio:14/9;              /* ★그림이 다 그려지기 전에도 자리를 알 수 있게 */
+  max-height:56vh;object-fit:contain;
+}
+/* ★아주 낮은 화면(Z플립 커버 따위)에서는 그림을 더 줄인다.
+   화면 높이가 374px 인데 구글 안내 띠까지 빼면 책 높이가 277px 밖에 안 되어,
+   그림+설명이 한 쪽을 넘친다 (2026-08-27 실측 : 4px 넘침). */
+@media (max-height:560px){
+  .pic{margin:.7em 0 .8em}
+  .pic img{max-height:40vh}
+  .pic figcaption{font-size:.72em;line-height:1.5;margin-top:.35em}
+}
+.pic figcaption{
+  margin-top:.5em;font-size:.8em;line-height:1.6;color:var(--dim);
+  text-align:left;word-break:keep-all;
+}
+
+/* ── 표 ──
+   틀에 표 스타일이 아예 없어 선이 안 보이고 칸 폭이 제멋대로였다.
+   좁은 폰에서 「우리」가 「우/리」로 쪼개져 보였다. (2026-09-03 할아버지 지적) */
+.tbl{
+  width:100%;border-collapse:collapse;
+  margin:.9em 0 1.2em;
+  font-size:.92em;line-height:1.6;
+  break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
+}
+.tbl th,.tbl td{
+  border:1px solid var(--edge);
+  padding:.45em .55em;
+  text-align:left;vertical-align:top;
+  word-break:keep-all;
+}
+.tbl th{
+  background:var(--oldbg);color:var(--dim);
+  font-weight:700;font-size:.9em;letter-spacing:.02em;
+}
+.tbl tr:nth-child(even) td{background:var(--oldbg)}
+/* 좁은 화면에서는 조금 더 작게 — 칸이 좁아 낱말이 쪼개지지 않게 */
+@media (max-width:430px){
+  .tbl{font-size:.84em}
+  .tbl th,.tbl td{padding:.38em .4em}
+}
+
+/* ── 겉장 ── */
+.cover{
+  height:100%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;gap:0;padding-bottom:2%;
+}
+.cover-seal{
+  width:48px;height:48px;border:2px solid var(--seal);border-radius:3px;
+  display:grid;place-items:center;margin-bottom:1.25em;
+  transform:rotate(-4deg);
+}
+.cover-seal span{
+  font-family:'Noto Serif KR',serif;font-weight:800;font-size:30px;
+  color:var(--seal);line-height:1;
+}
+.cover-title{
+  font-family:'Noto Serif KR',serif;font-weight:800;
+  font-size:1.95em;line-height:1.35;letter-spacing:-.02em;
+  margin:0 0 .55em;text-wrap:balance;
+}
+.cover-sub{
+  font-size:.9em;color:var(--ink);margin:0 0 1.1em;
+  text-align:center !important;word-break:keep-all;line-height:1.7;
+}
+.cover-by{font-size:.8em;color:var(--dim);margin:1.5em 0 0;text-align:center !important}
+.cover-rule{width:44px;height:1px;background:var(--edge);margin:.4em 0 1.7em}
+.cover-meta{
+  margin:0;display:grid;grid-template-columns:auto;gap:.28em;
+  text-align:center;font-size:.8em;line-height:1.65;
+}
+.cover-meta dt{
+  color:var(--dim);font-size:.86em;letter-spacing:.06em;
+  margin-top:.85em;
+}
+.cover-meta dt:first-child{margin-top:0}
+.cover-meta dd{margin:0;color:var(--ink);font-family:'Noto Serif KR',serif}
+.cover-meta .q{font-family:'Noto Sans KR',sans-serif;font-size:.9em;color:var(--dim)}
+.cover-hint{
+  margin:2.4em 0 0;font-size:.78em;color:var(--dim);
+  text-align:center !important;letter-spacing:.02em;
+}
+.cover-hint::after{content:" →";color:var(--seal)}
+/* ★읽던 자리가 있을 때만 겉장에 뜨는 단추 (2026-08-27)
+   책은 언제나 겉장에서 열린다. 이어 읽고 싶으면 이것을 누른다. */
+.cover-go{
+  margin:1.5em 0 0;padding:.62em 1.25em;
+  border:1px solid var(--seal);border-radius:999px;
+  color:var(--seal);font-size:.82em;font-weight:700;
+  letter-spacing:.02em;line-height:1.4;
+  background:transparent;
+}
+.cover-go:hover{background:var(--seal);color:var(--sheet)}
+.cover-go[hidden]{display:none}
+
+/* ── 아래 ── */
+.nav{
+  display:flex;align-items:center;gap:6px;padding:6px 12px 12px;
+}
+.pagebtn{
+  width:46px;height:40px;border-radius:9px;color:var(--dim);
+  display:grid;place-items:center;font-size:19px;
+}
+.pagebtn:hover:not(:disabled){background:var(--oldbg);color:var(--ink)}
+.pagebtn:disabled{opacity:.28;cursor:default}
+.pageno{
+  flex:1;text-align:center;font-size:12.5px;color:var(--faint);
+  font-variant-numeric:tabular-nums;letter-spacing:.04em;
+}
+.pageno b{color:var(--dim);font-weight:500}
+
+/* ── 목차 ── */
+.tocwrap{
+  position:fixed;inset:0;z-index:40;display:none;
+  background:var(--edgefade);
+}
+.tocwrap.on{display:block}
+.toc{
+  position:absolute;left:0;right:0;bottom:0;max-height:76%;
+  background:var(--sheet);border-top:2px solid var(--seal);
+  border-radius:14px 14px 0 0;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+  animation:up .22s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes up{from{transform:translateY(14px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){ .toc{animation:none} }
+.toc h2{
+  font-family:'Noto Serif KR',serif;font-size:15px;font-weight:700;
+  margin:0;padding:16px 20px 10px;color:var(--dim);letter-spacing:.04em;
+}
+.toc ol{list-style:none;margin:0;padding:0 8px 22px;overflow-y:auto}
+.toc li{counter-increment:t}
+.toc button{
+  display:flex;gap:12px;width:100%;text-align:left;
+  padding:11px 12px;border-radius:8px;line-height:1.5;
+  font-size:15px;word-break:keep-all;
+}
+.toc button::before{
+  content:counter(t);color:var(--faint);font-size:12px;
+  font-variant-numeric:tabular-nums;min-width:1.3em;padding-top:.25em;
+}
+.toc button:hover{background:var(--oldbg)}
+.toc ol{counter-reset:t}
+
+/* ── 넓은 화면 : 두 쪽 펼침을 하지 않는다 (2026-08-27 할아버지 지시) ──
+   어느 기기든 「한 번에 한 쪽」이다. 화면이 넓으면 쪽을 넓히는 대신
+   좌우 여백을 키워 글 폭을 읽기 좋게 잡는다. 글 폭은 --글폭 하나로 다스린다. */
+@media (min-width:640px){
+  .pages{font-size:var(--fs,18.5px);padding-top:20px;padding-bottom:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="book">
+  <div class="bar">
+    <span class="name">우리 선조 묘산도</span>
+    <span class="sp"></span>
+    <button class="iconbtn" id="full" type="button" aria-label="화면 꽉 채우기" title="화면 꽉 채우기"></button>
+    <button class="iconbtn" id="findbtn" type="button" aria-label="찾기" title="찾기"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button>
+    <button class="iconbtn" id="theme" type="button" aria-label="밝게 어둡게">☾</button>
+    <button class="iconbtn small" id="smaller" type="button" aria-label="글씨 작게">가－</button>
+    <button class="iconbtn" id="bigger" type="button" aria-label="글씨 크게">가＋</button>
+    <button class="iconbtn" id="tocbtn" type="button" aria-label="차례">☰</button>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="findbar" id="findbar"><input id="findq" type="search" placeholder="찾기 (예: 殷制 · 은제 · 舞鶴山)" enterkeyhint="search" autocomplete="off"><span class="cnt" id="findcnt"></span><button class="iconbtn" id="findprev" type="button" aria-label="앞 결과">▲</button><button class="iconbtn" id="findnext" type="button" aria-label="다음 결과">▼</button><button class="iconbtn" id="findclose" type="button" aria-label="찾기 닫기">✕</button></div>
+
+  <div class="stage" id="stage">
+    <div class="pages" id="pages"><section class="cover">
+<div class="cover-seal" aria-hidden="true"><span>羅</span></div>
+<h1 class="cover-title">한글로 읽는<br>우리 선조 이야기</h1>
+<p class="cover-sub">나씨지장록 갑진본 권1 · 사당 그림·묘산도 50面</p>
+<div class="cover-rule" aria-hidden="true"></div>
+<dl class="cover-meta"><dt>바탕이 된 책</dt><dd>『羅氏誌狀錄(나씨지장록)』 甲辰本 卷之一<br><span class="q">甲辰(1964년으로 봄) 간행 · 글 50편</span></dd><dt>읽는 법</dt><dd>쪽마다 제목 · 위치 · 지형 · 묘소 차례로 적었습니다. 아래 <span class="wbx">묘산도</span> 를 누르면 원본 그림이 열립니다</dd><dt>이 책을 만든 이</dt><dd>라정호 · AI(클로드코드)</dd></dl>
+<p class="cover-by">2026년 10월 검토용</p>
+<p class="cover-hint">손가락으로 옆으로 밀어 넘기세요</p>
+<button class="cover-go" id="이어단추" type="button" hidden></button></section>
+
+<h2 class="chap" id="c0">鳳岡祠圖(봉강사도)</h2>
+<p class="ms"><b class="mk">위치</b> 全羅南道羅州郡(전라남도나주군) 文平面(문평면) 五倫洞(오륜동)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 白龍山(백룡산) · 啼鳳山(제봉산) · 舞鶴山(무학산) <span class="sep">｜</span> <b class="mk2">건물</b> 鳳岡祠(봉강사) · 三元門(삼원문) · 錦史亭(금사정) <span class="sep">｜</span> <b class="mk2">그 밖</b> 池(지) · 路(노) · 書院里(서원리) · 五倫洞(오륜동)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="45" data-c="0" data-ef="0" data-ec="0" data-w="45面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c1">松齋祠圖(송재사도)</h2>
+<p class="ms"><b class="mk">위치</b> 全南羅州郡文平面(전남나주군문평면) 東院里(동원리)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 笠峯(입봉) · 舞鶴山(무학산) <span class="sep">｜</span> <b class="mk2">건물</b> 松齋祠(송재사) · 道東門(도동문) · 講堂(강당) <span class="sep">｜</span> <b class="mk2">그 밖</b> 書院里(서원리) · 慕亭(모정) · 雙亭里(쌍정리)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="46" data-c="0" data-ef="0" data-ec="0" data-w="46面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c2">按廉使公諱文奎墓山圖(안렴사공휘문규묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舊羅州郡居平面炭坊東麓天馬峰第三節下寶劒嶝(구나주군거평면탄방동록천마봉제삼절하보검등) / 新羅州郡文平面大道里(신라주군문평면대도리)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 丑艮龍丙入首午坐(축간룡병입수오좌) / 卯酉水子歸(묘유수자귀) <span class="sep">｜</span> <b class="mk2">산</b> 天馬山(천마산) · 國師峰(국사봉) · 太淸山(태청산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 吳墓(오묘) · 古塚(고총) · 神道碑(신도비) · 炭坊里(탄방리) · 路(노)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="47" data-c="0" data-ef="0" data-ec="0" data-w="47面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c3">翰林公諱奉外四位墓壇圖(한림공휘봉외사위묘단도)</h2>
+<p class="ms"><b class="mk">위치</b> 忠南舒川郡麒山面永慕里山城洞西麓乾亥來龍丑艮轉身艮入首癸坐之原(충남서천군기산면영모리산성동서록건해래룡축간전신간입수계좌지원)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 麒麟峰(기린봉) · 乾芝山(건지산) · 崇貞山(숭정산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 追慕碑(추모비) · 永慕齋(영모재) · 田(전)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 翰林公諱奉(한림공휘봉)</p>
+<p class="mj"><span class="no">二</span> 進士公諱郁(진사공휘욱)</p>
+<p class="mj"><span class="no">三</span> 生員公諱熙(생원공휘희)</p>
+<p class="mj"><span class="no">四</span> 進士公諱孝榮(진사공휘효영)</p>
+<p class="mj"><span class="no">五</span> 生員公諱淳(생원공휘순)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="48" data-c="0" data-ef="0" data-ec="0" data-w="48面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c4">清白吏公諱殷制以外十六位墓山圖(청백리공휘은제이외십육위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡文平面松山里(나주군문평면송산리)(居平面松林里(거평면송림리))舞鶴山西麓(무학산서록)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 巽巳龍寅回頭甲入首卯坐(손사룡인회두갑입수묘좌) / 子午水(자오수)□庚坤(경곤) <span class="sep">｜</span> <b class="mk2">산</b> 舞鶴山(무학산) · 高城山(고성산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 追遠堂(추원당)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 清白吏公殷制(청백리공은제)</p>
+<p class="mj"><span class="no">二</span> 淑夫人艅艎羅氏(숙부인여황나씨)</p>
+<p class="mj"><span class="no">三</span> 少尹公郁配咸平魯氏合祔(소윤공욱배함평노씨합부)</p>
+<p class="mj"><span class="no">四</span> 參判公彬(참판공빈)</p>
+<p class="mj"><span class="no">五</span> 貞夫人海平尹氏(정부인해평윤씨)</p>
+<p class="mj"><span class="no">六</span> 松齋公世纘(송재공세찬)</p>
+<p class="mj"><span class="no">七</span> 貞敬夫人潭陽田氏(정경부인담양전씨)</p>
+<p class="mj"><span class="no">八</span> 貞夫人宜寧南氏(정부인의령남씨)</p>
+<p class="mj"><span class="no">九</span> 沙潭公德元(사담공덕원)</p>
+<p class="mj"><span class="no">十</span> 校尉公世寶(교위공세보)</p>
+<p class="mj"><span class="no">十一</span> 淑人南平文氏(숙인남평문씨)</p>
+<p class="mj"><span class="no">十二</span> 將仕郞審智(장사랑심지)</p>
+<p class="mj"><span class="no">十三</span> 咸平魯氏(함평노씨)</p>
+<p class="mj"><span class="no">十四</span> 泂(형)</p>
+<p class="mj"><span class="no">十五</span> 平海吳氏(평해오씨)</p>
+<p class="mj"><span class="no">十六</span> 泗川公復昌(사천공복창)</p>
+<p class="mj"><span class="no">十七</span> 恩津宋氏(은진송씨)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="49" data-c="0" data-ef="0" data-ec="0" data-w="49面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c5">進士公諱光弼外十二位墓山圖(진사공휘광필외십이위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 忠清南道舒川郡麒山面華山里書堂洞(충청남도서천군기산면화산리서당동)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 丑艮龍壬坎回頭丑坎結咽(축간룡임감회두축감결인) / 到頭寅入首甲坐乾得丁破(도두인입수갑좌건득정파) <span class="sep">｜</span> <b class="mk2">산</b> 主峰(주봉) · 崇貞山(숭정산) · 白星山(백성산) · 將軍峰(장군봉) · 華山(화산) · 華陽山(화양산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 耕地(경지) · 田(전) · 路(노) · 至辛山路(지신산로) · □ … 峙(치)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 進士公諱光弼(진사공휘광필)</p>
+<p class="mj"><span class="no">二</span> 直長公諱世雄(직장공휘세웅)</p>
+<p class="mj"><span class="no">三</span> 主簿公友義及配昌原黃氏合窆(주부공우의급배창원황씨합폄)</p>
+<p class="mj"><span class="no">四</span> 主簿公友仁及配昌原黃氏合附(주부공우인급배창원황씨합부)</p>
+<p class="mj"><span class="no">五</span> 奉事公士綱及配光山李氏壇碑(봉사공사강급배광산이씨단비)</p>
+<p class="mj"><span class="no">六</span> 士純及配隋城崔氏合附(사순급배수성최씨합부)</p>
+<p class="mj"><span class="no">七</span> 士維及配昌原黃氏壇碑(사유급배창원황씨단비)</p>
+<p class="mj"><span class="no">八</span> 繪昱及配光山金氏壇碑(회욱급배광산김씨단비)</p>
+<p class="mj"><span class="no">九</span> 億齡(억령) 乾坐(건좌)</p>
+<p class="mj"><span class="no">十</span> 晩徵(만징) 乾坐(건좌)</p>
+<p class="mj"><span class="no">十一</span> 尙綵及配光山金氏合窆壬坐(상채급배광산김씨합폄임좌)</p>
+<p class="mj"><span class="no">十二</span> 世章配谷山康氏亥坐(세장배곡산강씨해좌)</p>
+<p class="mj"><span class="no">十三</span> 基夏及配晉州金氏合窆(기하급배진주김씨합폄)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="50" data-c="0" data-ef="0" data-ec="0" data-w="50面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c6">戶叅公諱彭老外三位墓山圖(호참공휘팽로외삼위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡文平面新光宗山(나주군문평면신광종산)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 甲卯龍辛入首庚坐(갑묘룡신입수경좌) / 卯酉兩得巽破(묘유량득손파)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 戶叅公彭老(호참공팽로)</p>
+<p class="mj"><span class="no">二</span> 貞夫人羅州鄭氏(정부인나주정씨)</p>
+<p class="mj"><span class="no">三</span> 判(판)〔決(결)〕事公命麟(사공명린)</p>
+<p class="mj"><span class="no">四</span> 淑夫人艅艎羅氏(숙부인여황나씨)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="51" data-c="0" data-ef="0" data-ec="0" data-w="51面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c7">學生羅公雄虎墓山圖(학생나공웅호묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡榮山浦邑安倉里(나주군영산포읍안창리)(龍頭里(용두리))對月峯巽坐原(대월봉손좌원)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 丑艮龍巽巳回午入首(축간룡손사회오입수) / 午坐寅甲得庚破(오좌인갑득경파) <span class="sep">｜</span> <b class="mk2">산</b> 對月峯(대월봉) <span class="sep">｜</span> <b class="mk2">그림 안</b> 雄虎(웅호) · 世葬碑(세장비)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj">配驪陽陳氏同原(배여양진씨동원)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="52" data-c="0" data-ef="0" data-ec="0" data-w="52面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c8">叅奉羅公諱文厚外八位墓山圖(참봉나공휘문후외팔위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舊羅州郡新村面投珠洞(구나주군신촌면투주동) / 新羅州郡榮山浦邑安倉里艮坐原(신라주군영산포읍안창리간좌원)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 丑艮龍壬亥回甲入首艮坐甲得庚破(축간룡임해회갑입수간좌갑득경파) <span class="sep">｜</span> <b class="mk2">산</b> 錦城山(금성산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 九(구) 癸坐(계좌) · 投珠洞(투주동)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 叅奉文厚配金氏雙墳(참봉문후배김씨쌍분)</p>
+<p class="mj"><span class="no">二</span> 通政彦絟配羅州鄭氏雙墳(통정언전배나주정씨쌍분)</p>
+<p class="mj"><span class="no">三</span> 佐郞彦純配濟州梁氏雙墳(좌랑언순배제주량씨쌍분)</p>
+<p class="mj"><span class="no">四</span> 叅奉德仁配瑞興金氏合祔(참봉덕인배서흥김씨합부)</p>
+<p class="mj"><span class="no">五</span> 德義配羅州林氏雙墳(덕의배나주림씨쌍분)</p>
+<p class="mj"><span class="no">六</span> 通政德良配淑夫人昌寧曺氏雙墳(통정덕량배숙부인창녕조씨쌍분)</p>
+<p class="mj"><span class="no">七</span> 八萬配羅州鄭氏雙墳(팔만배나주정씨쌍분)</p>
+<p class="mj"><span class="no">八</span> 德卿配羅州林氏合祔(덕경배나주림씨합부)</p>
+<p class="mj"><span class="no">九</span> 德潤配金海金氏合祔(덕윤배김해김씨합부) 癸坐(계좌)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="53" data-c="0" data-ef="0" data-ec="0" data-w="53面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c9">将仕郎公諱世章外十位墓山圖(장사랑공휘세장외십위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 全南咸平邑佳洞里兌龍乾回亥入首壬坐庚丁水歸卯(전남함평읍가동리태룡건회해입수임좌경정수귀묘) / 乾入首亥坐未坤水歸癸(건입수해좌미곤수귀계) / 巽巳丙午龍丙起午未二節庚頭酉入首庚坐丁壬水歸丑(손사병오룡병기오미이절경두유입수경좌정임수귀축)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 旺峙(왕치) · 南山(남산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 重瑠(중류) · 廷倫(정륜) · 纘仁(찬인) · 정우 · 得壽(득수) · 齋閣(재각) · 村(촌)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 将仕郎公諱世章(장사랑공휘세장)</p>
+<p class="mj"><span class="no">二</span> 進士公諱祉(진사공휘지)</p>
+<p class="mj"><span class="no">三</span> 忠順衛公諱詩男(충순위공휘시남)</p>
+<p class="mj"><span class="no">四</span> 松坡公諱珏(송파공휘각)</p>
+<p class="mj"><span class="no">五</span> 繪甲(회갑)</p>
+<p class="mj"><span class="no">六</span> 光斗(광두)</p>
+<p class="mj"><span class="no">七</span> 萬綵(만채)</p>
+<p class="mj"><span class="no">八</span> 重瑠(중류)</p>
+<p class="mj"><span class="no">九</span> 纘仁(찬인)</p>
+<p class="mj"><span class="no">十</span> 松湖公(송호공)</p>
+<p class="mj"><span class="no">十一</span> 晩菴公(만암공)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="54" data-c="0" data-ef="0" data-ec="0" data-w="54面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c10">監察公諱世緝外十一位墓山圖(감찰공휘세집외십일위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舊羅州郡居平面牛谷玉兔嶝(구나주군거평면우곡옥토등) / 新羅州郡文平面桂老里(신라주군문평면계로리)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 甲卯丑艮龍坎癸累節乾起頭亥一節壬入首亥坐壬水丁破(갑묘축간룡감계루절건기두해일절임입수해좌임수정파) <span class="sep">｜</span> <b class="mk2">산</b> 舞鳳山(무봉산) · 南山(남산) · 國師峰(국사봉) · 天馬峰(천마봉) <span class="sep">｜</span> <b class="mk2">그림 안</b> 承裕齋(승유재) · 牛谷里(우곡리) · 魯墓(노묘)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 監察公世緝(감찰공세집)</p>
+<p class="mj"><span class="no">二</span> 咸平魯氏(함평노씨)</p>
+<p class="mj"><span class="no">三</span> 叅奉公恒(참봉공항)</p>
+<p class="mj"><span class="no">四</span> 驪興閔氏(여흥민씨)</p>
+<p class="mj"><span class="no">五</span> 叅判公迪(참판공적)</p>
+<p class="mj"><span class="no">六</span> 貞夫人金氏(정부인김씨)</p>
+<p class="mj"><span class="no">七</span> 将仕郎建(장사랑건)</p>
+<p class="mj in">慶州李氏(경주이씨) 合窆(합폄)</p>
+<p class="mj"><span class="no">八</span> 近(근)</p>
+<p class="mj in">驪陽陳氏(여양진씨) 合窆(합폄)</p>
+<p class="mj"><span class="no">九</span> 德宣(덕선)</p>
+<p class="mj"><span class="no">十</span> 杞溪俞氏(기계유씨)</p>
+<p class="mj"><span class="no">十一</span> 茂杉(무삼)</p>
+<p class="mj"><span class="no">十二</span> 和順吳氏(화순오씨)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="55" data-c="0" data-ef="0" data-ec="0" data-w="55面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c11">通政俊生配淑夫人密陽朴氏外九位墓山圖(통정준생배숙부인밀양박씨외구위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡老安面長洞里(나주군로안면장동리)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 壬亥龍子入首子坐乾亥乙辰兩得(임해룡자입수자좌건해을진량득)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 通政俊生配淑夫人密陽朴氏(통정준생배숙부인밀양박씨)</p>
+<p class="mj"><span class="no">二</span> 通政大夫信褧(통정대부신경)</p>
+<p class="mj"><span class="no">三</span> 淑夫人光山金氏(숙부인광산김씨)</p>
+<p class="mj"><span class="no">四</span> 淑夫人平山申氏(숙부인평산신씨)</p>
+<p class="mj"><span class="no">五</span> 嘉善大夫萬重(가선대부만중)</p>
+<p class="mj"><span class="no">六</span> 萬重配貞夫人密陽朴氏雙兆(만중배정부인밀양박씨쌍조)</p>
+<p class="mj"><span class="no">七</span> 通德郞廷采(통덕랑정채)</p>
+<p class="mj"><span class="no">八</span> 廷采配金海金氏雙兆(정채배김해김씨쌍조)</p>
+<p class="mj"><span class="no">九</span> 承政院丞旨宗新(승정원승지종신)</p>
+<p class="mj"><span class="no">十</span> 痴軒居士駿錫(치헌거사준석)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="56" data-c="0" data-ef="0" data-ec="0" data-w="56面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c12">僉樞公諱慄墓山圖(첨추공휘율묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舊羅州郡用文面巢鶴洞案山飛鶴峰第一節上頂(구나주군용문면소학동안산비학봉제일절상정) / 新羅州郡文平面國洞里案山(신라주군문평면국동리안산)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 甲卯龍寅甲回頭寅入首艮坐壬癸水歸丙方(갑묘룡인갑회두인입수간좌임계수귀병방) <span class="sep">｜</span> <b class="mk2">산</b> 佛甲山(불갑산) · 飛鶴峰(비학봉) · 領相洞后山(영상동후산) · 萬日峙(만일치) · 舞鶴山(무학산) · 金城山(금성산) · 白龍山(백룡산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 鍾鳴洞(종명동) · 基洞(기동) · 國師村(국사촌) · 丙(병) · 丁(정) · 巽(손)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="57" data-c="0" data-ef="0" data-ec="0" data-w="57面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c13">吏曹叅議公諱協墓山圖(이조참의공휘협묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡本良面旺洞里西麓丑艮龍壬坎結咽乾亥起頭(나주군본량면왕동리서록축간룡임감결인건해기두) / 亥入首乾坐甲卯水歸辰(해입수건좌갑묘수귀진)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 落月峙(낙월치) · 聳珠山(용주산) · 泉谷峯(천곡봉) <span class="sep">｜</span> <b class="mk2">그림 안</b> 水利組合(수리조합)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="58" data-c="0" data-ef="0" data-ec="0" data-w="58面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c14">工曹叅判公諱德全墓山圖(공조참판공휘덕전묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 長城郡森溪面千坊里東麓乾亥龍壬坎結咽丑艮起頭卯入首甲坐酉水破申(장성군삼계면천방리동록건해룡임감결인축간기두묘입수갑좌유수파신)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 高城山(고성산)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 工曹叅判公德全(공조참판공덕전)</p>
+<p class="mj in">貞夫人玉川薛氏合祔(정부인옥천설씨합부)</p>
+<p class="mj"><span class="no">二</span> 應祖(응조)</p>
+<p class="mj in">商山金氏合祔(상산김씨합부)</p>
+<p class="mj"><span class="no">三</span> 重維(중유)</p>
+<p class="mj in">完山柳氏合祔(완산유씨합부)</p>
+<p class="mj"><span class="no">四</span> 諱元經(휘원경)</p>
+<p class="mj in">令人羅州林氏(영인나주림씨)</p>
+<p class="mj"><span class="no">五</span> 諱鍾崙(휘종륜)</p>
+<p class="mj in">漢陽趙氏(한양조씨)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="59" data-c="0" data-ef="0" data-ec="0" data-w="59面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c15">學生公諱龍瑞外十七位墓山圖(학생공휘용서외십칠위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 忠清南道舒川郡麒山面辛山里堤内辛山上谷(충청남도서천군기산면신산리제내신산상곡)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 華陽山(화양산) · 辛山(신산) · 将軍峰(장군봉) · 幕洞去路(막동거로) · 華山去路(화산거로) <span class="sep">｜</span> <b class="mk2">그림 안</b> 耕地(경지)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 諱龍瑞(휘용서)</p>
+<p class="mj"><span class="no">二</span> 配光山金氏(배광산김씨) 雙墳壬坐(쌍분임좌)</p>
+<p class="mj"><span class="no">三</span> 希天壬坐(희천임좌)</p>
+<p class="mj"><span class="no">四</span> 配抱川周氏同麓青龍甲坐(배포천주씨동록청룡갑좌)</p>
+<p class="mj"><span class="no">五</span> 就褧及配延日鄭氏合窆壬坐(취경급배연일정씨합폄임좌)</p>
+<p class="mj"><span class="no">六</span> 宗學及配羅州鄭氏合窆亥坐(종학급배나주정씨합폄해좌)</p>
+<p class="mj"><span class="no">七</span> 宗道及配光山金氏合祔乾坐(종도급배광산김씨합부건좌)</p>
+<p class="mj"><span class="no">八</span> 纘英子坐(찬영자좌)</p>
+<p class="mj"><span class="no">九</span> 啓祿辛坐(계록신좌)</p>
+<p class="mj"><span class="no">十</span> 良祿辛坐(양록신좌)</p>
+<p class="mj"><span class="no">十一</span> 東倫(동륜)</p>
+<p class="mj"><span class="no">十二</span> 配晋州姜氏(배진주강씨) 雙墳辛坐(쌍분신좌)</p>
+<p class="mj"><span class="no">十三</span> 春煥配全州李氏戌坐(춘환배전주이씨술좌)</p>
+<p class="mj"><span class="no">十四</span> 在煥及配西林李氏合窆戌坐(재환급배서림이씨합폄술좌)</p>
+<p class="mj"><span class="no">十五</span> 梧齋公宗鎬乾坐(오재공종호건좌)</p>
+<p class="mj"><span class="no">十六</span> 宗鎬配晋州姜氏乾坐(종호배진주강씨건좌)</p>
+<p class="mj"><span class="no">十七</span> 承斗(승두)</p>
+<p class="mj"><span class="no">十八</span> 承斗配韓山李氏(승두배한산이씨)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="60" data-c="0" data-ef="0" data-ec="0" data-w="60面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c16">将仕郎諱命龍外六位墓山圖(장사랑휘명룡외륙위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡羅州邑松村里馬蹄村(나주군나주읍송촌리마제촌)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 錦城山(금성산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 馬蹄村(마제촌)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 将仕郎命龍(장사랑명룡)</p>
+<p class="mj"><span class="no">二</span> 淑人慶州李氏(숙인경주이씨)</p>
+<p class="mj"><span class="no">三</span> 将仕郎攝(장사랑섭)</p>
+<p class="mj"><span class="no">四</span> 淑人金海金氏(숙인김해김씨)</p>
+<p class="mj"><span class="no">五</span> 景含配羅州鄭氏合窆(경함배나주정씨합폄)</p>
+<p class="mj"><span class="no">六</span> 受采配羅州丁氏合窆(수채배나주정씨합폄)</p>
+<p class="mj"><span class="no">七</span> 永冑配晋州鄭氏合窆(영주배진주정씨합폄)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="61" data-c="0" data-ef="0" data-ec="0" data-w="61面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c17">學生公諱茂檜外二十八位墓山圖(학생공휘무회외이십팔위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舊咸平郡永豊面小等里後望月峯壬坐原(구함평군영풍면소등리후망월봉임좌원) / 新咸平郡咸平邑城南里(신함평군함평읍성남리)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 望月峯(망월봉) · 乾峯(건봉) · 君遊山(군유산) · 坎岳山(감악산) · 寶平山(보평산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 北四位(북사위) · 東五位(동오위) · 西(서) · 南(남) · 順成(순성) · 允成(윤성) · 得緖(득서) · 載燁配(재엽배) · 景集(경집) · 弘佐(홍좌)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="62" data-c="0" data-ef="0" data-ec="0" data-w="62面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c18"></h2>
+<p class="ms"><b class="mk">위치</b> </p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 學生茂檜及配和順吳氏合祔(학생무회급배화순오씨합부)</p>
+<p class="mj"><span class="no">二</span> 判官公配高興柳氏(판관공배고흥유씨)</p>
+<p class="mj"><span class="no">三</span> 主簿公緯絢(주부공위현) 配文化柳氏雙墳(배문화유씨쌍분)</p>
+<p class="mj"><span class="no">四</span> 載昊(재호)</p>
+<p class="mj"><span class="no">五</span> 嘉善廷圭(가선정규)</p>
+<p class="mj"><span class="no">六</span> 叅奉宗煥(참봉종환)</p>
+<p class="mg">北四位(북사위)</p>
+<p class="mj"><span class="no">一</span> 學生公以濂(학생공이렴)</p>
+<p class="mj"><span class="no">二</span> 以濂配棠岳金氏(이렴배당악김씨)</p>
+<p class="mj"><span class="no">三</span> 叅判景一(참판경일)</p>
+<p class="mj"><span class="no">四</span> 羅州金氏(나주김씨)</p>
+<p class="mg">東五位(동오위)</p>
+<p class="mj"><span class="no">一</span> 禮曹叅判載斗(예조참판재두)</p>
+<p class="mj"><span class="no">二</span> 載斗配天安全氏(재두배천안전씨)</p>
+<p class="mj"><span class="no">三</span> 通政廷鎰(통정정일)</p>
+<p class="mj"><span class="no">四</span> 仁同張氏(인동장씨)</p>
+<p class="mj"><span class="no">五</span> 學生景五(학생경오)</p>
+<p class="mg">南(남)</p>
+<p class="mj">松村鶴成(송촌학성)</p>
+<p class="mj"><span class="no">西</span> 鶴成配咸平李氏(학성배함평이씨)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="63" data-c="0" data-ef="0" data-ec="0" data-w="63面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c19">驪陽陳氏外七位墓山圖(여양진씨외칠위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舊咸平郡大洞面長才里案山嶝艮坐原(구함평군대동면장재리안산등간좌원) / 新咸平郡大洞面連岩里(신함평군대동면련암리)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 佛甲山(불갑산) · 三角山(삼각산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 以千兩位(이천량위)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 茂檜配驪陽陳氏(무회배여양진씨)</p>
+<p class="mj"><span class="no">二</span> 學生緯華配晋州鄭氏合窆(학생위화배진주정씨합폄)</p>
+<p class="mj"><span class="no">三</span> 學生緯純配坡平尹氏合窆(학생위순배파평윤씨합폄)</p>
+<p class="mj"><span class="no">四</span> 晋州姜氏(진주강씨)</p>
+<p class="mj"><span class="no">五</span> 耽津崔氏(탐진최씨)</p>
+<p class="mj"><span class="no">六</span> 景五配羅州鄭氏(경오배나주정씨)</p>
+<p class="mj"><span class="no">七</span> 孝子得臣配務安朴氏合窆(효자득신배무안박씨합폄)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="64" data-c="0" data-ef="0" data-ec="0" data-w="64面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c20">嘉善羅公斗軫外十七位墓山圖(가선나공두진외십칠위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡細枝面松堤里塔洞案山堂山嶝(나주군세지면송제리탑동안산당산등) / 舊羅州郡細花面塔洞案山堂山嶝(구나주군세화면탑동안산당산등)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 巽巳龍未坤回申入首庚坐坤亥得乙破(손사룡미곤회신입수경좌곤해득을파) <span class="sep">｜</span> <b class="mk2">산</b> 台高山(태고산) · 錦城山(금성산) · 月出山(월출산) · 至灵岩(지령암) · 榮山浦(영산포) <span class="sep">｜</span> <b class="mk2">그림 안</b> 永思閣(영사각) · 塔洞(탑동) · 世葬碑(세장비) · 路(노)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="65" data-c="0" data-ef="0" data-ec="0" data-w="65面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c21"></h2>
+<p class="ms"><b class="mk">위치</b> </p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 嘉善公斗軫(가선공두진)</p>
+<p class="mj"><span class="no">二</span> 斗箕及配李氏合祔(두기급배이씨합부)</p>
+<p class="mj"><span class="no">三</span> 通政公景恒(통정공경항)</p>
+<p class="mj"><span class="no">四</span> 配驪陽陳氏(배여양진씨)</p>
+<p class="mj"><span class="no">五</span> 聖耋及配陽城李氏合祔(성질급배양성이씨합부)</p>
+<p class="mj"><span class="no">六</span> 同知公聖耈(동지공성구)</p>
+<p class="mj"><span class="no">七</span> 配固城金氏上下窆(배고성김씨상하폄)</p>
+<p class="mj"><span class="no">八</span> 永輝及配陽川許氏合祔(영휘급배양천허씨합부)</p>
+<p class="mj"><span class="no">九</span> 永素(영소)</p>
+<p class="mj"><span class="no">十</span> 昌周及配耽津崔氏合祔(창주급배탐진최씨합부)</p>
+<p class="mj"><span class="no">十一</span> 承潤及配水原崔氏合祔(승윤급배수원최씨합부)</p>
+<p class="mj"><span class="no">十二</span> 昌元及配清州韓氏合祔(창원급배청주한씨합부)</p>
+<p class="mj"><span class="no">十三</span> 永純配平康蔡氏(영순배평강채씨)</p>
+<p class="mj"><span class="no">十四</span> 載潤及配慶州李氏合祔(재윤급배경주이씨합부)</p>
+<p class="mj"><span class="no">十五</span> 箕潤(기윤)</p>
+<p class="mj"><span class="no">十六</span> 配利川徐氏(배이천서씨)</p>
+<p class="mj"><span class="no">十七</span> 以章及配長興任氏合祔(이장급배장흥임씨합부)</p>
+<p class="mj"><span class="no">十八</span> 興潤及配順興安氏合祔(흥윤급배순흥안씨합부)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="66" data-c="0" data-ef="0" data-ec="0" data-w="66面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c22">嘉善羅公斗軫配貞夫人外一位墓山圖(가선나공두진배정부인외일위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舊羅州郡田旺面沙林村(구나주군전왕면사림촌) / 新羅州郡旺谷面良山里甲坐原(신라주군왕곡면량산리갑좌원)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 乾亥龍壬坎回卯入首甲坐乾得丁破(건해룡임감회묘입수갑좌건득정파) <span class="sep">｜</span> <b class="mk2">산</b> 祭封山(제봉산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 古墓(고묘) · 貞夫人(정부인) · 聖耆配星山李氏合祔(성기배성산이씨합부) · 沙<img class="gj" alt="𡹛" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAFfElEQVR4nO2dW4hWVRTHf6OWlyy7mmQWSlGiVErRnaCioocwCrpTkJeih3rqJe3ijA/1EIGUSEYPGV2g0qiE6kGQErsbEWEMFFpZStmM2jg688WC9cHhtPd0zvnO+fa5rB/sh2+Yb59z9n9f1lp77fOBYRiGYRiGYXSdHqrLVcCpwGfAT6Fvpok8CbS0/AG8D1xHxRhHPTgFuBG4jIpRFwEqiwmQjgXAseSICZCOF4F9wHfAOmAJMJEOmEA+rAfmAN9EynbgEPVjHDBPy/3AJmBXaAGmApdqaXMzsCGn+muLTUGBMQECYwIExgQIjAkQGBMgMCZAYEyAmrAhEhpuWjm9k4azERAYE6BzRssgwDDNZbAMAkiINorMjdN1z7lOZXPsOfvLIsC3sc/vAnvIl17gcWAm4ZAGj7KREu3JyibFEPBxp5aBp/5/dGQdUavrBrrPTRHrRzrdCTSEPof5F58OusXlmn1xNA1hmq4xcQHuDn1jTeEJR+Pv7XQv1kjGdLUy4gKstAbsDi84Gn8/cJIJUDwXASMOAcQULSPSKV7WDrJFMyYkWaGSTAC+djT+z8BkysN4bfg7gV89o1VEuSJL5e9onCN0tLFVk/I5cHYaT/iviqevl40LNZsucWLWA5rxdQ9whkVOO+ZQ2c8xTNWURtc8KmmAaVgKHI7VI58ftVHtX8ze88ydt2UU9FqdRuP1SRzp+Ix11pbnPY0vXnAnnAv86KhXopoLc7r3yrPa0/j/WbAyIhHLDx31D+lU1Vh6gDWexl+v05LPmpBo5KwU87nU9aznWq9U2WHKyiTg1QyNHw9ND6p9fWvC694BHPBMSdHU+lojR0u3ehp/dQJz17U3sDzF9c8DdjjqkI2ep4CjqDEXqC0cf/hR4LGEdXQqAHrO63VPJ5CdrkuoIQ/pwhd/4EE9TUMXBWizxDMljahldhw14ESNK7l62w/A/JT15SlA21T9ynN/u4EHczzKFWQTe6fn4dYCUzLUmbcA6Lzfq+uA615lzbiFCiFZEW97HuYXFSYrRQgQNXG3e+5byhdqcZU2o1AyBR4BBjwL7Zoc5tW+AgVojwYxCA6OIcQOdeJKsy8tdvu9HgtHyrYcLYu+ggVoM3uMURxdI3o1WhyEHp0bv/fc4E4NZ+e5r9BXgACnqQ+wT3e2XtNw/FzgSu1AYwkhVtMH6uhN7pYnu9TT8KOOUHCVy+/AcxqV9XW0aBlQb36RtlPuXuxKzfuMX/iwxlXmq3nZqlHZGBvxXyb8nvg4bwH3aYpNJmTFvx54w+NI/QY8DZwZ+U7dBHjG0S5X61TlapOWZ2aQqGxiZAN5lceOH9KNjUUeJ8UlgDg8VViE1znql/VgLEfzYQ1h+Br/iEZjj0lyA2dp4qtrOL0J3J7gnTl1E2Bxwu9erK+02Rvp9VvUv3Di6r3X6AvxRtTx+EjLVp3nDT/btCzTlPr9GmsijQBrdeE4qMVIz6haT/+LL8gkQ8joAqWNaRidUTczdHFRHcJGQGBMgAYJMDens7qrHHWvyPEs8EtdbBMbAaGxKSgwJkBgTIDAmACBMQHyZZluTQanqZ7wLv3/k5M2lI2A/JgZeZVO4kw6EyDfH3dITVECyDCMM6dAT3hBwZ6w63niLCyTAHscRzRl876q7K7aCJBTK/FXmMlGfhX4M/ZZ9sI/LUqAopilSa4H9Pe9MufEJNyUl4Mfeb4RayBydElScpIcBIzez4ykFysq711SWc6nmnyiZuQUx9sgfWQ+8lrZgwcFM5zyXaiZp5+6mKETA1+/UQIMO/6W5xqThUYJ0O/4210BD1vLWnEODWKamoqtEpcZdR4Bf2u6dx1/pa9SzNOwQX+KFPHSjQDDMAzDMAzDoPv8C4e0920Ex0+cAAAAAElFTkSuQmCC">(암)閣(사<img class="gj" alt="𡹛" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAFfElEQVR4nO2dW4hWVRTHf6OWlyy7mmQWSlGiVErRnaCioocwCrpTkJeih3rqJe3ijA/1EIGUSEYPGV2g0qiE6kGQErsbEWEMFFpZStmM2jg688WC9cHhtPd0zvnO+fa5rB/sh2+Yb59z9n9f1lp77fOBYRiGYRiGYXSdHqrLVcCpwGfAT6Fvpok8CbS0/AG8D1xHxRhHPTgFuBG4jIpRFwEqiwmQjgXAseSICZCOF4F9wHfAOmAJMJEOmEA+rAfmAN9EynbgEPVjHDBPy/3AJmBXaAGmApdqaXMzsCGn+muLTUGBMQECYwIExgQIjAkQGBMgMCZAYEyAmrAhEhpuWjm9k4azERAYE6BzRssgwDDNZbAMAkiINorMjdN1z7lOZXPsOfvLIsC3sc/vAnvIl17gcWAm4ZAGj7KREu3JyibFEPBxp5aBp/5/dGQdUavrBrrPTRHrRzrdCTSEPof5F58OusXlmn1xNA1hmq4xcQHuDn1jTeEJR+Pv7XQv1kjGdLUy4gKstAbsDi84Gn8/cJIJUDwXASMOAcQULSPSKV7WDrJFMyYkWaGSTAC+djT+z8BkysN4bfg7gV89o1VEuSJL5e9onCN0tLFVk/I5cHYaT/iviqevl40LNZsucWLWA5rxdQ9whkVOO+ZQ2c8xTNWURtc8KmmAaVgKHI7VI58ftVHtX8ze88ydt2UU9FqdRuP1SRzp+Ix11pbnPY0vXnAnnAv86KhXopoLc7r3yrPa0/j/WbAyIhHLDx31D+lU1Vh6gDWexl+v05LPmpBo5KwU87nU9aznWq9U2WHKyiTg1QyNHw9ND6p9fWvC694BHPBMSdHU+lojR0u3ehp/dQJz17U3sDzF9c8DdjjqkI2ep4CjqDEXqC0cf/hR4LGEdXQqAHrO63VPJ5CdrkuoIQ/pwhd/4EE9TUMXBWizxDMljahldhw14ESNK7l62w/A/JT15SlA21T9ynN/u4EHczzKFWQTe6fn4dYCUzLUmbcA6Lzfq+uA615lzbiFCiFZEW97HuYXFSYrRQgQNXG3e+5byhdqcZU2o1AyBR4BBjwL7Zoc5tW+AgVojwYxCA6OIcQOdeJKsy8tdvu9HgtHyrYcLYu+ggVoM3uMURxdI3o1WhyEHp0bv/fc4E4NZ+e5r9BXgACnqQ+wT3e2XtNw/FzgSu1AYwkhVtMH6uhN7pYnu9TT8KOOUHCVy+/AcxqV9XW0aBlQb36RtlPuXuxKzfuMX/iwxlXmq3nZqlHZGBvxXyb8nvg4bwH3aYpNJmTFvx54w+NI/QY8DZwZ+U7dBHjG0S5X61TlapOWZ2aQqGxiZAN5lceOH9KNjUUeJ8UlgDg8VViE1znql/VgLEfzYQ1h+Br/iEZjj0lyA2dp4qtrOL0J3J7gnTl1E2Bxwu9erK+02Rvp9VvUv3Di6r3X6AvxRtTx+EjLVp3nDT/btCzTlPr9GmsijQBrdeE4qMVIz6haT/+LL8gkQ8joAqWNaRidUTczdHFRHcJGQGBMgAYJMDens7qrHHWvyPEs8EtdbBMbAaGxKSgwJkBgTIDAmACBMQHyZZluTQanqZ7wLv3/k5M2lI2A/JgZeZVO4kw6EyDfH3dITVECyDCMM6dAT3hBwZ6w63niLCyTAHscRzRl876q7K7aCJBTK/FXmMlGfhX4M/ZZ9sI/LUqAopilSa4H9Pe9MufEJNyUl4Mfeb4RayBydElScpIcBIzez4ykFysq711SWc6nmnyiZuQUx9sgfWQ+8lrZgwcFM5zyXaiZp5+6mKETA1+/UQIMO/6W5xqThUYJ0O/4210BD1vLWnEODWKamoqtEpcZdR4Bf2u6dx1/pa9SzNOwQX+KFPHSjQDDMAzDMAzDoPv8C4e0920Ex0+cAAAAAElFTkSuQmCC">(암)각)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="67" data-c="0" data-ef="0" data-ec="0" data-w="67面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c23">學生諱永哲外十二位墓山圖(학생휘영철외십이위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 光山郡平洞面伏龍山(광산군평동면복룡산)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 子入首子坐(자입수자좌) <span class="sep">｜</span> <b class="mk2">산</b> 伏龍山(복룡산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 池(지) · 永川里(영천리)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 永哲(영철)</p>
+<p class="mj"><span class="no">二</span> 配光山金氏(배광산김씨)</p>
+<p class="mj"><span class="no">三</span> 泰萬(태만)</p>
+<p class="mj"><span class="no">四</span> 配平山申氏(배평산신씨)</p>
+<p class="mj"><span class="no">五</span> 成乾(성건)</p>
+<p class="mj"><span class="no">六</span> 配全州李氏(배전주이씨)</p>
+<p class="mj"><span class="no">七</span> 海君(해군)</p>
+<p class="mj"><span class="no">八</span> 配慶州金氏(배경주김씨)</p>
+<p class="mj"><span class="no">九</span> 善生(선생)</p>
+<p class="mj"><span class="no">十</span> 配安東權氏(배안동권씨)</p>
+<p class="mj"><span class="no">十一</span> 永瑞(영서)</p>
+<p class="mj"><span class="no">十二</span> 配金海金氏(배김해김씨)</p>
+<p class="mj"><span class="no">十三</span> 采五配光山盧氏(채오배광산로씨)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="68" data-c="0" data-ef="0" data-ec="0" data-w="68面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c24">學生公諱晩興外一位墓山圖(학생공휘만흥외일위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舒川郡馬西面德岩里後麓元龍卧谷艮坐原(서천군마서면덕암리후록원룡와곡간좌원)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">그림 안</b> 境界(경계) · 村(촌) · 田(전) · 畓(답) · 長項道路(장항도로) · 至長項(지장항)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 晩興(만흥)</p>
+<p class="mj in">配晉州姜氏(배진주강씨)</p>
+<p class="mj in">配水原白氏(배수원백씨) 三位合祔(삼위합부)</p>
+<p class="mj"><span class="no">二</span> 章顯(장현)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="69" data-c="0" data-ef="0" data-ec="0" data-w="69面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c25">嘉善諱緯翊外三十一位墓山圖(가선휘위익외삼십일위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 咸平郡咸平面水湖里(함평군함평면수호리)(旧永豊面大等里(구영풍면대등리))</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 庚坐甲向辰得甲破(경좌갑향진득갑파) <span class="sep">｜</span> <b class="mk2">산</b> 天馬山(천마산) · 玉女峯(옥녀봉) · 坎岳山(감악산) · 雲崔峯(운최봉) · 坤峯(곤봉) · 帝王峯(제왕봉) · 古城山(고성산) · 水山峯(수산봉) · 午峯(오봉) <span class="sep">｜</span> <b class="mk2">그림 안</b> 古墓(고묘) · 辰得(진득) · 甲破(갑파) · 花陽里(화양리) · 大藤里(대등리)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="70" data-c="0" data-ef="0" data-ec="0" data-w="70面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c26"></h2>
+<p class="ms"><b class="mk">위치</b> </p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 嘉善緯翊(가선위익)</p>
+<p class="mj"><span class="no">二</span> 貞夫人張氏(정부인장씨)</p>
+<p class="mj"><span class="no">三</span> 崇政以淑與貞夫人光山金氏合窆(숭정이숙여정부인광산김씨합폄)</p>
+<p class="mj"><span class="no">四</span> 以河(이하)</p>
+<p class="mj"><span class="no">五</span> 務安朴氏(무안박씨)</p>
+<p class="mj"><span class="no">六</span> 靈城丁氏(영성정씨)</p>
+<p class="mj"><span class="no">七</span> 通政載績與淑夫人光山李氏合窆(통정재적여숙부인광산이씨합폄)</p>
+<p class="mj"><span class="no">八</span> 載素(재소)</p>
+<p class="mj"><span class="no">九</span> 禮判星漢(예판성한)</p>
+<p class="mj"><span class="no">十</span> 貞夫人綿城朴氏(정부인면성박씨)</p>
+<p class="mj"><span class="no">十一</span> 司僕星聚(사복성취)</p>
+<p class="mj"><span class="no">十二</span> 司僕配淑夫人靈光丁氏(사복배숙부인령광정씨)</p>
+<p class="mj"><span class="no">十三</span> 嘉善纘錫(가선찬석)</p>
+<p class="mj"><span class="no">十四</span> 通政得亨(통정득형)</p>
+<p class="mj"><span class="no">十五</span> 得亨配淑夫人大邱裵氏(득형배숙부인대구배씨)</p>
+<p class="mj"><span class="no">十六</span> 得五(득오)</p>
+<p class="mj"><span class="no">十七</span> 得五配錦城鄭氏(득오배금성정씨)</p>
+<p class="mj"><span class="no">十八</span> 通政得絅(통정득경)</p>
+<p class="mj"><span class="no">十九</span> 嘉善廷發(가선정발)</p>
+<p class="mj"><span class="no">二十</span> 廷發配貞夫人南陽洪氏(정발배정부인남양홍씨)</p>
+<p class="mj"><span class="no">二十一</span> 廷發再配貞夫人晋州姜氏(정발재배정부인진주강씨)</p>
+<p class="mj"><span class="no">二十二</span> 廷權(정권)</p>
+<p class="mj"><span class="no">二十三</span> 廷權配慶州李氏(정권배경주이씨)</p>
+<p class="mj"><span class="no">二十四</span> 廷一(정일)</p>
+<p class="mj"><span class="no">二十五</span> 廷一配慶州鄭氏(정일배경주정씨)</p>
+<p class="mj"><span class="no">二十六</span> 咸陽朴氏(함양박씨)</p>
+<p class="mj"><span class="no">二十七</span> 德成(덕성)</p>
+<p class="mj"><span class="no">二十八</span> 金海金氏(김해김씨)</p>
+<p class="mj"><span class="no">二十九</span> 綿城朴氏(면성박씨)</p>
+<p class="mj"><span class="no">三十</span> 全州崔氏(전주최씨)</p>
+<p class="mj"><span class="no">三十一</span> 秉煥(병환)</p>
+<p class="mj"><span class="no">三十二</span> 洙煥(수환)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="71" data-c="0" data-ef="0" data-ec="0" data-w="71面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c27">判官公諱緯樞外九位墓山圖(판관공휘위추외구위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 咸平郡咸平邑水湖里(함평군함평읍수호리)(永豊面松亭里(영풍면송정리)) 居廬嶝辛戌原(거려등신술원)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 高城山(고성산) · 坎岳山(감악산) · 水山案山(수산안산) · 寶平山(보평산) · 月出山(월출산) · 束錦山(속금산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 松村齋(송촌재) · 松村遺蹟(송촌유적) 碑(비) · 孝子碑(효자비) · 松亭(송정) · 村(촌) · 水湖里(수호리) · 城南(성남)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 判官公緯樞(판관공위추)</p>
+<p class="mj in">令人金海金氏合祔(영인김해김씨합부)</p>
+<p class="mj"><span class="no">二</span> 以休配慶州李氏合祔(이휴배경주이씨합부)</p>
+<p class="mj"><span class="no">三</span> 以郁配光山金氏(이욱배광산김씨)</p>
+<p class="mj"><span class="no">四</span> 載燁(재엽)</p>
+<p class="mj"><span class="no">五</span> 弘佐配淑人豊山洪氏(홍좌배숙인풍산홍씨)</p>
+<p class="mj"><span class="no">六</span> 仁煥配達城裵氏(인환배달성배씨)</p>
+<p class="mj"><span class="no">七</span> 廷格配礪山宋氏合祔(정격배여산송씨합부)</p>
+<p class="mj"><span class="no">八</span> 羅州丁氏(나주정씨)</p>
+<p class="mj"><span class="no">九</span> 得立配高興柳氏合窆(득립배고흥유씨합폄)</p>
+<p class="mj"><span class="no">十</span> 廷立配竹山安氏合窆(정립배죽산안씨합폄)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="72" data-c="0" data-ef="0" data-ec="0" data-w="72面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c28">啓功郞諱景友外九位墓山圖(계공랑휘경우외구위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 光山郡三道面大山里壬入首子坐(광산군삼도면대산리임입수자좌)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">그림 안</b> 三道南學校(삼도남학교) · 池(지) · 知(지)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 啓功郞景友(계공랑경우)</p>
+<p class="mj in">配淑人南平文氏合祔(배숙인남평문씨합부)</p>
+<p class="mj"><span class="no">二</span> 幼學亮(유학량)</p>
+<p class="mj"><span class="no">三</span> 耽津崔氏(탐진최씨)</p>
+<p class="mj"><span class="no">四</span> 幼學炯(유학형)</p>
+<p class="mj"><span class="no">五</span> 羅州鄭氏(나주정씨)</p>
+<p class="mj"><span class="no">六</span> 幼學永祐(유학영우)</p>
+<p class="mj in">配金城金氏(배금성김씨)</p>
+<p class="mj"><span class="no">七</span> 幼學永迪(유학영적)</p>
+<p class="mj in">配寧越辛氏(배영월신씨)</p>
+<p class="mj"><span class="no">八</span> 幼學昌茂(유학창무)</p>
+<p class="mj"><span class="no">九</span> 配光山金氏(배광산김씨)</p>
+<p class="mj"><span class="no">十</span> 幼學基聳(유학기용)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="73" data-c="0" data-ef="0" data-ec="0" data-w="73面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c29">嘉善大夫諱景星外七位墓山圖(가선대부휘경성외칠위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡文平面鶴橋里壬子起頭卯入首乙坐(나주군문평면학교리임자기두묘입수을좌)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">그림 안</b> 池(지)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 嘉善大夫景星(가선대부경성)</p>
+<p class="mj"><span class="no">二</span> 貞夫人驪陽陳氏(정부인려양진씨)</p>
+<p class="mj"><span class="no">三</span> 機張縣監景斗(기장현감경두)</p>
+<p class="mj in">配淑人金海金氏合祔(배숙인김해김씨합부)</p>
+<p class="mj"><span class="no">四</span> 幼學昌三(유학창삼)</p>
+<p class="mj in">配務安朴氏合祔(배무안박씨합부)</p>
+<p class="mj"><span class="no">五</span> 幼學昌俊(유학창준)</p>
+<p class="mj in">配咸平李氏合祔(배함평이씨합부)</p>
+<p class="mj"><span class="no">六</span> 通政大夫學潤(통정대부학윤)</p>
+<p class="mj"><span class="no">七</span> 配淑夫人濟州梁氏(배숙부인제주량씨)</p>
+<p class="mj"><span class="no">八</span> 幼學相恒(유학상항)</p>
+<p class="mj in">配羅州鄭氏合祔(배나주정씨합부)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="74" data-c="0" data-ef="0" data-ec="0" data-w="74面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c30">學生諱天相外四位墓山圖(학생휘천상외사위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡茶道面德林里卯入首卯坐(나주군다도면덕림리묘입수묘좌)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 德龍山(덕룡산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 細柳村(세유촌) · 路(노)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 諱天相墓壬坐(휘천상묘임좌)</p>
+<p class="mj in">配平康蔡氏合祔(배평강채씨합부)</p>
+<p class="mj"><span class="no">二</span> 諱應紡(휘응방)</p>
+<p class="mj"><span class="no">三</span> 濟州梁氏(제주량씨)</p>
+<p class="mj"><span class="no">四</span> 諱載臣壬坐(휘재신임좌)</p>
+<p class="mj"><span class="no">五</span> 配金海金氏(배김해김씨) 艮坐(간좌)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="75" data-c="0" data-ef="0" data-ec="0" data-w="75面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c31">學生諱聚星外二位墓山圖(학생휘취성외이위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舊韓山郡東下面等葛里甘德洞東麓(구한산군동하면등갈리감덕동동록) / 新舒川郡華陽面大等里(신서천군화양면대등리)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">그림 안</b> 人家(인가) · 耕地(경지) · 井(정) · 川(천) · 路(노)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 聚星墓艮坐(취성묘간좌)</p>
+<p class="mj"><span class="no">二</span> 嘉善大夫震溟墓艮坐(가선대부진명묘간좌)</p>
+<p class="mj"><span class="no">三</span> 監正公均達(감정공균달)</p>
+<p class="mj in">配淑人完山李氏合窆癸坐(배숙인완산이씨합폄계좌)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="76" data-c="0" data-ef="0" data-ec="0" data-w="76面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c32">同樞羅公諱聖傑外九位墓山圖(동추나공휘성걸외구위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 靈岩郡新北面鶴洞里柴田洞午坐原(영암군신북면학동리시전동오좌원)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 巳丙龍甲卯回甲入首辰坐卯得庚破(사병룡갑묘회갑입수진좌묘득경파) <span class="sep">｜</span> <b class="mk2">산</b> 錦城山(금성산) · 金馬山(금마산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 北沓閣(북답각)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 聖傑(성걸)</p>
+<p class="mj in">配固城金氏合祔(배고성김씨합부)</p>
+<p class="mj"><span class="no">二</span> 永奎(영규)</p>
+<p class="mj in">配綾州朱氏合祔(배능주주씨합부)</p>
+<p class="mj"><span class="no">三</span> 七潤(칠윤)</p>
+<p class="mj in">配順興安氏合祔(배순흥안씨합부)</p>
+<p class="mj"><span class="no">四</span> 穉潤(치윤)</p>
+<p class="mj in">配咸陽朴氏合祔(배함양박씨합부)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="77" data-c="0" data-ef="0" data-ec="0" data-w="77面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c33">進士公諱鳳采外九位墓山圖(진사공휘봉채외구위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡老安面鶴山里伏岩后嶝(나주군로안면학산리복암후등) / 乾亥起頭亥入首壬坐(건해기두해입수임좌)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 進士公鳳采(진사공봉채)</p>
+<p class="mj"><span class="no">二</span> 配宜人耽津崔氏(배의인탐진최씨)</p>
+<p class="mj"><span class="no">三</span> 學生永華(학생영화)</p>
+<p class="mj in">配全義李氏合祔(배전의이씨합부)</p>
+<p class="mj"><span class="no">四</span> 孝子昌郁(효자창욱)</p>
+<p class="mj"><span class="no">五</span> 配咸平李氏(배함평이씨)</p>
+<p class="mj"><span class="no">六</span> 孝友賢彦(효우현언)</p>
+<p class="mj in">配靈城丁氏合祔(배영성정씨합부)</p>
+<p class="mj"><span class="no">七</span> 童蒙教官昌賢(동몽교관창현)</p>
+<p class="mj"><span class="no">八</span> 配令人羅州鄭氏(배영인나주정씨)</p>
+<p class="mj"><span class="no">九</span> 學生玉潤(학생옥윤)</p>
+<p class="mj in">配晋州姜氏合祔(배진주강씨합부)</p>
+<p class="mj"><span class="no">十</span> 學生相哲(학생상철)</p>
+<p class="mj in">配天安全氏合祔(배천안전씨합부)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="78" data-c="0" data-ef="0" data-ec="0" data-w="78面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c34">學生羅公諱世章外九位墓山圖(학생나공휘세장외구위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 忠南舒川郡麒山面永慕里崇禎山北麓戌坐原(충남서천군기산면영모리숭정산북록술좌원)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 崇貞山(숭정산) · 石磨山(석마산) · 乾芝山(건지산) · 西望德(서망덕) <span class="sep">｜</span> <b class="mk2">그림 안</b> 齋室(재실) · 耕地(경지) · 人家(인가) · 路(노)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 學生世章戌坐(학생세장술좌)</p>
+<p class="mj"><span class="no">二</span> 纘德辛坐(찬덕신좌)</p>
+<p class="mj"><span class="no">三</span> 配豊川任氏辛坐(배풍천임씨신좌)</p>
+<p class="mj"><span class="no">四</span> 基周配金城金氏戌坐(기주배금성김씨술좌)</p>
+<p class="mj"><span class="no">五</span> 基豊配光山金氏(기풍배광산김씨)</p>
+<p class="mj"><span class="no">六</span> 叅奉榮鎬(참봉영호)</p>
+<p class="mj"><span class="no">七</span> 配濟州高氏(배제주고씨) 雙墳坤坐(쌍분곤좌)</p>
+<p class="mj"><span class="no">八</span> 宅鎬(택호)</p>
+<p class="mj"><span class="no">九</span> 孺人韓山李氏(유인한산이씨)</p>
+<p class="mj"><span class="no">十</span> 忠謨(충모)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="79" data-c="0" data-ef="0" data-ec="0" data-w="79面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c35">學生羅公永純外六位墓山圖(학생나공영순외륙위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 全南羅州郡細枝面竹洞里(전남나주군세지면죽동리)(舊(구)〔細(세)?〕枝面竹頭里(지면죽두리))後<img class="gj" alt="𢕔" src="data:image/png;base64,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">坡嶝午丁龍(후<img class="gj" alt="𢕔" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGEAAABhCAYAAADGBs+jAAAF+0lEQVR4nO2deYxdUxzHP+1MO2ONUmpp1dJEpWnKNAhiUobQP0yRKCGiiCWpRlDE1iLIUDuxxFLLHxqRTGjsilgqpKQV/EGTofaqtqEdMzreyEl+T25uzpl37313+b37zic5/9y8e+7vnu892+93znng8Xg8Hk++jM75eR4LrwCzfckUxzHAMDAEXEKxLAZeBhbJR7E7TcLrIkI1LQFGFWTLQyFbTLqOkrfVHcCJoWsLgUfQw/ZlF+FWx/XPM35uQ5GlCJ2Ozngt8FSGz204shShZ4TO0XTSnoxFOAU40nJ9NbCMcrAvsJdWEdqBuy3XzUhkPlChsRkD3AH0AT8CvcDRKGORZRho0tNFG4Z9iOoaPAQxQ+odgVnAKsf7rQROLXD4/T+TgX6LgZuBCTHzmgj87nhhzWmlNFWFsdxh2IUJ8hoHbFNQqEnSJxTEOQ6DXq0jz9sVFGiSNEAB7An8YTFmE7B3Hfm2SCe/WUHBRk1/A/dSAL0Og86i8TlD3sWMhA5FKRc7BHgs4wHA8cB+ZMt2wPeBd9oCzEEZBztGQ58BbRk+9/7Asz4FLpACS5vFlnf7Vz48FZhJ2RpHP3BAhLa+HsZZnv0LcKXYlQb7AFst72dqwyEo4XGLgf9IM1GLN1OItO0sEbuwDeuAudTPc45a0I0Sznf0A+dFuHdOQLCz67SjRWITNltcDsQoHOXI8wqU0CHDsLCBN0f0VX0ZuKcCXJ6CTbc4Cu2yBHm1OprZe1CCicl+ZzHw0Yj3z0uxsMIsseRr2vQ9iMdCSz7PavAJGcYCH1gMfDKige2h4V4wdaVk4zJL3tfEuP9AS2fcK7VDBUstL/hMDHf4jQ4B3k7Rxl2kYw7mb7yeUTAf0ruhe1+Sj68WpgzGkzFXWwrviRgCTHIM9yrSx6TJSaFnDIkbuhaXhu57QWIHUcK4a+VdzAd1AhlwpjwgaOBtKTQT1bY2C94KPWd6jd9PCX0kD9b4wMZK03WfDFttk9W5aQXNjgUGQ+NkEx2LQ6dDgK0SM7DFn4dLkr6uN+o2PeS9/EsiR3Ew1fkLh4Gmjwhzk4KCSzsNSk2ru4P7FpiWIJ8bHIb1OdwLuwK/Kii4tNPpSUQ4LZDBa+KrictBEtywGWU6TxczJDJVhmapIitMEq15NV/kw7KAN0nnYoZ77+fcGXtCzHcIsB7YzZdW9kx1xBiGZbjryZgxMkYedsyuPTnQ4xDgKw1L0JuBLsfscYuEQRudKcAbMslcIa57E8DaASVMGmG13LkZ+YSGlaRtEudO7AlOw7dhAvovjuBFNF9PmWkFDovobc1MhAeAw1PIp9ExfqJCRFgAXFRnHmWgIm6e3Ol2dMThZJZIZtUnrCZ/JlrsqGvnUdKaYNrA5/1O/XQYnXCottwy7v8mJZuajtYEa0BXhDZ8VGSFwiaJQ3syrAlmWeA7oV0oJtBzclFLwZutJkyQGhBcY9onAhiXhCfjmjBZ1huZIE2Vj4AjvAD51ISpsnKhGpCvLge8VqbrRTNDbCqtCDPlhJaqO2K9+IHMNU8OzVGHrEYbL1/aUgn0ewFyFMHMTneS01g6ZSn8BvSxRuLZeSbjMc6lOeqRTRI/pP1AT/SaYCZgXoCc8Kc0KsCLoAAvggLU7EBp5smarwkK8CIowIuQDuuaWYT3Ys52bacI/BQzj3bLeUZmh1FTdMw/i+vEHKfwG/BhxA3saTMoq0y6ZfOMWXP1MUqYl/Fqi6xWbJhzjAql0ZujUuBFUIAXQQFehPRpi1uuXoT0aJU/xNgow97rZStyrjTj6GiURCBnybbfcN5/AnemdbB51iJMa7CzT+OmARGjTXNz1C+TsLJiCv8q1x5uLSL0ydE9ZadLu9tiQeBU4SjnEzUaA3n8jU0zdsypoKU5amq8CArwIijAi6AAL4ICvAgK8CIowIuggGYToWK5Zv6QqTQimCMWwgyJd1QLg5ZrZkdSaUSwbSRcVdR/jjnYYKkFd1EiZlsOYzoOXbTIbtR++XvGJAfuqmb/wKkvG7M6Pd1Tm5nazoXzeDwej4cG4j957QTbjA/pnAAAAABJRU5ErkJggg==">파등오정룡)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 午入首巽庚得艮破(오입수손경득간파) <span class="sep">｜</span> <b class="mk2">산</b> 台馬山(태마산) · 咸朴山(함박산) · 靈羅界(영나계) <span class="sep">｜</span> <b class="mk2">그림 안</b> 竹頭後(죽두후) · 大路(대로) · 至竹頭(지죽두) · 至榮山浦(지영산포)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 永純(영순)</p>
+<p class="mj"><span class="no">二</span> 昌儒(창유)</p>
+<p class="mj"><span class="no">三</span> 昌儒配慶州李氏(창유배경주이씨)</p>
+<p class="mj"><span class="no">四</span> 錫潤及配開城李氏合祔(석윤급배개성이씨합부)</p>
+<p class="mj"><span class="no">五</span> 昌濬及配濟州梁氏合祔(창준급배제주량씨합부)</p>
+<p class="mj"><span class="no">六</span> 宅潤(택윤)</p>
+<p class="mj"><span class="no">七</span> 配和順吳氏(배화순오씨)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="80" data-c="0" data-ef="0" data-ec="0" data-w="80面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c36">學生羅公諱永繡墓山圖(학생나공휘영수묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 舊羅州郡細花面半月里(구나주군세화면반월리) / 新羅州郡細枝面五峯里(신라주군세지면오봉리)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 丑艮龍巽巳回(축간룡손사회) / 甲入首辰坐(갑입수진좌) / 艮坤得辛破(간곤득신파) <span class="sep">｜</span> <b class="mk2">산</b> 歸鶴峯(귀학봉) <span class="sep">｜</span> <b class="mk2">그림 안</b> 金海金氏(김해김씨) · 半月村(반월촌) · 至榮山浦(지영산포)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="81" data-c="0" data-ef="0" data-ec="0" data-w="81面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c37">幼學諱昌吉外三位墓山圖(유학휘창길외삼위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 光山郡本良面旺洞里(광산군본량면왕동리) / 壬坎龍亥入首乾坐(임감룡해입수건좌)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 聳珍山(용진산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 貯水池(저수지)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 幼學昌吉(유학창길)</p>
+<p class="mj in">配光山金氏(배광산김씨)</p>
+<p class="mj in">配平山申氏(배평산신씨) 三位合祔(삼위합부)</p>
+<p class="mj"><span class="no">二</span> 幼學東潤(유학동윤)</p>
+<p class="mj in">配平山申氏合祔(배평산신씨합부)</p>
+<p class="mj"><span class="no">三</span> 孝子仁炯(효자인형)</p>
+<p class="mj in">配密陽朴氏合祔(배밀양박씨합부)</p>
+<p class="mj"><span class="no">四</span> 幼學基瑞(유학기서)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="82" data-c="0" data-ef="0" data-ec="0" data-w="82面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c38">學生羅公諱昌宗墓山圖(학생나공휘창종묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡細枝面竹洞里前内洞嶝(나주군세지면죽동리전내동등)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 辛兌龍子入首癸坐(신태룡자입수계좌) / 庚兌得卯破(경태득묘파) <span class="sep">｜</span> <b class="mk2">그림 안</b> 配全州崔氏合祔(배전주최씨합부)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="83" data-c="0" data-ef="0" data-ec="0" data-w="83面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c39">學生羅公諱昌九墓山圖(학생나공휘창구묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 全南羅州郡公山面上方里(전남나주군공산면상방리)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 巽坐乾向(손좌건향) <span class="sep">｜</span> <b class="mk2">산</b> □峙(치) <span class="sep">｜</span> <b class="mk2">그림 안</b> 配慶州李氏合祔(배경주이씨합부) · 上方村(상방촌) · 路(노)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="84" data-c="0" data-ef="0" data-ec="0" data-w="84面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c40">通政大夫羅公諱昌壽墓山圖(통정대부나공휘창수묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 全南羅州郡洞江面永嶝村後小朴山西麓甲坐(전남나주군동강면영등촌후소박산서록갑좌)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 永嶝山(영등산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 永嶝洞(영등동) · 榮山江(영산강)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj">通政大夫昌壽(통정대부창수)</p>
+<p class="mj">配淑夫人慶州李氏合祔(배숙부인경주이씨합부)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="85" data-c="0" data-ef="0" data-ec="0" data-w="85面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c41">學生羅公諱璜潤外三位墓山圖(학생나공휘황윤외삼위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡旺谷面新佳里舊本村後嶝(나주군왕곡면신가리구본촌후등)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 丙午起頭丑艮剝換(병오기두축간박환) / 丑入首艮坐(축입수간좌) / 午丁得戌破(오정득술파)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 學生璜潤(학생황윤)</p>
+<p class="mj"><span class="no">二</span> 配金海金氏(배김해김씨)</p>
+<p class="mj"><span class="no">三</span> 監役相權(감역상권)</p>
+<p class="mj"><span class="no">四</span> 金城金氏(금성김씨) 監役公子婦(감역공자부)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="86" data-c="0" data-ef="0" data-ec="0" data-w="86面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c42">學生羅公諱璜潤配盆城金氏墓山圖(학생나공휘황윤배분성김씨묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡細枝面松堤里舊塔洞村後(나주군세지면송제리구탑동촌후)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 乾亥入首亥坐坤申得(건해입수해좌곤신득) / 乙辰破(을진파) <span class="sep">｜</span> <b class="mk2">산</b> 天馬山(천마산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 塔洞里(탑동리) · 永思閣(영사각)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="87" data-c="0" data-ef="0" data-ec="0" data-w="87面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c43">學生羅公諱華潤外二位墓山圖(학생나공휘화윤외이위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 全南羅州郡細枝面竹洞里内長財洞申坐乙向(전남나주군세지면죽동리내장재동신좌을향)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 台馬山(태마산) · 咸朴山(함박산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 竹頭(죽두) · 長財洞(장재동) · 池(지)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 華潤(화윤)</p>
+<p class="mj"><span class="no">二</span> 金海金氏(김해김씨) 華潤配(화윤배)</p>
+<p class="mj"><span class="no">三</span> 相應(상응)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="88" data-c="0" data-ef="0" data-ec="0" data-w="88面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c44">叅奉羅公諱相善外二位墓山圖(참봉나공휘상선외이위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡旺谷面新院里龍頭嶝(나주군왕곡면신원리룡두등)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 丁未落脈午入首子坐(정미락맥오입수자좌) <span class="sep">｜</span> <b class="mk2">그림 안</b> 池(지) · 鶴奉(학봉) · 至灵岩(지령암) · 道路(도로) · 至榮山浦(지영산포)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 相善(상선)</p>
+<p class="mj"><span class="no">二</span> 宜寧南氏(의령남씨)</p>
+<p class="mj"><span class="no">三</span> 鎭炯(진형)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="89" data-c="0" data-ef="0" data-ec="0" data-w="89面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c45">學生羅公諱相絢墓山圖(학생나공휘상현묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 全南長興郡長平面牛山里舊大夜里後(전남장흥군장평면우산리구대야리후)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 丑艮起頭(축간기두) / 壬坎落脈艮寅回頭壬亥龍(임감락맥간인회두임해룡) / 卯乙轉身乙結咽甲入首乙坐(묘을전신을결인갑입수을좌) / 丑艮丙午水合金坤申(축간병오수합금곤신) <span class="sep">｜</span> <b class="mk2">산</b> 鵬鳥峯(붕조봉) · 독수리봉</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj">學生相絢(학생상현)</p>
+<p class="mj">配光山金氏合祔(배광산김씨합부)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="90" data-c="0" data-ef="0" data-ec="0" data-w="90面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c46">學生羅公諱相殷墓山圖(학생나공휘상은묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡潘南面興德里(나주군반남면흥덕리)(自安洞(자안동))</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 丙午落脈甲卯壬艮回子入首子坐(병오락맥갑묘임간회자입수자좌) / 甲卯得丁破(갑묘득정파) <span class="sep">｜</span> <b class="mk2">산</b> 舞袖山(무수산) · 月出山(월출산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 自安村(자안촌) · 貯水池(저수지)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="91" data-c="0" data-ef="0" data-ec="0" data-w="91面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c47">叅奉羅公諱淑炯墓山圖(참봉나공휘숙형묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 長興郡有治面新豊里舊馬亭村前(장흥군유치면신풍리구마정촌전)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 艮寅起頭丙午巽巳落脈(간인기두병오손사락맥) / 乙轉身巽起頭寅甲入首(을전신손기두인갑입수) / 卯坐辰巽乾亥得庚破(묘좌진손건해득경파) <span class="sep">｜</span> <b class="mk2">산</b> 犀牛峰(서우봉) · 赤岩峰(적암봉) <span class="sep">｜</span> <b class="mk2">그림 안</b> 叅奉公墓(참봉공묘) · 配恭人密陽朴氏墓(배공인밀양박씨묘) · 子入首癸坐乾亥甲卯得(자입수계좌건해갑묘득) 坤破(곤파) · 馬亭里(마정리)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="92" data-c="0" data-ef="0" data-ec="0" data-w="92面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c48">學生羅公諱采五外五位墓山圖(학생나공휘채오외오위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 羅州郡羅州邑金堂山下癸入首子坐(나주군나주읍금당산하계입수자좌)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">산</b> 錦城山(금성산) · 三角山(삼각산) · 金堂山(금당산) · 북둔밭 <span class="sep">｜</span> <b class="mk2">그림 안</b> 古墓(고묘) · 池(지) · 路(노)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 采五(채오)</p>
+<p class="mj"><span class="no">二</span> 在順(재순)</p>
+<p class="mj in">配慶州金氏(배경주김씨) 合祔(합부)</p>
+<p class="mj"><span class="no">三</span> 采成(채성)</p>
+<p class="mj in">配利川徐氏(배이천서씨) 合祔(합부)</p>
+<p class="mj"><span class="no">四</span> 光纖(광섬) 先塋下子坐(선영하자좌)</p>
+<p class="mj"><span class="no">五</span> 光纖配慶州金氏(광섬배경주김씨)</p>
+<p class="mj"><span class="no">六</span> 在元(재원) 大湖里韓烏峰卯坐(대호리한오봉묘좌)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="93" data-c="0" data-ef="0" data-ec="0" data-w="93面" aria-label="묘산도 원본 보기"></button></p>
+<h2 class="chap" id="c49">嘉善羅公諱京潤外四位墓山圖(가선나공휘경윤외사위묘산도)</h2>
+<p class="ms"><b class="mk">위치</b> 光山郡三道面三道里石門山甲卯龍(광산군삼도면삼도리석문산갑묘룡)</p>
+<p class="ms"><b class="mk">지형</b> <b class="mk2">좌향</b> 甲落脈甲入首辰坐戌向(갑락맥갑입수진좌술향) / 丑未兩得破亥(축미량득파해) <span class="sep">｜</span> <b class="mk2">산</b> 石門山(석문산) <span class="sep">｜</span> <b class="mk2">그림 안</b> 至三道里(지삼도리) · 至三道面道德里(지삼도면도덕리)</p>
+<p class="ms"><b class="mk">묘소</b></p>
+<p class="mj"><span class="no">一</span> 嘉善京潤(가선경윤)</p>
+<p class="mj in">配晉州鄭氏合窆(배진주정씨합폄)</p>
+<p class="mj"><span class="no">二</span> 通政相吾(통정상오)</p>
+<p class="mj in">配金海金氏合窆(배김해김씨합폄)</p>
+<p class="mj"><span class="no">三</span> 通政寅炯(통정인형)</p>
+<p class="mj in">配安東金氏合窆(배안동김씨합폄)</p>
+<p class="mj"><span class="no">四</span> 學生榮基(학생영기)</p>
+<p class="mj"><span class="no">五</span> 主事元基(주사원기)</p>
+<p class="mj in">配達城徐氏合窆(배달성서씨합폄)</p>
+<p class="mbp2"><button class="wb" type="button" data-k="권1" data-f="94" data-c="0" data-ef="0" data-ec="0" data-w="94面" aria-label="묘산도 원본 보기"></button></p>
+
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="pagebtn" id="prev" type="button" aria-label="앞 쪽">‹</button>
+    <div class="pageno"><b id="cur">1</b> / <span id="tot">1</span></div>
+    <button class="pagebtn" id="next" type="button" aria-label="다음 쪽">›</button>
+  </div>
+</div>
+
+<div class="tocwrap" id="tocwrap">
+  <nav class="toc" role="dialog" aria-label="차례">
+    <h2>차 례</h2>
+    <ol id="toclist">
+<li><button type="button" data-go="c0">鳳岡祠圖(봉강사도)</button></li>
+<li><button type="button" data-go="c1">松齋祠圖(송재사도)</button></li>
+<li><button type="button" data-go="c2">按廉使公諱文奎墓山圖(안렴사공휘문규묘산도)</button></li>
+<li><button type="button" data-go="c3">翰林公諱奉外四位墓壇圖(한림공휘봉외사위묘단도)</button></li>
+<li><button type="button" data-go="c4">清白吏公諱殷制以外十六位墓山圖(청백리공휘은제이외십육위묘산도)</button></li>
+<li><button type="button" data-go="c5">進士公諱光弼外十二位墓山圖(진사공휘광필외십이위묘산도)</button></li>
+<li><button type="button" data-go="c6">戶叅公諱彭老外三位墓山圖(호참공휘팽로외삼위묘산도)</button></li>
+<li><button type="button" data-go="c7">學生羅公雄虎墓山圖(학생나공웅호묘산도)</button></li>
+<li><button type="button" data-go="c8">叅奉羅公諱文厚外八位墓山圖(참봉나공휘문후외팔위묘산도)</button></li>
+<li><button type="button" data-go="c9">将仕郎公諱世章外十位墓山圖(장사랑공휘세장외십위묘산도)</button></li>
+<li><button type="button" data-go="c10">監察公諱世緝外十一位墓山圖(감찰공휘세집외십일위묘산도)</button></li>
+<li><button type="button" data-go="c11">通政俊生配淑夫人密陽朴氏外九位墓山圖(통정준생배숙부인밀양박씨외구위묘산도)</button></li>
+<li><button type="button" data-go="c12">僉樞公諱慄墓山圖(첨추공휘율묘산도)</button></li>
+<li><button type="button" data-go="c13">吏曹叅議公諱協墓山圖(이조참의공휘협묘산도)</button></li>
+<li><button type="button" data-go="c14">工曹叅判公諱德全墓山圖(공조참판공휘덕전묘산도)</button></li>
+<li><button type="button" data-go="c15">學生公諱龍瑞外十七位墓山圖(학생공휘용서외십칠위묘산도)</button></li>
+<li><button type="button" data-go="c16">将仕郎諱命龍外六位墓山圖(장사랑휘명룡외륙위묘산도)</button></li>
+<li><button type="button" data-go="c17">學生公諱茂檜外二十八位墓山圖(학생공휘무회외이십팔위묘산도)</button></li>
+<li><button type="button" data-go="c18"></button></li>
+<li><button type="button" data-go="c19">驪陽陳氏外七位墓山圖(여양진씨외칠위묘산도)</button></li>
+<li><button type="button" data-go="c20">嘉善羅公斗軫外十七位墓山圖(가선나공두진외십칠위묘산도)</button></li>
+<li><button type="button" data-go="c21"></button></li>
+<li><button type="button" data-go="c22">嘉善羅公斗軫配貞夫人外一位墓山圖(가선나공두진배정부인외일위묘산도)</button></li>
+<li><button type="button" data-go="c23">學生諱永哲外十二位墓山圖(학생휘영철외십이위묘산도)</button></li>
+<li><button type="button" data-go="c24">學生公諱晩興外一位墓山圖(학생공휘만흥외일위묘산도)</button></li>
+<li><button type="button" data-go="c25">嘉善諱緯翊外三十一位墓山圖(가선휘위익외삼십일위묘산도)</button></li>
+<li><button type="button" data-go="c26"></button></li>
+<li><button type="button" data-go="c27">判官公諱緯樞外九位墓山圖(판관공휘위추외구위묘산도)</button></li>
+<li><button type="button" data-go="c28">啓功郞諱景友外九位墓山圖(계공랑휘경우외구위묘산도)</button></li>
+<li><button type="button" data-go="c29">嘉善大夫諱景星外七位墓山圖(가선대부휘경성외칠위묘산도)</button></li>
+<li><button type="button" data-go="c30">學生諱天相外四位墓山圖(학생휘천상외사위묘산도)</button></li>
+<li><button type="button" data-go="c31">學生諱聚星外二位墓山圖(학생휘취성외이위묘산도)</button></li>
+<li><button type="button" data-go="c32">同樞羅公諱聖傑外九位墓山圖(동추나공휘성걸외구위묘산도)</button></li>
+<li><button type="button" data-go="c33">進士公諱鳳采外九位墓山圖(진사공휘봉채외구위묘산도)</button></li>
+<li><button type="button" data-go="c34">學生羅公諱世章外九位墓山圖(학생나공휘세장외구위묘산도)</button></li>
+<li><button type="button" data-go="c35">學生羅公永純外六位墓山圖(학생나공영순외륙위묘산도)</button></li>
+<li><button type="button" data-go="c36">學生羅公諱永繡墓山圖(학생나공휘영수묘산도)</button></li>
+<li><button type="button" data-go="c37">幼學諱昌吉外三位墓山圖(유학휘창길외삼위묘산도)</button></li>
+<li><button type="button" data-go="c38">學生羅公諱昌宗墓山圖(학생나공휘창종묘산도)</button></li>
+<li><button type="button" data-go="c39">學生羅公諱昌九墓山圖(학생나공휘창구묘산도)</button></li>
+<li><button type="button" data-go="c40">通政大夫羅公諱昌壽墓山圖(통정대부나공휘창수묘산도)</button></li>
+<li><button type="button" data-go="c41">學生羅公諱璜潤外三位墓山圖(학생나공휘황윤외삼위묘산도)</button></li>
+<li><button type="button" data-go="c42">學生羅公諱璜潤配盆城金氏墓山圖(학생나공휘황윤배분성김씨묘산도)</button></li>
+<li><button type="button" data-go="c43">學生羅公諱華潤外二位墓山圖(학생나공휘화윤외이위묘산도)</button></li>
+<li><button type="button" data-go="c44">叅奉羅公諱相善外二位墓山圖(참봉나공휘상선외이위묘산도)</button></li>
+<li><button type="button" data-go="c45">學生羅公諱相絢墓山圖(학생나공휘상현묘산도)</button></li>
+<li><button type="button" data-go="c46">學生羅公諱相殷墓山圖(학생나공휘상은묘산도)</button></li>
+<li><button type="button" data-go="c47">叅奉羅公諱淑炯墓山圖(참봉나공휘숙형묘산도)</button></li>
+<li><button type="button" data-go="c48">學生羅公諱采五外五位墓山圖(학생나공휘채오외오위묘산도)</button></li>
+<li><button type="button" data-go="c49">嘉善羅公諱京潤外四位墓山圖(가선나공휘경윤외사위묘산도)</button></li>
+</ol>
+  </nav>
+</div>
+
+<script>
+(function(){
+  /* ══ 쪽맞춤은 브라우저에게 맡기고, 클은 「단 자리」만 잰다 ══ */
+  var stage = document.getElementById('stage');
+  var pages = document.getElementById('pages');
+  var elCur = document.getElementById('cur'), elTot = document.getElementById('tot');
+  var bar   = document.getElementById('bar');
+  var prev  = document.getElementById('prev'), next = document.getElementById('next');
+
+  var 자식 = Array.prototype.slice.call(pages.children);
+  var 자리 = [];        /* 자식마다 그려진 왼쪽 자리 */
+  var 단자리 = [0];     /* 쪽마다 scrollLeft 값 — 셈이 아니라 실측 */
+  var page = 0, 쪽수 = 1;
+
+  /* ── 단 자리를 잰다 ────────────────────────────────────────
+     ★셈하지 않는다. 브라우저가 실제로 그린 자리를 그대로 쓴다.
+     단 간격은 일정하지 않게 잡히므로 (폭+틈)×번호 로 맞히면 어긋난다. */
+  function 단재기(){
+    /* 단 하나의 폭 = 상자 폭. 퍼센트로는 줄 수 없어 px 로 못 박는다 */
+    var 폭 = pages.clientWidth;
+    if (!(폭 > 60)) 폭 = Math.max(240, document.documentElement.clientWidth - 44);
+    pages.style.columnWidth = 폭 + 'px';
+
+    /* ★재는 동안 스크롤을 건드리지 않는다.
+       CSS 에 scroll-behavior:smooth 가 걸려 있어서, 재려고 scrollLeft 를
+       0 으로 되돌리면 그것이 「부드러운 스크롤」로 처리된다.
+       그 움직임이 뒤늦게 자리를 0 까지 끌고 가서, 되살려 둔 자리를 덮어썼다.
+       (2026-08-27 규명 — 이어읽기가 안 되던 참까닭)
+       스크롤 값을 더해 주면 문서 좌표가 되므로 건드릴 까닭이 없다. */
+    var 바탕 = pages.getBoundingClientRect().left - pages.scrollLeft;
+
+    자리 = [];
+    for (var i = 0; i < 자식.length; i++){
+      var rs = 자식[i].getClientRects();
+      var L = rs.length ? rs[0].left : 자식[i].getBoundingClientRect().left;
+      자리.push(Math.round(L - 바탕));
+    }
+    var 정렬 = 자리.slice().sort(function(a,b){ return a-b; });
+    단자리 = [];
+    for (var j = 0; j < 정렬.length; j++)
+      if (!단자리.length || 정렬[j] - 단자리[단자리.length-1] > 8)
+        단자리.push(정렬[j]);
+    if (!단자리.length) 단자리 = [0];
+    쪽수 = 단자리.length;
+  }
+
+  function 자식의쪽(i){
+    var L = 자리[i], 가장 = 0, 차 = Infinity;
+    for (var t = 0; t < 단자리.length; t++){
+      var d = Math.abs(L - 단자리[t]);
+      if (d < 차){ 차 = d; 가장 = t; }
+    }
+    return 가장;
+  }
+  /* 크기가 바뀌어도 읽던 자리를 지킨다 — 쪽 번호가 아니라 「몇 번째 대목」으로 */
+  function 지금대목(){
+    for (var i = 0; i < 자리.length; i++) if (자식의쪽(i) === page) return i;
+    return 0;
+  }
+
+  function 그리기(즉시){
+    if (page < 0) page = 0;
+    if (page > 쪽수 - 1) page = 쪽수 - 1;
+    /* 즉시 = 다시 나눈 직후(움직임 없이 바로) / 그 밖 = 부드럽게 */
+    pages.style.scrollBehavior = 즉시 ? 'auto' : 'smooth';
+    var 목표 = 단자리[page] || 0;
+    pages.scrollLeft = 목표;
+    /* 그림이 늦게 뜨면 자리가 늦게 잡힌다 — 못 갔으면 한 번 더 */
+    if (Math.abs(pages.scrollLeft - 목표) > 2)
+      requestAnimationFrame(function(){ pages.scrollLeft = 목표; });
+    elCur.textContent = page + 1; elTot.textContent = 쪽수;
+    bar.style.width = (쪽수 < 2 ? 100 : (page / (쪽수 - 1) * 100)) + '%';
+    prev.disabled = (page <= 0); next.disabled = (page >= 쪽수 - 1);
+    /* ★쪽 번호가 아니라 「몇 번째 대목」을 적어 둔다.
+       글씨 크기나 기기가 달라지면 쪽 번호는 뜻이 달라진다.
+       ⚠겉장(첫 쪽)에서는 적지 않는다. 책은 늘 겉장에서 열리므로,
+         적어 버리면 열자마자 지난번 자리가 지워진다. */
+    if (page > 0){
+      try{ localStorage.setItem('jijangrok_myosan1대목', 지금대목()); }catch(e){}
+    }
+  }
+
+  /* ★책은 언제나 겉장에서 열린다 (2026-08-27 할아버지 지시).
+     지난번에 읽던 자리가 있으면 겉장에 「○쪽부터 이어 읽기」 단추를 보여 준다.
+     남에게 보여 줄 때 겉장부터 시작되도록, 종이책과 같게. */
+  var 이어대목 = -1;
+  try{
+    var _v = localStorage.getItem('jijangrok_myosan1대목');
+    if (_v !== null) 이어대목 = +_v;
+  }catch(e){}
+  var 이어단추 = document.getElementById('이어단추');
+
+  function 이어단추손질(){
+    if (!이어단추) return;
+    if (이어대목 > 0 && 이어대목 < 자식.length){
+      var 쪽 = 자식의쪽(이어대목) + 1;
+      if (쪽 > 1){
+        이어단추.textContent = '이어 읽기';
+        이어단추.hidden = false;
+        return;
+      }
+    }
+    이어단추.hidden = true;
+  }
+
+  function 세기(지킬대목){
+    단재기();
+    if (지킬대목 != null){
+      page = 자식의쪽(지킬대목);
+    }
+    이어단추손질();
+    그리기(true);
+  }
+
+  function 가기(n){
+    var p = Math.max(0, Math.min(쪽수 - 1, n));
+    if (p !== page){ page = p; 그리기(); }
+  }
+  if (이어단추) 이어단추.onclick = function(e){
+    e.stopPropagation();
+    가기(자식의쪽(이어대목));
+  };
+  prev.onclick = function(){ 가기(page - 1); };
+  next.onclick = function(){ 가기(page + 1); };
+
+  /* ── 손가락으로 밀기 ── */
+  var x0 = null, y0 = null, t0 = 0, 손뗀때 = 0;
+  stage.addEventListener('touchstart', function(e){
+    var t = e.changedTouches[0]; x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+  }, {passive:true});
+  stage.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    var 빠름 = (Date.now() - t0) < 500;
+    if (Math.abs(dx) > Math.abs(dy) * 1.4 && (Math.abs(dx) > 48 || (빠름 && Math.abs(dx) > 26))){
+      가기(page + (dx < 0 ? 1 : -1));
+      손뗀때 = Date.now();        /* ★민 때만 찍는다 — 톡 친 때 찍으면 폰에서 톡 치기가 죽는다 */
+    } else if (Math.abs(dx) > 12 || Math.abs(dy) > 12){
+      손뗀때 = Date.now();        /* 쓸어 넘긴 것도 톡 친 것이 아니다 */
+    }
+    x0 = null;
+  }, {passive:true});
+
+  /* ── 좌우 끝을 톡 치기 ── */
+  stage.addEventListener('click', function(e){
+    if (Date.now() - 손뗀때 < 700) return;      /* 민 직후의 클릭은 흘려보낸다 */
+    if (e.target.closest('img')) return;
+    var r = stage.getBoundingClientRect(), x = e.clientX - r.left;
+    if (x < r.width * 0.22) 가기(page - 1);
+    else if (x > r.width * 0.78) 가기(page + 1);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ 가기(page+1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ 가기(page-1); e.preventDefault(); }
+    else if (e.key === 'Home') 가기(0);
+    else if (e.key === 'End') 가기(쪽수 - 1);
+    else if (e.key === 'Escape') 닫기();
+  });
+
+  /* ── 글씨 크기 ── */
+  var fs = 17;
+  try{ var v = localStorage.getItem('jijangrok_myosan1Fs'); if (v) fs = Math.min(24, Math.max(14, +v)); }catch(e){}
+  function 글씨(n){
+    fs = Math.min(24, Math.max(14, n));
+    pages.style.setProperty('--fs', fs + 'px');
+    try{ localStorage.setItem('jijangrok_myosan1Fs', fs); }catch(e){}
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 30);
+  }
+  document.getElementById('bigger').onclick  = function(){ 글씨(fs+1); };
+  document.getElementById('smaller').onclick = function(){ 글씨(fs-1); };
+
+  /* ── 화면 꽉 채우기 ──────────────────────────────────────
+     ★앱스스크립트는 책을 iframe 두 겹으로 감싸고, 그 위에 구글 안내 띠를 붙인다.
+     띠는 우리 바깥이라 우리 코드가 없앨 수 없다.
+     그런데 바깥 틀에 `fullscreen *` 권한이 들어 있어(2026-08-27 실측),
+     이 단추를 누르면 주소줄도 띠도 다 사라지고 화면을 꽉 채운다. */
+  var 꽉 = document.getElementById('full');
+  function 꽉인가(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  /* ★글자(⛶)는 기기에 그 글꼴이 없으면 빈칸으로 나온다(2026-08-27 캡처로 확인).
+     그래서 어디서나 똑같이 보이는 그림(SVG)으로 그린다. */
+  var 그림_켜기 = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M4 9V5h5M15 5h5v4M20 15v5h-5M9 20H4v-5"/></svg>';
+  var 그림_끄기 = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg>';
+  function 꽉얼굴(){ 꽉.innerHTML = 꽉인가() ? 그림_끄기 : 그림_켜기; }
+  if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled){
+    꽉.style.display = 'none';        /* 안 되는 기기(아이폰 사파리 등)에서는 감춘다 */
+  }
+  꽉.onclick = function(){
+    try{
+      if (꽉인가()){
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      } else {
+        var e = document.documentElement;
+        (e.requestFullscreen || e.webkitRequestFullscreen).call(e);
+      }
+    }catch(err){}
+  };
+  document.addEventListener('fullscreenchange', function(){
+    꽉얼굴();
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 220);   /* 크기가 바뀌었으니 다시 나눈다 */
+  });
+  document.addEventListener('webkitfullscreenchange', function(){
+    꽉얼굴();
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 220);
+  });
+  꽉얼굴();
+
+  /* ── 해 · 달 ── */
+  var 해달 = document.getElementById('theme');
+  function 지금어두운가(){
+    var a = document.documentElement.getAttribute('data-theme');
+    if (a === 'dark') return true;
+    if (a === 'light') return false;
+    try{ return window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return false; }
+  }
+  function 단추얼굴(){ 해달.textContent = 지금어두운가() ? '☀' : '☾'; }
+  단추얼굴();
+  해달.onclick = function(){
+    var 어둡게 = !지금어두운가();
+    document.documentElement.setAttribute('data-theme', 어둡게 ? 'dark' : 'light');
+    try{ localStorage.setItem('jijangrok_myosan1Theme', 어둡게 ? 'dark' : 'light'); }catch(e){}
+    단추얼굴();
+  };
+
+  /* ── 차례 ── */
+  var wrap = document.getElementById('tocwrap');
+  function 닫기(){ wrap.classList.remove('on'); }
+  document.getElementById('tocbtn').onclick = function(){ wrap.classList.toggle('on'); };
+  wrap.addEventListener('click', function(e){ if (e.target === wrap) 닫기(); });
+  document.getElementById('toclist').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-go]'); if (!b) return;
+    var 이름 = b.getAttribute('data-go');
+    for (var i = 0; i < 자식.length; i++)
+      if (자식[i].id === 이름){ page = 자식의쪽(i); break; }
+    닫기(); 그리기();
+  });
+
+
+  /* ── 찾기(돋보기) ── 한자·한글 · 띄어쓰기 무시 · 찾은 대목으로 쪽을 옮기고 글자에 색 */
+  var 찾기판 = document.getElementById('findbar'), 찾기칸 = document.getElementById('findq');
+  var 찾기수 = document.getElementById('findcnt'), 찾은 = [], 찾은번째 = -1, 찾은말 = '';
+  function 빈칸빼기(t){ return t.replace(/\s+/g, ''); }
+  function 대목글(el){
+    var t = el.textContent;
+    var 그림 = el.querySelectorAll('img[alt]');
+    for (var k = 0; k < 그림.length; k++) t += 그림[k].alt;
+    return 빈칸빼기(t);
+  }
+  function 표시지우기(){
+    var ms = pages.querySelectorAll('mark.hit');
+    for (var k = 0; k < ms.length; k++){ var p = ms[k].parentNode; p.replaceChild(document.createTextNode(ms[k].textContent), ms[k]); p.normalize(); }
+    var bs = pages.querySelectorAll('.hitbox');
+    for (var k2 = 0; k2 < bs.length; k2++) bs[k2].classList.remove('hitbox');
+  }
+  function 글자에색(el, 말){
+    /* 띄어쓰기 없이 그대로 있는 곳만 색칠 — 없으면 대목 테두리만 */
+    var 걸음 = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false), 칠함 = false, 마디, 모음 = [];
+    while ((마디 = 걸음.nextNode())) 모음.push(마디);
+    모음.forEach(function(n){
+      var t = n.nodeValue, i = t.indexOf(말);
+      if (i < 0) return;
+      var 조각 = document.createDocumentFragment(), 앞 = 0;
+      while (i >= 0){
+        조각.appendChild(document.createTextNode(t.slice(앞, i)));
+        var m = document.createElement('mark'); m.className = 'hit'; m.textContent = t.substr(i, 말.length); 조각.appendChild(m);
+        앞 = i + 말.length; i = t.indexOf(말, 앞);
+      }
+      조각.appendChild(document.createTextNode(t.slice(앞)));
+      n.parentNode.replaceChild(조각, n); 칠함 = true;
+    });
+    if (!칠함) el.classList.add('hitbox');
+  }
+  function 찾기가기(n){
+    if (!찾은.length) return;
+    찾은번째 = (n + 찾은.length) % 찾은.length;
+    표시지우기();
+    var i = 찾은[찾은번째];
+    글자에색(자식[i], 찾은말);
+    찾기수.textContent = (찾은번째 + 1) + ' / ' + 찾은.length;
+    page = 자식의쪽(i); 그리기(true);
+  }
+  function 찾기(){
+    var 말 = 빈칸빼기(찾기칸.value);
+    if (!말){ 표시지우기(); 찾은 = []; 찾기수.textContent = ''; return; }
+    if (말 === 찾은말 && 찾은.length){ 찾기가기(찾은번째 + 1); return; }
+    찾은말 = 말; 찾은 = []; 찾은번째 = -1;
+    for (var i = 1; i < 자식.length; i++) if (대목글(자식[i]).indexOf(말) >= 0) 찾은.push(i);
+    if (!찾은.length){ 표시지우기(); 찾기수.textContent = '없음'; return; }
+    /* 지금 쪽 뒤에서 가장 가까운 것부터 */
+    var 첫 = 0;
+    for (var k = 0; k < 찾은.length; k++) if (자식의쪽(찾은[k]) >= page){ 첫 = k; break; }
+    찾기가기(첫);
+  }
+  function 찾기닫기(){ 찾기판.classList.remove('on'); 표시지우기(); 찾기칸.blur(); setTimeout(function(){ 세기(지금대목()); }, 30); }
+  document.getElementById('findbtn').onclick = function(){
+    if (찾기판.classList.contains('on')){ 찾기닫기(); return; }
+    찾기판.classList.add('on'); setTimeout(function(){ 세기(지금대목()); 찾기칸.focus(); }, 30);
+  };
+  document.getElementById('findnext').onclick = function(){ 찾은.length && 찾은말 === 빈칸빼기(찾기칸.value) ? 찾기가기(찾은번째 + 1) : 찾기(); };
+  document.getElementById('findprev').onclick = function(){ 찾은.length ? 찾기가기(찾은번째 - 1) : 찾기(); };
+  document.getElementById('findclose').onclick = 찾기닫기;
+  찾기판.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); e.shiftKey ? 찾기가기(찾은번째 - 1) : 찾기(); }
+    else if (e.key === 'Escape') 찾기닫기();
+    e.stopPropagation();          /* ★검색칸에서 띄어쓰기·화살표가 쪽 넘기기로 새지 않게 */
+  });
+
+
+  /* ── 원본 창 · 주석 창 (3차 · 2026-10-01) ── */
+  var 얼굴 = {"권1": [[45, "20쪽 앞면 · 45面", null, null], [46, "20쪽 뒷면 · 46面", null, null], [47, "21쪽 앞면 · 47面", null, null], [48, "21쪽 뒷면 · 48面", null, null], [49, "22쪽 앞면 · 49面", null, null], [50, "22쪽 뒷면 · 50面", null, null], [51, "23쪽 앞면 · 51面", null, null], [52, "23쪽 뒷면 · 52面", null, null], [53, "24쪽 앞면 · 53面", null, null], [54, "24쪽 뒷면 · 54面", null, null], [55, "25쪽 앞면 · 55面", null, null], [56, "25쪽 뒷면 · 56面", null, null], [57, "26쪽 앞면 · 57面", null, null], [58, "26쪽 뒷면 · 58面", null, null], [59, "27쪽 앞면 · 59面", null, null], [60, "27쪽 뒷면 · 60面", null, null], [61, "28쪽 앞면 · 61面", null, null], [62, "28쪽 뒷면 · 62面", null, null], [63, "29쪽 앞면 · 63面", null, null], [64, "29쪽 뒷면 · 64面", null, null], [65, "30쪽 앞면 · 65面", null, null], [66, "30쪽 뒷면 · 66面", null, null], [67, "31쪽 앞면 · 67面", null, null], [68, "31쪽 뒷면 · 68面", null, null], [69, "32쪽 앞면 · 69面", null, null], [70, "32쪽 뒷면 · 70面", null, null], [71, "33쪽 앞면 · 71面", null, null], [72, "33쪽 뒷면 · 72面", null, null], [73, "34쪽 앞면 · 73面", null, null], [74, "34쪽 뒷면 · 74面", null, null], [75, "35쪽 앞면 · 75面", null, null], [76, "35쪽 뒷면 · 76面", null, null], [77, "36쪽 앞면 · 77面", null, null], [78, "36쪽 뒷면 · 78面", null, null], [79, "37쪽 앞면 · 79面", null, null], [80, "37쪽 뒷면 · 80面", null, null], [81, "38쪽 앞면 · 81面", null, null], [82, "38쪽 뒷면 · 82面", null, null], [83, "39쪽 앞면 · 83面", null, null], [84, "39쪽 뒷면 · 84面", null, null], [85, "40쪽 앞면 · 85面", null, null], [86, "40쪽 뒷면 · 86面", null, null], [87, "41쪽 앞면 · 87面", null, null], [88, "41쪽 뒷면 · 88面", null, null], [89, "42쪽 앞면 · 89面", null, null], [90, "42쪽 뒷면 · 90面", null, null], [91, "43쪽 앞면 · 91面", null, null], [92, "43쪽 뒷면 · 92面", null, null], [93, "44쪽 앞면 · 93面", null, null], [94, "44쪽 뒷면 · 94面", null, null]]}, 주석 = {};
+  var ov = document.createElement('div'); ov.className = 'ov'; ov.id = 'ovimg';
+  ov.innerHTML = '<div class="ovbar"><button id="ovprev" aria-label="앞 面">‹</button><span class="cap" id="ovcap"></span>'
+    + '<button id="ovminus" aria-label="줄이기">−</button><button id="ovplus" aria-label="키우기">＋</button>'
+    + '<button id="ovnext" aria-label="다음 面">›</button><button id="ovx" aria-label="닫기">✕</button></div>'
+    + '<div class="stagei" id="ovst"><div class="pw" id="ovpw"><img id="ovpic" alt="원본"><div class="hl" id="ovhl"></div></div></div><div class="hint">두 손가락으로 키우기 · 두 번 톡 = 크게/맞춤 · 옆으로 밀면 앞뒤 面</div>';
+  document.body.appendChild(ov);
+  var ovm = document.createElement('div'); ovm.className = 'ov memo'; ovm.id = 'ovmemo';
+  ovm.innerHTML = '<div class="sheet" id="ovsheet"></div>';
+  document.body.appendChild(ovm);
+  var 권지금 = null, 번 = 0, 배율 = 1, 원W = 1400, 원H = 1980, 첫面 = null, 첫칸 = '', 범위 = null;
+  var st = document.getElementById('ovst'), pic = document.getElementById('ovpw'), 사진 = document.getElementById('ovpic'), hl = document.getElementById('ovhl');
+  function 칠하기(){   /* 이 面에서 그 단락이 차지하는 칸(1칸 = 오른쪽)을 노란 테두리로 */
+    var x = 얼굴[권지금][번], box = x[2], f = x[0]; hl.style.display = 'none';
+    if (!box || !범위 || !범위.c || f < 범위.f || f > 범위.ef) return;
+    var a = f === 범위.f ? 범위.c : 1, b = f === 범위.ef ? 범위.ec : 14;
+    if (a > 14 || b < 1 || a > b) return;
+    a = Math.max(1, a); b = Math.min(14, b);
+    var 선 = x[3], w = box[1] - box[0];
+    var L = 선 ? 선[14 - b] : box[0] + w * (14 - b) / 14, R = 선 ? 선[15 - a] : box[0] + w * (15 - a) / 14;   /* 칸 k(오른쪽부터) = 괘선[14-k]~[15-k] */
+    hl.style.left = (L * 100) + '%'; hl.style.width = ((R - L) * 100) + '%';
+    hl.style.top = (box[2] * 100) + '%'; hl.style.height = ((box[3] - box[2]) * 100) + '%'; hl.style.display = 'block';
+  }
+  function 맞춤(){ return Math.min((st.clientWidth - 8) / 원W, (st.clientHeight - 8) / 원H); }
+  function 크기(){ var b = 맞춤() * 배율; pic.style.width = Math.round(원W * b) + 'px'; pic.style.height = Math.round(원H * b) + 'px'; }
+  function 확대(새, cx, cy){
+    var r = pic.getBoundingClientRect(), m = st.getBoundingClientRect();
+    if (cx == null){ cx = st.clientWidth / 2; cy = st.clientHeight / 2; }
+    var fx = (m.left + cx - r.left) / r.width, fy = (m.top + cy - r.top) / r.height;
+    배율 = Math.max(1, Math.min(6, 새)); 크기();
+    var r2 = pic.getBoundingClientRect();
+    st.scrollLeft += (r2.left + fx * r2.width) - (m.left + cx); st.scrollTop += (r2.top + fy * r2.height) - (m.top + cy);
+  }
+  function 보이기(){
+    var 목 = 얼굴[권지금], x = 목[번];
+    사진.src = 'img/' + (권지금 === '권1' ? 'k1_' : 'k2_') + String(x[0]).padStart(3, '0') + '.webp'; 칠하기();
+    [번 - 1, 번 + 1].forEach(function(q){ if (q >= 0 && q < 목.length){ var i = new Image(); i.src = 'img/' + (권지금 === '권1' ? 'k1_' : 'k2_') + String(목[q][0]).padStart(3, '0') + '.webp'; } });
+    document.getElementById('ovcap').textContent = (권지금 === '권1' ? '권1 ' : '권2 ') + (x[0] === 첫面 && 범위 && 범위.c ? 첫칸 + '부터' : x[1]);
+    document.getElementById('ovprev').disabled = 번 <= 0; document.getElementById('ovnext').disabled = 번 >= 목.length - 1;
+  }
+  사진.onload = function(){ 원W = 사진.naturalWidth || 1400; 원H = 사진.naturalHeight || 1980; 크기(); };
+  function 원본열기(k, f, w, 범){
+    권지금 = k; 첫面 = f; 첫칸 = w; 번 = 0; 범위 = 범;
+    얼굴[k].forEach(function(x, i){ if (x[0] === f) 번 = i; });
+    배율 = 1; ov.classList.add('on'); 크기(); 보이기(); st.scrollTop = 0; st.scrollLeft = 0;
+  }
+  function 넘김(d){ var n = 번 + d; if (n < 0 || n >= 얼굴[권지금].length) return; 번 = n; 보이기(); st.scrollTop = 0; }
+  function 창닫기(){ ov.classList.remove('on'); ovm.classList.remove('on'); }
+  document.getElementById('ovx').onclick = 창닫기;
+  document.getElementById('ovprev').onclick = function(){ 넘김(-1); };
+  document.getElementById('ovnext').onclick = function(){ 넘김(1); };
+  document.getElementById('ovplus').onclick = function(){ 확대(배율 * 1.4); };
+  document.getElementById('ovminus').onclick = function(){ 확대(배율 / 1.4); };
+  pic.addEventListener('dblclick', function(ev){ var m = st.getBoundingClientRect(); 확대(배율 > 1.001 ? 1 : 2.5, ev.clientX - m.left, ev.clientY - m.top); });
+  var 집기 = null, 밀기 = null, 톡 = 0;
+  st.addEventListener('touchstart', function(ev){
+    if (ev.touches.length === 2){ var a = ev.touches[0], b = ev.touches[1], m = st.getBoundingClientRect();
+      집기 = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), 배: 배율, cx: (a.clientX + b.clientX) / 2 - m.left, cy: (a.clientY + b.clientY) / 2 - m.top }; 밀기 = null; }
+    else if (ev.touches.length === 1) 밀기 = { x: ev.touches[0].clientX, y: ev.touches[0].clientY, l: st.scrollLeft, 끝: st.scrollWidth - st.clientWidth };
+  }, {passive:true});
+  st.addEventListener('touchmove', function(ev){
+    if (!집기 || ev.touches.length !== 2) return; ev.preventDefault();
+    var a = ev.touches[0], b = ev.touches[1];
+    확대(집기.배 * Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY) / 집기.d, 집기.cx, 집기.cy);
+  }, {passive:false});
+  st.addEventListener('touchend', function(ev){
+    if (집기){ if (ev.touches.length === 0) 집기 = null; 밀기 = null; return; }
+    if (!밀기) return;
+    var t = ev.changedTouches[0], dx = t.clientX - 밀기.x, dy = t.clientY - 밀기.y;
+    if (Math.abs(dx) > 60 && Math.abs(dy) < Math.abs(dx) * 0.6){
+      var 맞 = 배율 <= 1.001;
+      if (dx < 0 && (맞 || 밀기.l >= 밀기.끝 - 2)) 넘김(1); else if (dx > 0 && (맞 || 밀기.l <= 2)) 넘김(-1);
+    } else if (Math.abs(dx) < 10 && Math.abs(dy) < 10){      /* 두 번 톡 = 크게/맞춤 */
+      var 지금 = Date.now();
+      if (지금 - 톡 < 320){ var m = st.getBoundingClientRect(); 확대(배율 > 1.001 ? 1 : 2.5, t.clientX - m.left, t.clientY - m.top); 톡 = 0; } else 톡 = 지금;
+    }
+    밀기 = null;
+  }, {passive:true});
+  st.addEventListener('wheel', function(ev){ if (ev.ctrlKey){ ev.preventDefault(); var m = st.getBoundingClientRect(); 확대(배율 * (ev.deltaY < 0 ? 1.15 : 1 / 1.15), ev.clientX - m.left, ev.clientY - m.top); } }, {passive:false});
+  function 주석열기(id){
+    var x = 주석[id], s = '<button class="x" id="ovmx" aria-label="닫기">✕</button><h3>주석 · ' + x.t + '</h3>';
+    x.m.forEach(function(t){ s += '<p>' + t + '</p>'; });
+    document.getElementById('ovsheet').innerHTML = s; document.getElementById('ovsheet').scrollTop = 0;
+    ovm.classList.add('on'); document.getElementById('ovmx').onclick = 창닫기;
+  }
+  ovm.addEventListener('click', function(ev){ if (ev.target === ovm) 창닫기(); });
+  /* 본문 단추 : 쪽 넘기기(좌우 톡)보다 먼저 받는다 */
+  pages.addEventListener('click', function(ev){
+    var b = ev.target.closest('button.wb, button.mb'); if (!b) return;
+    ev.stopPropagation(); ev.preventDefault();
+    if (b.classList.contains('wb')) 원본열기(b.dataset.k, +b.dataset.f, b.dataset.w, {f: +b.dataset.f, c: +b.dataset.c, ef: +b.dataset.ef, ec: +b.dataset.ec}); else 주석열기(b.dataset.m);
+  });
+  /* 창이 열려 있으면 글쇠가 책 넘기기로 새지 않게 */
+  window.addEventListener('keydown', function(ev){
+    if (!ov.classList.contains('on') && !ovm.classList.contains('on')) return;
+    ev.stopImmediatePropagation();
+    if (ev.key === 'Escape') 창닫기();
+    else if (ov.classList.contains('on')){
+      if (ev.key === 'ArrowRight') 넘김(1); else if (ev.key === 'ArrowLeft') 넘김(-1);
+      else if (ev.key === '+' || ev.key === '=') 확대(배율 * 1.25); else if (ev.key === '-') 확대(배율 / 1.25);
+    }
+  }, true);
+  window.addEventListener('resize', function(){ if (ov.classList.contains('on')) 크기(); });
+  /* ── 크기가 바뀔 때 ── */
+  var 늦게 = null;
+  function 다시(){
+    var 대목 = 지금대목();
+    clearTimeout(늦게);
+    늦게 = setTimeout(function(){ 세기(대목); }, 140);
+  }
+  window.addEventListener('resize', 다시);
+  window.addEventListener('orientationchange', 다시);
+
+  /* ── 첫 그림 ── */
+  pages.style.setProperty('--fs', fs + 'px');
+  세기();
+  if (document.fonts && document.fonts.ready)
+    document.fonts.ready.then(function(){ setTimeout(function(){ 세기(지금대목()); }, 40); });
+  window.addEventListener('load', function(){
+    setTimeout(function(){ 세기(지금대목()); }, 60);
+  });
+})();
+</script>
+</body>
+</html>
