@@ -1414,8 +1414,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   }
   function 보이기(){
     var 목 = 얼굴[권지금], x = 목[번];
-    사진.src = (function(n){ return (n < 70 ? '_묘산도올리기1' : '_묘산도올리기2') + '/img/k1_'; })(x[0]) + String(x[0]).padStart(3, '0') + '.webp'; 칠하기();
-    [번 - 1, 번 + 1].forEach(function(q){ if (q >= 0 && q < 목.length){ var i = new Image(); i.src = (function(n){ return (n < 70 ? '_묘산도올리기1' : '_묘산도올리기2') + '/img/k1_'; })(목[q][0]) + String(목[q][0]).padStart(3, '0') + '.webp'; } });
+    사진.src = 'img/' + (권지금 === '권1' ? 'k1_' : 'k2_') + String(x[0]).padStart(3, '0') + '.webp'; 칠하기();
+    [번 - 1, 번 + 1].forEach(function(q){ if (q >= 0 && q < 목.length){ var i = new Image(); i.src = 'img/' + (권지금 === '권1' ? 'k1_' : 'k2_') + String(목[q][0]).padStart(3, '0') + '.webp'; } });
     document.getElementById('ovcap').textContent = (권지금 === '권1' ? '권1 ' : '권2 ') + (x[0] === 첫面 && 범위 && 범위.c ? 첫칸 + '부터' : x[1]);
     document.getElementById('ovprev').disabled = 번 <= 0; document.getElementById('ovnext').disabled = 번 >= 목.length - 1;
   }
