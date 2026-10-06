@@ -1788,8 +1788,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <p class="eum">헌 군수복창자수의부정</p>
 <p>櫶(헌) : 郡守(군수) 復昌(복창)의 아들. 修義副正(수의부정).</p>
 <blockquote class="old" data-tag="원문">以參 復顯子兵曹叅議</blockquote>
-<p class="eum">이참 복현자병조참의</p>
-<p>以參(이참) : 復顯(복현)의 아들. 兵曹參議(병조참의).</p>
+<p class="eum">이삼 복현자병조참의</p>
+<p>以參(이삼) : 復顯(복현)의 아들. 兵曹參議(병조참의).</p>
 <blockquote class="old" data-tag="원문">袞輝 判官有繪子通德郎</blockquote>
 <p class="eum">곤휘 판관유회자통덕랑</p>
 <p>袞輝(곤휘) : 判官(판관) 有繪(유회)의 아들. 通德郎(통덕랑).</p>
@@ -1960,8 +1960,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 <p class="eum">병선 한림봉후공주판관</p>
 <p>秉璇(병선) : 翰林(한림) 奉(봉)의 후손. 公州判官(공주판관).</p>
 <blockquote class="old" data-tag="원문">載綱 叅議以參子字汝古號松谷肅廟己巳生以學行除通政大夫</blockquote>
-<p class="eum">재강 참의이참자자여고호송곡숙묘기사생이학행제통정대부</p>
-<p>載綱(재강) : 參議(참의) 以參(이참)의 아들. 字(자) 汝古(여고), 號(호) 松谷(송곡). 숙종 己巳年(기사년)생. 학행으로 通政大夫(통정대부)에 임명됨.</p>
+<p class="eum">재강 참의이삼자자여고호송곡숙묘기사생이학행제통정대부</p>
+<p>載綱(재강) : 參議(참의) 以參(이삼)의 아들. 字(자) 汝古(여고), 號(호) 松谷(송곡). 숙종 己巳年(기사년)생. 학행으로 通政大夫(통정대부)에 임명됨.</p>
 <blockquote class="old" data-tag="원문">天箕 叅議尙遠子嘉善同樞</blockquote>
 <p class="eum">천기 참의상원자가선동추</p>
 <p>天箕(천기) : 參議(참의) 尙遠(상원)의 아들. 嘉善(가선) 同樞(동추).</p>
@@ -4715,7 +4715,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   /* ── 좌우 끝을 톡 치기 ── */
   stage.addEventListener('click', function(e){
     if (Date.now() - 손뗀때 < 700) return;      /* 민 직후의 클릭은 흘려보낸다 */
-    if (e.target.closest('img')) return;
+    if (e.target.closest('img,button,figure,a')) return;   /* 2026-10-06 단추·그림·고리 누름은 톡 치기 아님 — 「›」 두 쪽 넘김 고침 */
     var r = stage.getBoundingClientRect(), x = e.clientX - r.left;
     if (x < r.width * 0.22) 가기(page - 1);
     else if (x > r.width * 0.78) 가기(page + 1);

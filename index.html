@@ -836,7 +836,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   /* ── 좌우 끝을 톡 치기 ── */
   stage.addEventListener('click', function(e){
     if (Date.now() - 손뗀때 < 700) return;      /* 민 직후의 클릭은 흘려보낸다 */
-    if (e.target.closest('img')) return;
+    if (e.target.closest('img,button,figure,a')) return;   /* 2026-10-06 단추·그림·고리 누름은 톡 치기 아님 — 「›」 두 쪽 넘김 고침 */
     var r = stage.getBoundingClientRect(), x = e.clientX - r.left;
     if (x < r.width * 0.22) 가기(page - 1);
     else if (x > r.width * 0.78) 가기(page + 1);
