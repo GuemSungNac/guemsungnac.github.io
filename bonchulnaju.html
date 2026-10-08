@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<base target="_top">   <!-- 앱스스크립트는 책을 iframe 안에 넣는다. 링크가 그 안에 갇히지 않게 -->
+<title>본출나주 ― 묘도문자로 보는 안정나씨의 뿌리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+
+<script>
+/* ★기본은 「달」 — 어두운 바탕. 밝게 보시려면 해 단추를 누른다.
+   글이 그려지기 전에 정해야 밝은 화면이 번쩍하지 않는다. */
+(function(){
+  var v = 'dark';
+  try{ if(localStorage.getItem('bonchulnajuTheme') === 'light') v = 'light'; }catch(e){}
+  document.documentElement.setAttribute('data-theme', v);
+})();
+</script>
+
+<style>
+/* ── 빛깔 : 새벽 강안개 바탕 · 푸른 기미의 먹 · 호구단자 관인의 붉은빛 ── */
+:root{
+  --paper:#EEF0EE;      /* 강안개 */
+  --sheet:#F7F8F6;      /* 글이 앉는 자리 */
+  --ink:#14191C;        /* 먹 — 밝은 바탕에서 흐려 보이지 않게 진하게 */
+  --dim:#4E585D;        /* 흐린 먹 */
+  --faint:#8E979B;
+  --edge:#D5DAD8;
+  --seal:#A33A2E;       /* 관인 붉은빛 */
+  --river:#3E6B6E;      /* 영산강 청록 */
+  --oldbg:#E7EAE6;      /* 옛 책 말씀 자리 */
+  --shadow:0 1px 3px rgba(31,38,42,.08),0 12px 32px rgba(31,38,42,.10);
+  --edgefade:rgba(31,38,42,.10);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#12171A; --sheet:#171D21; --ink:#F0F4F2; --dim:#B4BFC1; --faint:#8A9497;
+    --edge:#2A3338; --seal:#E07A6C; --river:#7FBAB6; --oldbg:#1D2529;
+    --shadow:0 1px 3px rgba(0,0,0,.5),0 14px 38px rgba(0,0,0,.55);
+    --edgefade:rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#12171A; --sheet:#171D21; --ink:#F0F4F2; --dim:#B4BFC1; --faint:#8A9497;
+  --edge:#2A3338; --seal:#D9695B; --river:#6FA9A6; --oldbg:#1D2529;
+  --shadow:0 1px 3px rgba(0,0,0,.5),0 14px 38px rgba(0,0,0,.55);
+  --edgefade:rgba(0,0,0,.45);
+}
+
+*{box-sizing:border-box}
+/* ★문서가 옆으로 넓어지지 못하게 못 박는다.
+   쪽 상자 마흔 개가 옆으로 늘어서 있어서, 가리기만 해서는
+   문서 폭이 그만큼 넓어진 채로 남는다. PC 는 그냥 자르지만
+   폰은 그 넓은 폭에 맞춰 화면을 잡아 「책이 화면보다 크다」가 된다. */
+html,body{
+  height:100%;margin:0;overscroll-behavior:none;
+  width:100%;max-width:100%;overflow-x:hidden;
+}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:'Noto Sans KR','Malgun Gothic',sans-serif;
+  -webkit-text-size-adjust:100%;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--seal);outline-offset:3px;border-radius:3px}
+
+/* ── 틀 ── */
+.book{height:100dvh;width:100%;max-width:100%;overflow:hidden;
+      display:grid;grid-template-rows:auto 1fr auto;gap:0}
+/* ★칸이 「제 속의 내용만큼」 넓어지려 드는 것을 막는다.
+   이것이 없으면 제목줄·단추줄이 안 줄어들어 좁은 폰에서 화면 밖으로 나간다.
+   (min-width 의 기본값이 auto 라서 생긴 일 — 2026-08-27 규명) */
+.book > *{min-width:0}
+.bar .name{min-width:0}
+.pageno{min-width:0}
+
+.bar{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px 8px;
+}
+.bar .name{
+  font-family:'Noto Serif KR',serif;font-weight:700;font-size:15px;
+  letter-spacing:.02em;color:var(--dim);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.bar .sp{flex:1}
+.iconbtn{
+  min-width:38px;height:34px;padding:0 8px;white-space:nowrap;border-radius:8px;color:var(--dim);
+  display:grid;place-items:center;font-size:14px;font-weight:700;
+}
+.iconbtn:hover{background:var(--oldbg);color:var(--ink)}
+.iconbtn.small{font-size:12px}
+.iconbtn svg{display:block}
+
+@media (max-width:400px){
+  .bar{gap:6px;padding:10px 12px 8px}
+  .bar .name{font-size:14px}
+  .iconbtn{min-width:34px;padding:0 6px}
+}
+.progress{height:2px;background:var(--edge);margin:0 16px;border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--seal);transition:width .25s ease}
+
+/* ── 글이 흐르는 자리 ──────────────────────────────────────────
+   ★쪽 나누기는 브라우저의 「여러 단(multi-column)」에 맡긴다.
+   전자책 표준 리더(Readium·epub.js)가 모두 쓰는 방법이다.
+   · column-fill:auto + 높이 고정  → 한 단이 화면 높이만큼 차면 다음 단으로
+   · 단 하나 = 한 쪽
+   · 넘기기 = scrollLeft — 실제로 그려진 단 자리를 재서 그 값으로 간다
+   클이 쪽을 만들지 않으므로 넘칠 수가 없다. */
+.stage{position:relative;overflow:hidden}
+
+.pages{
+  height:100%;
+  /* 글 폭 — 좁은 화면은 좌우 22px 씩, 넓은 화면은 읽기 좋은 폭까지만 */
+  width:calc(100% - 44px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));
+  max-width:var(--글폭,680px);
+  margin:0 auto;
+  padding:14px 0 6px;          /* 위아래 여백은 모든 단에 함께 든다 */
+  overflow:hidden;             /* 손가락으로 아무 데나 멈추지 못하게 */
+  column-fill:auto;            /* ★한 단을 끝까지 채우고 다음 단으로 */
+  column-gap:64px;             /* 옆 단이 비치지 않게 넉넉히 */
+  scroll-behavior:smooth;
+  font-size:var(--fs,17px);
+  font-weight:500;
+  line-height:1.9;
+  /* ★한글은 낱말 안에서 끊지 않는다 — 좁은 폰에서 「고을」이 「고/을」로,
+     「되었습니다」가 「되었습/니다」로 갈라졌다 (2026-09-03 할아버지 지적).
+     p 에만 걸려 있어 제목(.chap)·인용(.old)·상자(.point)가 새어 나갔다.
+     그릇에 걸면 모든 자식이 물려받는다. */
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+/* 문단·그림·네모상자가 쪽 경계에서 두 동강 나지 않게 */
+.pages > *{
+  break-inside:avoid;
+  -webkit-column-break-inside:avoid;
+  page-break-inside:avoid;
+}
+@media (prefers-reduced-motion:reduce){ .pages{scroll-behavior:auto} }
+
+/* ★왼쪽 맞춤 — 양쪽 맞춤은 어절 사이가 크게 벌어져 어린이 눈에 거슬린다
+   (한글은 낱말 안에서 끊지 않으므로 벌어짐이 심하다. 2026-08-27 눈으로 확인) */
+.pages p{orphans:2;widows:2;margin:0 0 .95em;text-align:left;word-break:keep-all}
+.pages p.li{margin:0 0 .45em;padding-left:1.1em;text-indent:-1.1em;text-align:left}
+
+.chap{
+  font-family:'Noto Serif KR',serif;font-weight:800;
+  font-size:1.32em;line-height:1.45;letter-spacing:-.01em;
+  margin:1.5em 0 .7em;color:var(--ink);text-wrap:balance;
+  break-after:avoid;
+}
+.chap:first-child{margin-top:0}
+.chap::before{
+  content:"";display:block;width:34px;height:3px;background:var(--seal);
+  margin-bottom:.5em;border-radius:2px;
+}
+.sub{
+  font-family:'Noto Serif KR',serif;font-weight:700;
+  font-size:1.08em;line-height:1.5;color:var(--river);
+  margin:1.3em 0 .55em;padding-bottom:.35em;
+  border-bottom:1px solid var(--edge);
+  text-wrap:balance;break-after:avoid;
+}
+
+/* 옛 책의 말씀 — 글꼴이 바뀐다. 지금 목소리와 옛 목소리를 가른다 */
+.old{
+  font-family:'Noto Serif KR',serif;font-size:1.02em;line-height:1.8;
+  margin:.9em 0 1em;padding:.7em .95em .7em 1.05em;
+  background:var(--oldbg);border-left:3px solid var(--river);
+  color:var(--ink);break-inside:avoid;
+}
+.old[data-tag="물음"]{border-left-color:var(--seal)}
+.old[data-tag="답"]{border-left-color:var(--seal);opacity:.94}
+
+/* 결론 — 네모 상자 */
+.point{
+  border:1px solid var(--seal);border-radius:2px;
+  padding:.75em .95em;margin:1em 0 1.1em;
+  font-weight:500;color:var(--ink);background:var(--sheet);
+  break-inside:avoid;text-align:left !important;
+}
+/* 본관이 바뀌는 자리 */
+.mark{
+  font-weight:700;color:var(--seal);letter-spacing:.01em;
+  margin:.8em 0 .6em !important;text-align:left !important;
+  break-inside:avoid;
+}
+
+.pic{margin:1.1em 0 1.2em;break-inside:avoid}
+.pic img{
+  display:block;width:100%;height:auto;border-radius:2px;
+  border:1px solid var(--edge);background:var(--sheet);
+  aspect-ratio:14/9;              /* ★그림이 다 그려지기 전에도 자리를 알 수 있게 */
+  max-height:56vh;object-fit:contain;
+}
+/* ★아주 낮은 화면(Z플립 커버 따위)에서는 그림을 더 줄인다.
+   화면 높이가 374px 인데 구글 안내 띠까지 빼면 책 높이가 277px 밖에 안 되어,
+   그림+설명이 한 쪽을 넘친다 (2026-08-27 실측 : 4px 넘침). */
+@media (max-height:560px){
+  .pic{margin:.7em 0 .8em}
+  .pic img{max-height:40vh}
+  .pic figcaption{font-size:.72em;line-height:1.5;margin-top:.35em}
+}
+.pic figcaption{
+  margin-top:.5em;font-size:.8em;line-height:1.6;color:var(--dim);
+  text-align:left;word-break:keep-all;
+}
+
+/* ── 표 ──
+   틀에 표 스타일이 아예 없어 선이 안 보이고 칸 폭이 제멋대로였다.
+   좁은 폰에서 「우리」가 「우/리」로 쪼개져 보였다. (2026-09-03 할아버지 지적) */
+.tbl{
+  width:100%;border-collapse:collapse;
+  margin:.9em 0 1.2em;
+  font-size:.92em;line-height:1.6;
+  break-inside:avoid;-webkit-column-break-inside:avoid;page-break-inside:avoid;
+}
+.tbl th,.tbl td{
+  border:1px solid var(--edge);
+  padding:.45em .55em;
+  text-align:left;vertical-align:top;
+  word-break:keep-all;
+}
+.tbl th{
+  background:var(--oldbg);color:var(--dim);
+  font-weight:700;font-size:.9em;letter-spacing:.02em;
+}
+.tbl tr:nth-child(even) td{background:var(--oldbg)}
+/* 좁은 화면에서는 조금 더 작게 — 칸이 좁아 낱말이 쪼개지지 않게 */
+@media (max-width:430px){
+  .tbl{font-size:.84em}
+  .tbl th,.tbl td{padding:.38em .4em}
+}
+
+/* ── 겉장 ── */
+.cover{
+  height:100%;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;gap:0;padding-bottom:2%;
+}
+.cover-seal{
+  width:48px;height:48px;border:2px solid var(--seal);border-radius:3px;
+  display:grid;place-items:center;margin-bottom:1.25em;
+  transform:rotate(-4deg);
+}
+.cover-seal span{
+  font-family:'Noto Serif KR',serif;font-weight:800;font-size:30px;
+  color:var(--seal);line-height:1;
+}
+.cover-title{
+  font-family:'Noto Serif KR',serif;font-weight:800;
+  font-size:1.95em;line-height:1.35;letter-spacing:-.02em;
+  margin:0 0 .55em;text-wrap:balance;
+}
+.cover-sub{
+  font-size:.9em;color:var(--ink);margin:0 0 1.1em;
+  text-align:center !important;word-break:keep-all;line-height:1.7;
+}
+.cover-by{font-size:.8em;color:var(--dim);margin:1.5em 0 0;text-align:center !important}
+.cover-rule{width:44px;height:1px;background:var(--edge);margin:.4em 0 1.7em}
+.cover-meta{
+  margin:0;display:grid;grid-template-columns:auto;gap:.28em;
+  text-align:center;font-size:.8em;line-height:1.65;
+}
+.cover-meta dt{
+  color:var(--dim);font-size:.86em;letter-spacing:.06em;
+  margin-top:.85em;
+}
+.cover-meta dt:first-child{margin-top:0}
+.cover-meta dd{margin:0;color:var(--ink);font-family:'Noto Serif KR',serif}
+.cover-meta .q{font-family:'Noto Sans KR',sans-serif;font-size:.9em;color:var(--dim)}
+.cover-hint{
+  margin:2.4em 0 0;font-size:.78em;color:var(--dim);
+  text-align:center !important;letter-spacing:.02em;
+}
+.cover-hint::after{content:" →";color:var(--seal)}
+/* ★읽던 자리가 있을 때만 겉장에 뜨는 단추 (2026-08-27)
+   책은 언제나 겉장에서 열린다. 이어 읽고 싶으면 이것을 누른다. */
+.cover-go{
+  margin:1.5em 0 0;padding:.62em 1.25em;
+  border:1px solid var(--seal);border-radius:999px;
+  color:var(--seal);font-size:.82em;font-weight:700;
+  letter-spacing:.02em;line-height:1.4;
+  background:transparent;
+}
+.cover-go:hover{background:var(--seal);color:var(--sheet)}
+.cover-go[hidden]{display:none}
+
+/* ── 아래 ── */
+.nav{
+  display:flex;align-items:center;gap:6px;padding:6px 12px 12px;
+}
+.pagebtn{
+  width:46px;height:40px;border-radius:9px;color:var(--dim);
+  display:grid;place-items:center;font-size:19px;
+}
+.pagebtn:hover:not(:disabled){background:var(--oldbg);color:var(--ink)}
+.pagebtn:disabled{opacity:.28;cursor:default}
+.pageno{
+  flex:1;text-align:center;font-size:12.5px;color:var(--faint);
+  font-variant-numeric:tabular-nums;letter-spacing:.04em;
+}
+.pageno b{color:var(--dim);font-weight:500}
+
+/* ── 목차 ── */
+.tocwrap{
+  position:fixed;inset:0;z-index:40;display:none;
+  background:var(--edgefade);
+}
+.tocwrap.on{display:block}
+.toc{
+  position:absolute;left:0;right:0;bottom:0;max-height:76%;
+  background:var(--sheet);border-top:2px solid var(--seal);
+  border-radius:14px 14px 0 0;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+  animation:up .22s cubic-bezier(.22,.61,.36,1);
+}
+@keyframes up{from{transform:translateY(14px);opacity:.6}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){ .toc{animation:none} }
+.toc h2{
+  font-family:'Noto Serif KR',serif;font-size:15px;font-weight:700;
+  margin:0;padding:16px 20px 10px;color:var(--dim);letter-spacing:.04em;
+}
+.toc ol{list-style:none;margin:0;padding:0 8px 22px;overflow-y:auto}
+.toc li{counter-increment:t}
+.toc button{
+  display:flex;gap:12px;width:100%;text-align:left;
+  padding:11px 12px;border-radius:8px;line-height:1.5;
+  font-size:15px;word-break:keep-all;
+}
+.toc button::before{
+  content:counter(t);color:var(--faint);font-size:12px;
+  font-variant-numeric:tabular-nums;min-width:1.3em;padding-top:.25em;
+}
+.toc button:hover{background:var(--oldbg)}
+.toc ol{counter-reset:t}
+
+/* ── 넓은 화면 : 두 쪽 펼침을 하지 않는다 (2026-08-27 할아버지 지시) ──
+   어느 기기든 「한 번에 한 쪽」이다. 화면이 넓으면 쪽을 넓히는 대신
+   좌우 여백을 키워 글 폭을 읽기 좋게 잡는다. 글 폭은 --글폭 하나로 다스린다. */
+@media (min-width:640px){
+  .pages{font-size:var(--fs,18.5px);padding-top:20px;padding-bottom:10px}
+}
+.pages button.jump{font:inherit;font-size:.95em;padding:.45em .9em;border:1px solid var(--seal);border-radius:.5em;background:transparent;color:var(--seal);cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="book">
+  <div class="bar">
+    <span class="name">본출나주</span>
+    <span class="sp"></span>
+    <button class="iconbtn" id="full" type="button" aria-label="화면 꽉 채우기" title="화면 꽉 채우기"></button>
+    <button class="iconbtn" id="theme" type="button" aria-label="밝게 어둡게">☾</button>
+    <button class="iconbtn small" id="smaller" type="button" aria-label="글씨 작게">가－</button>
+    <button class="iconbtn" id="bigger" type="button" aria-label="글씨 크게">가＋</button>
+    <button class="iconbtn" id="tocbtn" type="button" aria-label="차례">☰</button>
+  </div>
+  <div class="progress"><i id="bar"></i></div>
+
+  <div class="stage" id="stage">
+    <div class="pages" id="pages"><section class="cover">
+<div class="cover-seal" aria-hidden="true"><span>羅</span></div>
+<h1 class="cover-title">본출나주(本出羅州)</h1>
+<p class="cover-sub">묘도문자로 보는 안정나씨의 뿌리</p>
+<div class="cover-rule" aria-hidden="true"></div>
+<dl class="cover-meta"><dt>바탕이 된 글</dt><dd>17세기 문집에 실린 안정나씨 묘도문자 10편<br><span class="q">백사집·월사집·청음집·계곡집·낙전당집·문곡집·명재유고·서계집</span></dd><dt>지은이</dt><dd>금성나씨 라정호<br><span class="q">금성나씨호남종친회 총무이사 · 개인이 정리한 글입니다</span></dd></dl>
+<p class="cover-by">2026년 10월</p>
+<p class="cover-hint">손가락으로 옆으로 밀어 넘기세요</p>
+<button class="cover-go" id="이어단추" type="button" hidden></button></section>
+
+<h2 class="chap" id="c0">이 글을 펴며</h2>
+<p>안정나씨(安定羅氏)는 고려 때 시중(侍中)을 지내고 안천군(安川君)에 봉해진 천서(天瑞) 선조를 시조로 모십니다.</p>
+<p>요즘 안정나씨와 금성나씨 사이에, 천서 선조를 금성나씨 족보에 싣는 일을 두고 말이 오갑니다. 「천서 선조를 금성나씨와 잇는 것은 1930년 총보(總譜)에서 처음 만든 이야기」라는 말도 들립니다.</p>
+<p>그렇다면 1930년보다 230~310년 앞서, 안정나씨 집안은 스스로 자기 뿌리를 어떻게 적었을까요. 이 글은 17세기의 묘도문자(墓道文字) 열 편으로 그 물음에 답해 보려 합니다.</p>
+<p>열 편의 한문 원문 전체와 한글 번역으로 가는 연결은 이 책 뒤쪽에 모았습니다. 아래 단추를 누르면 바로 갑니다.</p>
+<p class="li"><button type="button" class="jump" data-go="c9">원문 및 해석 전체보기 ›</button></p>
+<h2 class="chap" id="c1">묘도문자란 무엇인가</h2>
+<p>묘도문자는 무덤과 무덤 가는 길에 세우거나 묻는 글을 함께 이르는 말입니다.</p>
+<p class="li">· 신도비명(神道碑銘): 무덤 가는 길에 세우는 큰 비석의 글입니다.</p>
+<p class="li">· 묘갈명(墓碣銘): 무덤 앞에 세우는 작은 비석의 글입니다.</p>
+<p class="li">· 묘지명(墓誌銘): 돌이나 사기판에 새겨 무덤 속에 묻는 글입니다.</p>
+<p class="li">· 행장(行狀): 돌아가신 분의 일생을 적은 글로, 비문을 청할 때 바탕으로 씁니다.</p>
+<p>여기 모은 열 편은 이항복·이정구·김상헌·장유·신익성·김수항·윤증·박세당, 17세기 조선을 대표하는 문인 여덟 분이 지었습니다. 모두 지은이의 문집에 실려 오늘까지 전합니다.</p>
+<p>글의 주인공은 나익(羅瀷)·나윤침(羅允忱)·나급(羅級)·나만갑(羅萬甲)·나성두(羅星斗), 안정나씨 한 줄기의 다섯 대입니다. 계보는 뒤의 「열 편의 주인공과 계보」에 적었습니다.</p>
+<h2 class="chap" id="c2">열 편이 한목소리로 말하는 것: 본출나주</h2>
+<p>열 편은 모두 첫머리에서 이 집안의 내력을 밝힙니다. 그 대목만 모으면 이렇습니다.</p>
+<h3 class="sub">가. 나윤침(羅允忱) 묘갈명 · 백사집(이항복)</h3>
+<blockquote class="old" data-tag="원문">羅出安定爲望族 其始有諱天瑞 仕高麗 封安川君</blockquote>
+<p>이 나씨 집안은 안정에서 나온 이름난 집안입니다. 그 처음 조상은 휘 천서이니, 고려에 벼슬하여 안천군에 봉해졌습니다.</p>
+<h3 class="sub">나. 나급(羅級) 신도비명 · 월사집(이정구)</h3>
+<blockquote class="old" data-tag="원문">羅 羅州大姓 高麗侍中天瑞 有大功封安川君 遂爲安定人 安定卽比安號也</blockquote>
+<p>나씨는 나주의 큰 성씨입니다. 고려 시중 천서가 큰 공을 세워 안천군에 봉해지고 마침내 안정 사람이 되었습니다. 안정은 곧 비안의 이름입니다.</p>
+<h3 class="sub">다. 나급(羅級) 묘지명 · 청음집(김상헌)</h3>
+<blockquote class="old" data-tag="원문">羅氏出羅州 遠祖天瑞 仕高麗 有功封安川君 徙籍安定 安定後改比安</blockquote>
+<p>나씨는 나주에서 나왔습니다. 먼 조상 천서가 고려에 벼슬하여 공을 세워 안천군에 봉해지고 본관을 안정으로 옮겼습니다. 안정은 뒤에 비안으로 고쳤습니다.</p>
+<h3 class="sub">라. 나만갑(羅萬甲) 신도비명 · 청음집(김상헌)</h3>
+<blockquote class="old" data-tag="원문">羅氏本出羅州 高麗時侍中天瑞 以功食采於安定 遂爲安定人 安定卽今之比安縣也</blockquote>
+<p>나씨는 본래 나주에서 나왔습니다. 고려 때 시중 천서가 공으로 안정을 식읍으로 받아 마침내 안정 사람이 되었습니다. 안정은 지금의 비안현입니다.</p>
+<h3 class="sub">마. 나익(羅瀷) 묘갈명 · 계곡집(장유)</h3>
+<blockquote class="old" data-tag="원문">羅氏本出羅州 高麗時有曰天瑞 以功食庇安之安定縣 子孫遂以爲貫</blockquote>
+<p>나씨는 본래 나주에서 나왔습니다. 고려 때 천서라는 분이 공으로 비안의 안정현을 식읍으로 받아, 자손이 마침내 그곳을 본관으로 삼았습니다.</p>
+<h3 class="sub">바. 나익(羅瀷) 묘지명 · 낙전당집(신익성)</h3>
+<blockquote class="old" data-tag="원문">謹按羅氏 肇籍錦城 有諱天瑞 相麗朝勳封安川君 徙籍庇安之安定縣 遂爲大姓</blockquote>
+<p>삼가 살피건대, 나씨는 처음 본관이 금성입니다. 휘 천서가 고려 조정을 도운 공으로 안천군에 봉해지고 본관을 비안의 안정현으로 옮겨 마침내 큰 성씨가 되었습니다.</p>
+<h3 class="sub">사. 나만갑(羅萬甲) 묘지명 · 문곡집(김수항)</h3>
+<blockquote class="old" data-tag="원문">高麗侍中天瑞之後 羅本羅州大姓 至侍中以功食安定縣 子孫因稱以自別 安定今之比安也</blockquote>
+<p>공은 고려 시중 천서의 후손입니다. 나씨는 본래 나주의 큰 성씨인데, 시중이 공으로 안정현을 식읍으로 받자 자손이 안정을 일컬어 스스로 구별하였습니다. 안정은 지금의 비안입니다.</p>
+<h3 class="sub">아. 나성두(羅星斗) 묘지명 · 문곡집(김수항)</h3>
+<blockquote class="old" data-tag="원문">其上祖天瑞 麗朝侍中 以功食安定 安定之羅胄于此</blockquote>
+<p>그 윗대 조상 천서는 고려 시중으로, 공으로 안정을 식읍으로 받았습니다. 안정 나씨는 여기서 비롯되었습니다.</p>
+<h3 class="sub">자. 나성두(羅星斗) 행장 · 명재유고(윤증)</h3>
+<blockquote class="old" data-tag="원문">羅氏 本出羅州 遠祖天瑞 仕麗朝 有功 位侍中 封安川君 食安定縣 子孫遂爲安定人 安定 卽今之比安也</blockquote>
+<p>나씨는 본래 나주에서 나왔습니다. 먼 조상 천서가 고려에 벼슬하여 공이 있어 시중에 오르고 안천군에 봉해져 안정현을 식읍으로 받으니, 자손이 마침내 안정 사람이 되었습니다. 안정은 지금의 비안입니다.</p>
+<h3 class="sub">차. 나성두(羅星斗) 묘갈명 · 서계집(박세당)</h3>
+<blockquote class="old" data-tag="원문">其先本羅州人 高麗之世 侍中天瑞 以功封安川君 食邑安定 子孫因籍焉</blockquote>
+<p>그 선조는 본래 나주 사람입니다. 고려 때 시중 천서가 공으로 안천군에 봉해지고 안정을 식읍으로 받으니, 자손이 그로 인해 그곳을 본관으로 삼았습니다.</p>
+<p>열 편 가운데 아홉 편이 「나씨는 본래 나주에서 나왔다」 또는 「나주의 큰 성씨」라고 적었습니다. 나머지 한 편인 낙전당집은 「처음 본관이 금성(錦城)」이라 적었습니다. 이 말이 왜 중요한지는 뒤의 「나주와 금성은 한 본관이었다」에서 다룹니다.</p>
+<h2 class="chap" id="c3">나주에서 어떻게 갈라졌나</h2>
+<p>열 편이 전하는 줄거리는 하나입니다.</p>
+<p class="li">· 나씨는 본래 나주 사람이었습니다.</p>
+<p class="li">· 고려 때 천서 선조가 공을 세워 시중에 오르고 안천군에 봉해졌습니다.</p>
+<p class="li">· 나라에서 안정현(安定縣)을 식읍(食邑)으로 내렸습니다.</p>
+<p class="li">· 그 뒤 자손이 안정을 본관으로 삼았습니다.</p>
+<p>글마다 마지막 대목을 이렇게 적었습니다.</p>
+<blockquote class="old" data-tag="청음집">徙籍安定</blockquote>
+<p>관적(본관)을 안정으로 옮겼다.</p>
+<blockquote class="old" data-tag="계곡집">子孫遂以爲貫</blockquote>
+<p>자손이 마침내 그곳을 본관으로 삼았다.</p>
+<blockquote class="old" data-tag="문곡집">子孫因稱以自別</blockquote>
+<p>자손이 안정을 일컬어 스스로 구별하였다.</p>
+<p>곧 안정나씨는 처음부터 따로 있던 성씨가 아니라, 나주 나씨의 한 갈래가 식읍으로 받은 땅 이름을 따라 본관을 새로 쓴 것이라는 이야기입니다. 이 집안 후손이 지어 달라고 청한 글에, 당대 이름난 문인들이 한결같이 그렇게 적었습니다.</p>
+<p>여러 글이 안정은 지금의 비안(比安)이라고도 함께 적었습니다(월사집·청음집·문곡집·명재유고).</p>
+<h2 class="chap" id="c4">나주와 금성은 한 본관이었다</h2>
+<p>낙전당 신익성은 나익 공의 묘지명에서 이렇게 적었습니다.</p>
+<blockquote class="old" data-tag="낙전당집">謹按羅氏 肇籍錦城 有諱天瑞 相麗朝勳封安川君 徙籍庇安之安定縣</blockquote>
+<p>삼가 살피건대, 나씨는 처음 본관이 금성이다. 휘 천서가 고려 조정을 도운 공으로 안천군에 봉해지고 본관을 비안의 안정현으로 옮겼다.</p>
+<p>같은 집안의 같은 내력을, 아홉 편은 「나주」라 적고 한 편은 「금성」이라 적었습니다. 그것도 이 집안 증손 나만갑 공이 직접 행장을 갖추어 청한 글입니다. 17세기 사람들에게 금성과 나주는 서로 다른 본관이 아니라 같은 본관을 부르는 두 이름이었다는 뜻입니다. 금성(錦城)은 나주의 옛 이름입니다.</p>
+<p>그러므로 「안정나씨는 본래 나주에서 나왔다」는 말은 곧 「안정나씨는 금성나씨와 한 뿌리에서 갈라졌다」는 말과 같습니다.</p>
+<h2 class="chap" id="c5">다른 옛 기록도 같습니다</h2>
+<h3 class="sub">1658년 · 나만갑 신도비 (지금도 서 있는 비석)</h3>
+<figure class="pic"><img src="data:image/webp;base64,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" alt="나만갑 신도비"><figcaption>나만갑 신도비 · 경기도 유형문화재 제126호 · 구리시 사노동 · 1658년 세움 · 김상헌 지음, 송준길 글씨. 사진: 한국학중앙연구원·유남해(1987), 공공누리 제1유형</figcaption></figure>
+<p>청음 김상헌이 지은 나만갑 공의 신도비명은 1658년(효종 9) 돌에 새겨져 지금도 경기도 구리시 사노동에 서 있습니다. 비문에 「羅氏本出羅州(나씨는 본래 나주에서 나왔다)」가 새겨져 있습니다.</p>
+<h3 class="sub">1786년 무렵 · 비안현읍지 (규장각 奎17454)</h3>
+<p>안정이 속한 비안 고을의 읍지에 천서 선조의 묘문이 실려 있습니다.</p>
+<blockquote class="old" data-tag="비안현읍지">府君諱天瑞 姓羅氏 世貫羅州 爲國之名閥</blockquote>
+<p>부군의 휘는 천서, 성은 나씨이며 대대로 본관이 나주로, 나라의 이름난 가문이다.</p>
+<blockquote class="old" data-tag="비안현읍지">府君與其弟元瑞文瑞 俱爲宰相</blockquote>
+<p>부군과 그 아우 원서(元瑞)·문서(文瑞)가 모두 재상이 되었다.</p>
+<p>천서·원서·문서 세 형제의 이름은 금성나씨 족보 분파도(1927년 지장록)의 형제 이름과 같습니다. 다만 같은 읍지의 인물 칸은 천서 선조를 신라 정승 나인(羅認)의 아들이자 최치원의 장인이라고도 적었는데, 이는 시대가 맞지 않는 고을 전승입니다.</p>
+<h3 class="sub">1908년 · 증보문헌비고 권50 제계고 씨족</h3>
+<p>나라에서 엮은 『증보문헌비고』는 나씨 항목에서 나주나씨 시조 총례(聰禮) 선조를 먼저 적고, 이어 안정 나씨를 이렇게 적었습니다.</p>
+<blockquote class="old" data-tag="증보문헌비고">安定 比安屬縣 羅氏始祖天瑞 系出羅州 高麗恭愍王時 以功食以比屋之安定縣 封安川君 遂以爲貫</blockquote>
+<p>안정은 비안에 딸린 현이다. 나씨 시조 천서는 나주에서 나왔다. 고려 공민왕 때 공으로 비옥의 안정현을 식읍으로 받고 안천군에 봉해져 마침내 본관으로 삼았다.</p>
+<p>이 기록들은 모두 1930년 총보보다 앞섭니다.</p>
+<h2 class="chap" id="c6">오해하기 쉬운 두 대목</h2>
+<h3 class="sub">백사집의 「羅出安定」</h3>
+<p>백사 이항복은 「羅出安定爲望族(나씨는 안정에서 나와 이름난 집안이 되었다)」이라 적었습니다. 여기의 「나씨」는 나씨 전체가 아니라 글의 주인공 나윤침 공의 집안, 곧 안정나씨를 가리킵니다. 같은 집안을 다룬 나머지 아홉 편은 모두 그 집안이 본래 나주에서 나왔다고 적었습니다.</p>
+<h3 class="sub">계종(繼宗)과 계종(繼從)</h3>
+<p>안정나씨 계보의 계종(繼宗)은 나익 공의 할아버지입니다. 금성나씨 죽헌공 계종(繼從, 15世, 호 송은·죽헌)과는 한글 소리만 같고 한자가 다른 분입니다.</p>
+<h2 class="chap" id="c7">열 편이 말하지 않는 것</h2>
+<p>정직하게 밝혀 둘 것도 있습니다.</p>
+<p class="li">· 천서 선조의 아버지가 누구인지, 시조 총례 선조와 몇 세대로 이어지는지는 열 편 어디에도 나오지 않습니다.</p>
+<p class="li">· 묘도문자는 지은이가 직접 조사한 글이 아니라 후손이 가져온 집안 기록(가장·행장)을 바탕으로 지었습니다. 그래서 같은 집안 일인데도 나익 공이 형제 가운데 몇째인지, 계종 공의 증직이 무엇인지 같은 데서 글끼리 조금씩 다릅니다.</p>
+<p>그러니 이 열 편으로 말할 수 있는 것은 「17세기에 안정나씨 집안 스스로 본래 나주(금성)에서 나왔다고 밝혔다」는 데까지입니다. 그것만으로도, 안정나씨와 금성나씨가 한 뿌리라는 이야기가 1930년 총보에서 처음 만들어졌다는 말은 맞지 않습니다.</p>
+<h2 class="chap" id="c8">맺음말</h2>
+<p>천서 선조는 나주(금성)에서 나와 고려에 큰 공을 세우고 안정을 식읍으로 받았으며, 그 자손이 안정을 본관으로 삼았습니다. 이것은 안정나씨 집안이 17세기에 당대 최고의 문인들에게 부탁해 비석과 묘지에 새긴 이야기이고, 고을 읍지와 나라의 문헌비고도 같은 말을 적었습니다.</p>
+<p>뿌리가 하나라는 것은 어느 한쪽의 주장이 아니라 두 집안의 옛 기록이 함께 말하는 사실입니다. 이 글이 두 집안이 서로의 기록을 차분히 함께 읽는 데 작은 보탬이 되기를 바랍니다.</p>
+<p class="li"><button type="button" class="jump" data-go="c9">원문 및 해석 전체보기 ›</button></p>
+<h2 class="chap" id="c9">원문 및 해석 전체보기</h2>
+<p>열 편의 한문 원문 전체를 싣고, 편마다 한글 번역으로 가는 연결을 달았습니다. 번역은 한국고전종합DB의 고전번역서(한국고전번역원·단국대학교 동양학연구원·전주대학교 한국고전학연구소)에 있으며, 저작권이 있어 이 책에 옮기지 않고 연결만 두었습니다. 「한글 번역 보기」를 누르면 그 쪽이 열립니다.</p>
+<h3 class="sub">열 편의 주인공과 계보</h3>
+<p>천서(1세, 안정백) → 직경(2세) → 휘(3세) → 경손(4세) → 유선(5세, 양산군사) → 계종(繼宗, 6세) → 세걸(7세) → 기(沂)·식(湜)·숙(淑)·익(瀷)(8세)</p>
+<p>익 → 윤침 → 급 → 만갑 → 성두</p>
+<p class="li">· 천서부터 세걸의 아들까지는 1930년 총보 丙편 「안정파 세계도」를 따랐고, 그 아래는 열 편의 기록을 이었습니다. 열 편에는 천서와 유선 사이의 직경·휘·경손이 나오지 않습니다.</p>
+<p class="li"><button type="button" class="jump" data-go="c0">‹ 처음으로 돌아가기</button></p>
+<h2 class="chap" id="c10">1. 나윤침(羅允忱) 묘갈명 (백사집)</h2>
+<p class="li">· 지은이: 이항복(1556~1618) · 주인공: 나윤침(羅允忱), 나만갑의 할아버지</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0260A_0040_030_0090&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0260A_0040_030_0090" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">羅生萬甲。踵門而謂余曰。竊聞丈人學古文多銘賢公卿。今願竊有請也。先墓羊豕之繫。迄未有文。今欲論撰。以圖不朽。吾之生也後。不逮事祖考。其懿行之家傳者。謹摭其一二。唯是事祖母李二十餘年。日見其制行之餘。則因知吾祖刑家之化矣。吾祖諱允忱。字彦甫。十歲。連喪父母。毁幾㓕性。兄及弟矣。繼有乙巳之禍。自以少遭家難。屛迹畏影。戊午。登上庠。癸酉。及第。益剷彩混世。淡泊自守。不求人知。故官不過六品。以戊寅某月日卒。壽五十二。葬在廣州北方里。吾祖妣曰李。恭定大王之後諱元記之女也。元記。公少與聽松先生友。長爲瓦署別提。終卧不起。以嘉靖甲辰四月初三日。生吾祖妣。明睿過人。</blockquote>
+<blockquote class="old" data-tag="원문">七歲。授孝經，小學，三綱行實，正儀等書。過目成誦。別提曰。此兒天資如此。只此足矣。遂不復敎以他書。甞親癠。傍無侍藥。李不離於側。檢方治藥。藥必先嘗。其居室必潔其窓壁。斂枕整書。齋如也。十九。歸吾祖。治家有法。中表式之。凡古典前訓及婦德之少得於家庭者。皆箚記冊子。晨夜誦讀。平居夜寢晨興。竟夕報業。斂斂益虔。書冊弊壞。不許粧壁曰。字字皆父母聖賢之諱。不敢慁也。祭必親執。務盡精潔。未薦不敢甞新。及病篤。思甞碧魚。家人以進。則却不食曰。未薦也。內外之喪。不離几筵。親自奠獻。凡蔬果之美。皆不入口。朞祥之內。不理髮不見齒不解帶。服闋。與兄弟分財。輒自取薄。</blockquote>
+<blockquote class="old" data-tag="원문">常語子弟曰。吾平生無毫髮欺心事。汝等勉之。癸丑月日。疾革。沐浴更衣。正席而逝。得年九十。明年正月。祔于祖墓。大略如是。其細可槩也。唯丈人圖之。余授狀而興曰。公行應銘法。况賢配之行。有所過也。無不及焉。敢不諾而銘諸。遂與手而書曰。羅出安定爲望族。其始有諱天瑞。仕高麗。封安川君。後至諱繼宗。贈通禮院引儀。生諱世傑。昌陵參奉。有子三良。曰湜曰瀷曰淑。以學行羽儀士林。其仲氏。卒官成均典籍。娶宗室高興守女。以嘉靖丁亥。生公。寘德之合。寔宜天昌。克配德門。産祥降嘏。熊蛇八夢。弄璋維一。長積早卒。次級。卒官輔德。孝友忠信。與余善。女士人朴吉恬。次士人卞希諄。</blockquote>
+<blockquote class="old" data-tag="원문">次軍器僉正郭珪。次士人金惺。次觀察使李用諄。次掌令蔡衡。吉恬二男。曰某曰某。希諄二男三女。曰某曰某。女某次某次某。惺一男女。男曰某。女士人某。用諄一男女。男曰某進士。女進士某。衡三男二女。男曰某曰某曰某。女士人某。餘幼。級一男。卽乞銘者。銘曰。瑞世雙璧。媲德並美。細推物理。天不偶爾。旣齋其德。胡爽其年。北方之里。維樹綿綿。我銘好辭。歸怨于天。ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1991</blockquote>
+<p class="li">· 원문 교감(한국문집총간 표점본 주): 齋  → 齊 · 報  → 執 · 授  → 受 · 與  → 盥 · 一  → 二 · 齋  → 齊</p>
+<h2 class="chap" id="c11">2. 나급(羅級) 신도비명 (월사집)</h2>
+<p class="li">· 지은이: 이정구(1564~1635) · 주인공: 나급(羅級), 나만갑의 아버지</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0282A_0450_010_0080&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0282A_0450_010_0080" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">蓋余弱冠遊庠舍。已聞羅子升之名。人無識與不識。咸稱良善長者。及同直禁中。一見傾心。遂爲忘年友。聚散升沈三十年間。奄忽泉下矣。思其言笑。想其音容。宛然和氣襲體。不覺淚之滋於睫也。公之胤學士萬甲。泣謂余曰。先人之亡也。不肖孤纔十一歲。幼無識知。未死至今。先人之高行長德。拾聞於家庭者。却恐久益無傳。竊觀今世能爲不朽之業者。唯閤下在。與先人相愛之深。可托爲後死責者。亦唯閤下在。願閤下賜之一言。噫。公之墓木。已可材矣。余安得不老且病乎。而尙堪載筆公之石而爲公之重耶。顧義有不可辭者。按狀。公名級。子升字也。羅。羅州大姓。高麗侍中天瑞。有大功封安川君。遂爲安定人。</blockquote>
+<blockquote class="old" data-tag="원문">安定卽比安號也。曾祖諱世傑。昌陵參奉贈司憲府持平。祖諱瀷。官卒典籍贈弘文館校理。考諱允忱。成均館學諭。娶全州李氏別提元紀之女。生公於嘉靖壬子。中丙子司馬。薦授社稷參奉。魁大庭對策。乙酉。中明經甲科。例拜尙衣院直長。陞漢城府兼參軍。選入騎曹爲佐郞正郞。一爲典籍，司藝，持平，弼善，軍器，宗簿，內資，奉常，司僕等寺判事。再爲輔德。三爲文學掌令。莅外則監茂朱縣。守韓山郡。公廣州，平山牧府使。以公宣武從勳。追贈都承旨。後以學士從勳。累贈領議政。兼帶如式。夫人光州金氏。光山君若恒之後。參軍好善之女。生一男一女。女歸士人李文蘅。早歿。男卽學士。娶右議政鄭曄之女。</blockquote>
+<blockquote class="old" data-tag="원문">生三男二女。男星斗。娶承旨金南重之女。女適進士李嘉相餘幼。公孝友出天。學諭公病劇。斷一指和藥以進。絶而復甦。及喪。哀毀踰制。廬于墓。晨昏哭展。事大夫人。色養備至。鷄鳴必問寢。仍侍側以待朝。得甘毳必袖歸。常爲童子戲。以歡其心。有兄狂易。公待之逾謹。六姊妹皆貧多子女。要與同居。衣食共之。任州郡。莊所所穫。恣妹甥取食。不偫餘爲後計。婚娶公皆備辦。族黨無親疏。待之以誠。與人交。不設畦畛。遇可人。輒開心歡飮。人無不傾倒。家貧屢空。處之晏如。無一畝於野。無數椽於京。僦屋蕭然。不蔽風雨。及卒。喪祭斂殯。皆相識者事之。弔者哭之皆哀盡。會葬送迎者累千人。</blockquote>
+<blockquote class="old" data-tag="원문">此亦可以觀公之德之入人者深矣。公天賦樂易。純善無惡。未嘗飾貌軟語。見人過。專務覆蓋之。居平接物。唯直柔耳。未見有大異於人者。而及至邪正是非死生夷險之際。其剛不可及。其義不可奪者如此。其在臺憲。彈擧無所避。王子縱奴歐人。公嚴刑幾斃。諸僚縮頸莫敢言。戊巳年間。逆魁汝立。新負朝望。人爭趨競。勸與同訪。公曰。曾見其眸子。必大奸慝。終不一見。倭亂之初。作宰韓山。領軍禦賊。官軍潰於龍仁。兵使曳兵走。公獨守一壁。堅坐不動曰。是我死所。棄將何歸。兵使以主將先遁。我當手斬之。聞者股栗。及賊追已迫。從者擁馬僅免。在公州。歲大侵人相食。州倉陳腐巨萬。而閉糴不賑。飢民相聚爲盜。</blockquote>
+<blockquote class="old" data-tag="원문">通判請捕公曰。盜亦我赤子。濟活則自當奠居。立視其死而不知發。反勦殺耶。通判有所希冀。捕告陞職。而公終不與。乃悉集窮民及士之流寓者。開倉大賑。左右撫循。朝夕視餔。所全活幾萬人。方伯責以擅用國穀。公曰。穀可得。民命不可續。且齎盜糧。非計也。乃辭疾去官。未幾。倭賊猝至。倉儲尙餘累萬石。悉附賊燹。至丙申。陳遊擊媾賊至釜營。伴臣夜逃。賊大怒。囚遊擊將。再犯京師。大震朝廷。擇伴臣六易乃歸公。公在外聞命。過家不入。直詣闕拜命。公時有老母無兄弟。群議不忍遣。公曰。出身事主。危難敢以親辭乎。卽日辭朝赴賊陣。白沙李相以接伴使駐境。謂公曰。聞賊已殺遊擊。可觀勢進退。公曰。</blockquote>
+<blockquote class="old" data-tag="원문">我承命入賊營。死生天也。何可坐此觀望。李相義之。賦一詩以送。公散遣從行家僮曰。吾死職耳。汝輩俱死無益。賊聞公至。張兵六十里。白刃森列。脅公入囚門。公奮罵曰。我是使价。不當入是門。賊觀公動止安閑。略無怖色。知不可屈。開正門以入。卽放陳遊擊。遇公盡禮。事遂定。凡此皆人所難。益知公之所樹立。不但良善長者已耳。而旣不遇於時。天又不假年。惜矣。銘曰。孝友至行。急人高義。是公天得。非勉而至。先知兇逆。絶不濡迹。是公細事。亦見高識。開倉賑盜。不兵以仁。是公事業。求之古人。單騎敵營。守死罵賊。是公大節。終始卓卓。以是銘公。不愧斯筆。公本無僞。我言匪溢。</blockquote>
+<blockquote class="old" data-tag="원문">ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1991</blockquote>
+<h2 class="chap" id="c12">3. 나급(羅級) 묘지명 (청음집)</h2>
+<p class="li">· 지은이: 김상헌(1570~1652) · 주인공: 나급(羅級), 나만갑의 아버지</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0299A_0350_010_0070&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0299A_0360_010_0070" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">蓋當我昭敬王之世。有世子輔德羅公。其爲人。孝子於家。廉吏於官。長者於鄕。一時談者無二口。余父兄俱善公。而公又遜行視余友。因以知公之久。而益信談口之爲篤論也。公歿之三十三年。胤子參議君抱狀來請曰。先君之壙也。不肖孤未有知。及有知而先友之在世者幾盡。及今而補前闕者。唯吾子在。幸以先人之故。惠以一言。庶不恨其不蚤也。遂不敢辭。敍而銘之。謹按公諱級。字子升。自號後谷。羅氏出羅州。遠祖天瑞。仕高麗。有功封安川君。徙籍安定。安定後改比安。公卽比安縣人。曾大父世傑。昌陵參奉。贈司憲府持平。大父瀷。太史。當權奸擅國。直書不隱。危得大禍。有良史稱。後贈弘文館校理。</blockquote>
+<blockquote class="old" data-tag="원문">父諱允忱。仍世文科。終成均學諭。有德而無年。娶別坐李元紀女。以嘉靖壬子二月二十六日生公。少卽以藝文著公車聲。試輒擧首。二十五。中司馬。拜社稷署參奉。三十四擢文科甲科。例授尙衣院直長。改軍資監。轉通禮院引儀。兼漢城府參軍。選拜兵曹佐郞陞正郞。歷成均館典籍司藝。軍器，宗簿，內資，奉常，司僕諸寺正。司憲府持平掌令，世子侍講院文學弼善，輔德。外則茂朱縣監韓山郡守，公廣二州牧使，平山府使。所居官無不稱治。年五十一萬曆壬寅病卒。是年六月二十四日。從葬廣州北坊里學諭公兆次酉向之原。先以公宣武原從。贈都承旨。復用參議從勳。累贈至領議政。公內行純備。學諭公病𠫷。截指進血。</blockquote>
+<blockquote class="old" data-tag="원문">獲延數日。事母夫人若嬰兒慕。終身無違色。兄績狂易。學諭公以宗祀之重。欲先婚公。公執不從。兄歿始娶焉。姊妹六人貧窶。衣食婚姻。亡不於公室乎取。族黨故舊。亦多賴以潤者。天性坦夷。恬於勢利。旣第視其志。猶未第時。旣顯視其色。猶未顯時。旣更州郡。視其家。猶未更州郡時。人以此多之。始公入朝。客有問牛溪，栗谷者。時論力攻二先生。蓋欲嘗試爲登斥。公矢口答曰。賢人也。其人方柄用。遂以此沮公。困躓十年。寂寂無一尉薦。而未嘗少見幾微辨人於眸子。後果逆滅。人服其先見。壬辰。守韓山。主將遇賊先潰。公奮手劍欲斬之。賊逼不爲動。聞者壯之。亡何。擢拜公州牧使。屬兵荒閉糴。流殍滿野。</blockquote>
+<blockquote class="old" data-tag="원문">公至大發倉廩以賑之。遠近聞風坌集。公夙宵勤劬。凡乳哺而衽席之者無餘力。所全活累千百人。時飢者爭以珍寶易粟。公戒家人不得市一物。斥私俸以濟親故之急。世子久駐本州。中國兵馬繹騷。事如蝟興。公整暇不擾。酬應有裕。朝廷大才公。引置邇列。及居臺持法抗勢。貴戚側目。坐此枳仕塗。終不悔。陳游擊雲鴻使留倭營。虜情叵測。伴臣懼而跳。遣公代之。或謂母老鮮兄弟。自露可免。公毅然曰。吾已許身矣。卽日就途。賊聞公至。欲懾之。白刃左右接袍者六十里。令由偏門入。公神氣不變。徐以理折之。賊知不可屈。待之如禮。卒與游擊俱還。公又陰得其要領。條列軍務密奏之。其言鑿鑿中窾。皆見報可。</blockquote>
+<blockquote class="old" data-tag="원문">公素以寬恕得吏民心。在平山。民有負辜受榜。以它病殞。適憸臣之嗛公者長李官。顚倒三尺。遂其忮心。竟奪職。衆皆稱冤。與人交。有終始以德報怨。至有感泣鬼神。其處事寧緩而無急隘。其稱人有臧而無否其行德。人負我而毋負人。以故無貴賤少長。親嚮之無間。及其歿也。哀之惜之若一。夫人金氏光山大姓。漢城府參軍好善之女。後公三十六年年八十。避兵卒於瑞山郡。葬其地。生一男一女。男曰萬甲。卽參議君。以氣節鳴世。女適士人李文蘅。蚤夭。參議娶文肅公鄭曄女。生四男二女。婚嫁搢紳大家。銘曰。坦坦羅公。男子哉若人。行全百原。勇奪三軍。德則在竟。善不近名。誰之不如。而不公卿。一躓而蹶。</blockquote>
+<blockquote class="old" data-tag="원문">含用長沒。而生之未究。而後之永裕。樂哉斯丘。於萬春秋。ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1991</blockquote>
+<h2 class="chap" id="c13">4. 나만갑(羅萬甲) 신도비명 (청음집)</h2>
+<p class="li">· 지은이: 김상헌(1570~1652) · 주인공: 나만갑(羅萬甲), 형조참의, 호 구포</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0299A_0290_010_0020&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0299A_0300_010_0020" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">俶儻儁偉非常可喜之士。世未嘗無人。而長短互見。遇不遇有命。天實生之。而又奪之。人若惜之。而反忌之。未究厥施。含用而逝者多矣。若鷗浦羅公。豈非所謂非常可喜之士。時命不偶。未究而逝者歟。謹按公諱萬甲。字夢賚。羅氏本出羅州。高麗時侍中天瑞。以功食采於安定。遂爲安定人。安定卽今之比安縣也。高祖世傑。昌陵參奉。贈司憲府持平。曾祖瀷。以翰林貶。官積城縣監。卒贈弘文館校理。與二兄湜。淑俱顯仕。俱以直道。俱被奸臣誣枉。至今爲士類所稱。大父允忱。成均學諭。考諱級。早抱大人志。不汲汲於進取。官止侍講院輔德。以公之從勳。累贈議政府領議政。妣光州金氏。漢城參軍好善之女。</blockquote>
+<blockquote class="old" data-tag="원문">萬曆壬辰生公。先是議政公喪伯子。以繼嗣爲憂。夢神人有報。已而果得子。遂以其所命者爲名。而字之曰賚以志喜。幼而不類凡兒。豪擧自喜。其游嬉。好爲軍陣之事。指使群童。年力雖出己上者。畏讋不敢不聽。長老見而異之。甫齓。試賦韻語。藻思驟長。鑑賞家稱爲千里足。十一。遭議政公憂。執喪如成人。母夫人愍其過毀。備諭之。竟不能奪志。服除。才名日起。守夢鄭先生。一見許以國器。歸以其子。公亦誠心師事。舅甥間相爲知己。癸丑。中進士第一人。初入太學。故事新舊進士。相見一揖爲禮。時居上庠者傅會權奸邪論。公醜之。不與相揖。於是一榜逡巡俱退。以此著名。亦以此大忤奸黨。王母夫人卒。</blockquote>
+<blockquote class="old" data-tag="원문">承重持制。制畢。母后方在幽辱。公白母夫人。三綱絶可去矣。卽奉歸田舍。不赴公車。不與時人交。闔門養靜。唯以墳典自娛。久之。有以靖社謀告者。要與同往。公謝不行。聞者韙之。癸亥。今上卽位。拜順陵參奉。登謁聖丙科。補承文院權知正字。陞著作。薦入史館爲檢閱。歷待敎奉敎。轉成均典籍。移司憲府監察。又移戶曹佐郞。度支素號吏藪。適李适叛。上將出幸。機務百倍。長官才公。諸難事悉以委之。無不立辦。賊敗還都。爲騎省郞。公譴坐罷。尋入玉堂。三爲修撰。再爲校理。爲文學爲獻納。聲譽藉甚。侍講席。銳意匡翌。勸上立聖志勤聖學。誠心求賢爲急。且以罕御經筵。輕視臺諫。規箴甚切。上頗傾聽。</blockquote>
+<blockquote class="old" data-tag="원문">公益自發舒。遇事必言。勇往不護。前執政固已目攝之。會南以恭驟除都御史。其人本昏朝戚里客。不爲淸議所與。公偕館僚擧劾之。執政指公等朋比喜事。上下補外之命。廷臣爭不得。於是三人皆貶遠邑。公爲江東縣監。貴臣有與執政相軋者力救之。語激天怒。將加竄逐。賴有大臣言得寢。旣之官。不以遷客自居。竱心撫摩。宿瘼如洗。遇旱蝗。虔禱澍應。蝗不爲災。邑人懽若更生。以其暇。大修學政。鼓舞風動。士爭興起。未幾彬彬可觀。自是連擧於鄕。旁邑慕稱以爲前此未見也。以病去官。追思頌德。後聞公謫海西。爲輸旨甘。以助親膳。及歿。爭致千里賻。明年。西虜深入。上猝幸江都。公追赴之。虜解還里。戊辰。</blockquote>
+<blockquote class="old" data-tag="원문">拜直講知製敎，兵曹正郞。屢遷修撰持平。振飭風紀。都民相戒。毋敢犯禁。一時凜然稱肅。薦擬天官郞。執政猶用前忤進毀言。上惡之。問諸大臣將遠貶。皆以爲不可。改命中道。明年宥還。復入玉堂諫垣。不以震撼少沮。極陳諸司聚利斂怨。薦紳廉恥不明。尤斥勳貴戚里奢侈踰制。又言姻婭瑣類。不宜使居銓地。勳戚側目視之。仁穆王后喪。監掌廞儀。損益適宜。人多稱之。歷檢詳舍人輔德。山陵訖。陞通政兵曹參知。爲養出補安東。民素聞公威聲爭相賀。而奸吏鉅族驕橫者。斂手吐舌。傾耳待令。旬月之間。政化大行。道內久旱。公禱應如江東時。環一境獨蒙霈澤。爭言使君能感天。以農月違制奉親坐罷。在官僅七十日。</blockquote>
+<blockquote class="old" data-tag="원문">而人無不思慕頌德如江東云。乙亥。拜刑曹參議。穆陵雨塌或言遇震。元宗祔廟。適與相値。衆口讙譁。人心不安。公抗疏論之。至云上下相蒙。欲諱災異。仍及宮闈不嚴。時政闕失數千言。皆人所不敢言。上甚恚。嚴旨罷官。公屛居江外。蒔花灌圃。悠然有終老計。丙子冬。金兵大至。上避入南漢。公自田間泣辭大夫人。匹馬赴難請對。虜詐言約和。要質儲君。朝廷若許之則臣先碎首馬前。賊遠來疲乏。募士奮擊。可以得志。諸將多難之。計不行。衆虞食。擧公主餽。拜工曹參議。上引見勞勉。公受命感激。夙宵劌心隨調毋乏。移兵曹參知。賊要得斥和臣甘心用事者。指名鄭蘊，尹煌十餘輩以塞禍。公見大臣言曰。諸公平日。</blockquote>
+<blockquote class="old" data-tag="원문">自許何如。而今欲爲此擧。獨不畏後世議乎。由是多得免者。始虜遺慢書試我。人人大言虜可絶。公以爲無挾自大。非計也。儔輩誚公選愞。及在圍中。前日大言者反附和議。公每陳死守之義。或疑問。公對視羈縻保民生。守綱常全節義。皆隨時從道也。人服其有裁。和旣定。公至上前。持前議益堅。不納。退言於朝堂曰。設令城下。皇朝所賜誥命國章。不可與。皮島所留天兵。不可犯。慷慨不已。座中力倡和議者。嗤謂何不詣彼自言。公毅然曰。朝廷不以我爲駑。使備行人。何敢辭也。及虜以世子西行。公執鞚痛哭。衣袖盡濕。世子溫語君之老母免乎。宜速往見。第少須。送余出郊。丁寧眷顧之意。視舊諸僚最爲恩渥。</blockquote>
+<blockquote class="old" data-tag="원문">聞者莫不感動。大夫人寄寓海島。公奉往湖西。尋遇大故。喪亂之餘。自盡無憾。亡何誤聞島警。賃水營退舫爲避亂計。已覺其誤。卽反之。不悅者代事。乘而齮之。遂成萋斐。上下廷尉問。竟用拗法。遠竄嶺海。士大夫皆言其罰太重不平者。公銜荼跋涉。百瘁一生。猶祭必躬奠。哭必盡哀。幾於滅性。諸子泣請如禮。輒拒之曰。主辱不能死。母歿不能喪。何以生爲。己卯服除。明年遇赦。移寓榮川。每聞國家助兵瀋陽。歎曰。三百年君臣之義。到今絶矣。日夜涕泣。悲憤不自勝。病遂漸篤。壬午閏十一月丙午。卒于榮川寓舍。得年五十有一。易簀前二日。爲人作祭文。神氣如平生。道臣以聞。命復爵賜賻如儀。前以扈從勞。</blockquote>
+<blockquote class="old" data-tag="원문">進嘉善。又用靖社等從勳。贈議政府左議政。明年癸未三月。反葬廣州先兆北坊里乾芝山辛向之原。公爲人。抗爽多智。尙氣槩善談論。居然國士風。雖厲於士節乎。然其居家絶慈良。事親奉先。待宗族處財賄。多人所難及。大夫人老而失明。奉養娛悅。靡不曲盡。奉外王母及嫠居諸姑姊。同居十餘年。終始無間言。閨門之內雍雍如也。凡有吉凶之事。必倣於知禮者行之。與人交。緩急可仗。守夢先生常稱六尺可托。終日對客。不能刱一佞辭。所覯不當意。輒面責之。至頰赤不止。然過後不復留。時時屈意受善言。以此見多。所在擧職。至持法抗勢。屢拂人主意。後亦不能不思其才也。一斥不復。卒以擯死。嗚呼惜哉。</blockquote>
+<blockquote class="old" data-tag="원문">君子謂公雖位不大顯。壽不永年。忠直之名。當與江河同流。不足爲公憾也。乃知不苟合乎時者。所以合乎後世也。夫人草溪鄭氏。議政府參贊諱曄之女。卽守夢公。夫人蚤承家訓。事君子無違德。有四男二女。男長星斗。翊衛司侍直。次星漢。次星遠。次星緯。俱向學。長女壻李嘉相。登第蚤歿。次女壻朴世柱。星斗娶大司憲金南重女。生二男一女。男明佐。次幼。女適進士金壽恒。星漢娶士人李宗培女。星遠娶直長權順昌女。星緯娶承旨申翊亮女。內外孫若干。公葬有年。夫人命星斗曰。今世上與汝父知而許其志者。惟金丈在。年今八十矣。汝急往乞銘毋後。星斗承命。以參議趙君錫胤狀來請甚勤。義不可辭。不揆老耄。</blockquote>
+<blockquote class="old" data-tag="원문">略爲序次而系之銘。銘曰。蹇蹇羅公。允矣王臣。篤厲操尙。稱世有人。遭時之美。餉以苦辛。積誠于躬。恥言不伸。吾道非耶。益殫厥身。祭則格天。政行化民。惟忠惟直。可質鬼神。誰爲厲階。竟竄海濱。生辱泥塗。死列星辰。一時之贋。萬世之眞。太史屢書。椑史誠陳。採之公言。刻此貞珉。ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1991</blockquote>
+<p class="li">· 원문 교감(한국문집총간 표점본 주): 椑  → 稗</p>
+<h2 class="chap" id="c14">5. 나익(羅瀷) 묘갈명 (계곡집)</h2>
+<p class="li">· 지은이: 장유(1587~1638) · 주인공: 나익(羅瀷), 나만갑의 증조할아버지</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0333A_0130_010_0120&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0333A_0130_010_0120" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">乙巳名賢。有世稱二羅者。伯以號曰長吟亭湜。仲以官曰副提學淑。爲權奸所螫。同時賜死。其季曰瀷。字明源。名德與二兄埒。早卒不及禍。卒後百年。其曾孫參議萬甲。以狀請於維曰。惟我曾王父。實有淸才大名。不幸夭沒。而睾如之丘迄無數尺之表。大懼晻昒不稱。將無以飭稚昧于久遠也。敢徼惠于執事。圖所以載顯刻者。維曰敬諾。羅氏本出羅州。高麗時有曰天瑞。以功食庇安之安定縣。子孫遂以爲貫。公之曾祖裕善。梁山郡事。祖繼宗。贈漢城府參軍。考世傑。昌陵參奉。贈司憲府持平。妣豐壤趙氏。大司憲益貞之女。公生而穎異。纔學語。便解文字。八歲。能屬文。時稱奇童。館課試次韻潘岳西征賦。人皆難之。</blockquote>
+<blockquote class="old" data-tag="원문">公時年甚少。爲人代筆。金安老見之大稱賞。旣而知公所爲。謂人曰。羅湜，羅淑。乃又有弟耶。蓋忌之也。金慕齋安國在湖堂。邀公同舟。聯句至百韻。公出語輒奇警。慕齋驚歎曰。才子不可當也。中戊子司馬。辛卯文科。選隷承文院。尋薦入翰林。方金安老用事。慕公名欲一見。公終不肯往。安老大恨。有無名子。貼書鍾樓。刺安老專權誤國狀。公聞而書諸策。安老閱祕史偶見之。問公曰。誰所書也。公正色對曰。秉史筆者。誰不可書。安老益怒。當是時。安老張甚。稍忤意。輒中奇禍。公卿以下。皆重足脅息。而公以藐然新進。獨能抗其鋒焰。論者偉之。俄兼侍講院說書。安老嗾彈之。都堂會選弘文錄。例於名下加圈。</blockquote>
+<blockquote class="old" data-tag="원문">時公與安老迕。人知其賢而不敢取。唯有一圈耳。安老猶恚曰。此必孫澍所爲。欲倂公置之罪。孫亦不附安老者也。會柳相溥自陳圈出於己。以故事得己。例陞成均館典籍。以書狀官赴京師。還爲積城縣監。未幾。又以微事。被安老啓罷。丁酉四月某日。遘疾卒。年三十一。葬于楊州治北朔端里某向之原。遺命有棺無槨。葬不用石灰。公常謂自權奸得志。積忿於淸議久矣。終必釀禍士林。深以爲憂。公沒九年。而有乙巳之禍。伯仲二公皆不免。果如公所料云。公天資甚美。篤於孝友。自幼嗜學。與二兄相爲師友。講劘不怠。有遺稿若干卷藏于家。所論著多根據性理。邃如也。胸懷坦然。與人不爲表襮。而疾惡特甚。</blockquote>
+<blockquote class="old" data-tag="원문">人有簡賢附勢者。雖在親䁥。不忍正視。以此最爲小人所忌。人謂公而在者。禍必烈於二昆矣。宣祖朝策光國勳。謂公與有勞。錄原從一等。贈弘文館校理。追贈二代如令。公娶宗室高興守某之女。生一男允忱。文科某官。允忱有一男曰級。侍講院輔德。贈領議政。六女。士人朴吉恬，卞希淳，僉正郭珪，士人金惺，觀察使李用淳，僉知蔡衡其壻也。級有男萬甲。卽從維乞銘者。朴吉恬有二男。曰好正，好成。卞希淳有二男二女。男曰調元，謹元。郭珪無子。金惺有一男一女。男曰大觀。李用淳有一男一女。男曰時雨。文科某官。蔡衡有三男一女。男曰名俊。參奉。顯俊，弘俊。皆進士。萬甲有四男。曰星斗。餘幼。女子二人。</blockquote>
+<blockquote class="old" data-tag="원문">星斗有一男一女。皆幼。銘曰。後己卯而作。悅其風。先乙巳而沒。免於凶。名太盛行太潔。於身不祥。子孫逢吉。ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1992</blockquote>
+<h2 class="chap" id="c15">6. 나익(羅瀷) 묘지명 (낙전당집)</h2>
+<p class="li">· 지은이: 신익성(1588~1644) · 주인공: 나익(羅瀷), 나만갑의 증조할아버지</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0335A_0110_010_0140&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0335A_0110_010_0140" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">有明朝鮮國贈弘文館校理羅公瀷之墓之封。一百有五載。厥世三易。而曾孫萬甲。始具狀丐銘於東陽申翊聖。千里致辭。申以相託之重。誼不可拒。謹按羅氏。肇籍錦城。有諱天瑞。相麗朝勳封安川君。徙籍庇安之安定縣。遂爲大姓。已其祧而序其祀曰。梁山郡事裕善。漢城府參軍繼宗。贈司憲府持平世傑。持平公卽公顯考。娶大司憲豐壤趙益貞女。育諸子皆賢。伯湜。有文章節行。世所稱長吟亭。隱德不仕。仲淑淸名雅望。昵侍經帷。官副提學。坐直道竝命於乙巳之禍。公其季也。夙悟早譽。在孩提句語驚人。負神童目。舞象之年。能綴文賦。金安老已嫉公伯仲。見公代人課製者。賞其文而忌之曰。羅某且有弟矣。</blockquote>
+<blockquote class="old" data-tag="원문">金慕齋賜暇湖堂。邀與公聯句百韻。公押強愈健。慕齋嘖嘖。繇是聲華藹蔚。嘉靖戊子。釋褐遴槐院。尋薦史局。時安老張甚。國人側目。有以安老倒持國柄等語書之鐘閣。公聞之。用特筆於史策。安老適攷閱實錄。見卽詰問誰某所書。公曰秉筆者誰不可書。安老銜之。俄兼說書。遂劾之。選玉堂錄。益怒欲罪圈點者。相臣捄解乃已。例轉成均館典籍。以改宗系。贊价赴京。還朝黜補積城縣監。又被安老之搆罷歸。未及還。遘癘不淑。自正德丁卯至嘉靖丁酉。公之始卒厪踰一世。遺命薄葬。葬楊州朔端里先兆某坐原。萬曆間。錄改宗系功。紀公原從。追貤之。配完山李氏。宗室高興守女。生諱允忱。文科。擧八子。曰績曰級。</blockquote>
+<blockquote class="old" data-tag="원문">官止侍講院輔德。男也。曰朴言恬，卞希淳，僉正金惺，觀察使李用淳，僉知蔡衡。女壻也。級之出。卽萬甲。文科歷臺省。秩亞卿。朴吉恬之出二男好正，好成。卞希淳之出二男二女。男調元，謹元。女鄭光遠，主簿李時榮。金惺之出一男一女。男大觀。女卞孝閔。李用淳之出一男一女。男時雨持平。女適成夏明文科。蔡衡之出三男一女。男名俊參奉，顯俊，弘俊俱中進士。女適尹敏善。萬甲有四丈夫子。星斗，星漢，星象，星文。二女適李嘉相文科，朴世柱士人。翊聖自幼從家庭。習聞國朝故實。抨搉人物賢否。至長吟亭之知幾副學公之秉義。皆可以勵世。公雖蚤殀。篤志好學。趨向之正。操履之確。綽有諸兄風。</blockquote>
+<blockquote class="old" data-tag="원문">內行之修。根於天性。詞藻之美。蓋其餘事云。噫。以輔德公之長德君子。弗克大施。則克有令嗣。能紹數世不振之緖。用昭潛光於百祀之後。枝蕃實蕡。且碩而昌。足徵天道之不忒也已。銘曰。而菑而殀。其人其天。或大而名。或阜而傳。報施靡爽。孰謂適然。封逾百祀。竁石始鐫。祇告無愧。式茲象賢。ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1992</blockquote>
+<h2 class="chap" id="c16">7. 나만갑(羅萬甲) 묘지명 (문곡집)</h2>
+<p class="li">· 지은이: 김수항(1629~1689) · 주인공: 나만갑(羅萬甲), 형조참의, 호 구포</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0397A_0190_010_0080&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0397A_0190_010_0080" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">鷗浦羅公。自其考後谷公。與我王父文正公甚相善也。至鷗浦公則王父所以許與益深。公嘗左符西縣。王父贈之詩。期以歲寒。後公扞文罔遷嶺表。而王父亦遯于南。貽公書。勉以世道之責。未幾。王父拘北庭。聞公之歿。則詩以哭之至累篇。而以世無快心人爲嘆。及公之墓樹牲繫之石。而王父又爲之銘曰。忠直之名。與江河同流。噫。世之知公者。或有之矣。若其終始所深許。莫如吾王父也。今公之孫良佐以公壙銘屬余。公吾王父之所深許也。余小子何敢贅一辭。辭旣不獲。則謹敍其族出官歷嗣續行治而係以銘。按公諱萬甲。字夢賚。自號鷗浦。安定人。高麗侍中天瑞之後。羅本羅州大姓。至侍中以功食安定縣。</blockquote>
+<blockquote class="old" data-tag="원문">子孫因稱以自別。安定今之比安也。我朝昌陵參奉世傑。有子湜，淑兄弟。並命於乙巳之禍。其季瀷爲翰林。以直筆忤權姦。挫揠以終。卽公曾祖也。祖允忱。成均學諭。寔生後谷公諱級。仕止侍講院輔德。世一口稱厚德長者。後贈領議政。配光州金氏。參軍好善之女。初後谷公喪子哀甚。夢神人報有子。且命之名。已而果生公。以其所命者名之。十一而孤。不以稚廢戚。能自力爲學。二十二。中進士壯元。値光海政亂。屛居郊圻。不赴公車者十年。仁祖初元。授順陵參奉。旋擢謁聖文科。權知承文院副正字。薦爲藝文館檢閱。由奉敎序陞成均館典籍，司憲府監察，戶兵二曹佐郞。選入弘文館。屢爲修撰，校理。</blockquote>
+<blockquote class="old" data-tag="원문">間遷侍講院文學，司諫院獻納，成均館直講。在玉堂。偕諸僚箚劾趨羶昏朝而長御史者。大迕當路。指公等爲黨比。上怒命三人外補。公得監江東縣。踰年病遞。戊辰。除直講，兵曹正郞。再爲持平。三爲修撰。薦擬東銓郞。當路者猶嗛公譖之上。上信之。亟命遠竄。會有大臣言改配海州。明年賜環。還復舊踐。拜議政府檢詳，舍人。遷輔德。仁穆王后大葬訖。用敦匠勞。陞通政兵曹參知。乞養爲安東府使。以農月違制奉親坐罷。乙亥。拜刑曹參議。遇災上章。嚴旨罷職。丙子之難。自出間扈駕南漢。敍拜工曹參議。兼管糧使。移參知。賊退。奔省大夫人于海曲。尋丁大故。時流言倭寇至。公與人士之避地者。同賃水營退船。</blockquote>
+<blockquote class="old" data-tag="원문">以備倉卒。旋聞虛警卽反之。會新帥與按道者。宿有郤於公。相與媒糱以中之。公遂下獄置對。上不用廷尉當。竟竄寧海。三年見釋。至壬午後十一月丙午。卒于榮川旅舍。春秋五十一。訃聞。復官賜賻如儀。前以賞從。進嘉善階。又用諸從勳。累贈至左議政。明年三月。返葬廣州乾芝山先兆。後三十九年辛酉十月。遷厝于楊州治南沙老里卯向之原。夫人草溪鄭氏。文肅公守夢先生諱曄之女。公少豪逸不羈。能馭惡囓馬。好逐群兒爲軍旅之事。人或憂其跅弛。鄭先生一見知其國器。遂壻之。公亦痛折節受敎。先生常以六尺可託許之。夫人擩染家訓。公在。配德無違。公歿。敎子女有法。後公十一年卒。祔葬公墓。有四男二女。</blockquote>
+<blockquote class="old" data-tag="원문">男長星斗。海州牧使。有賢行不大施以歿。次星漢，星遠，星緯。並早殞。女長適李嘉相及第。孝歿。次適朴世柱司禦。牧使娶判書金南重女。生三男二女。男明佐夭而無嗣。次良佐薦授敎官。不仕。碩佐向學。女適領議政金壽恒，觀察使李師命。星漢娶士人李宗培女。無子。子碩佐。星遠娶同知權順昌女。生一男一女。男弘佐。武科府使。女壻縣監宋炳夏。星緯娶承旨申翊亮女。生三女。進士鄭世沃，李邦榮，金時澤其壻也。及第，司禦俱無嗣。其所後子。李重朝，朴泰春也。敎官二女。適尹可敎，鄭壽期。碩佐一男幼。議政六男。昌集敎官。昌協，昌翕，昌業俱進士。昌緝，昌立。一女適李涉。觀察二女。縣監二男二女。</blockquote>
+<blockquote class="old" data-tag="원문">金時澤一男。內外孫曾若干人。公爲人倜儻峻爽。貌傑然若不可狎。而中實肫肫忠厚。於內行特純篤。大夫人老而廢視。百方娛悅。不忍暫去其側。居憂過毀幾殆。猶自盡於禮。每痛蚤孤。當祭輒涕覆面。宛然孺子慕也。推之友悌睦婣。皆有加人數等者。嗜義如渴。尤喜赴人之急。有友人逮逆獄將死。公身詣廟堂。白其冤。請以百口保之。旣不得。則周卹其妻子竟其身。遇不善。面斥不少假。於其所合。輸寫腹心。卽死生無易。自少以名節自礪。初入上庠。與舊進士相揖古也。時據賢關者皆邪黨。公醜之不肯就。一榜亦隨而退。士論多之。靖社謀旣定。有來諗者要與共事。公辭以韋布。終不赴。任疏菴叔英嘗稱確守儒者常經。</blockquote>
+<blockquote class="old" data-tag="원문">他人所不及云。立朝。務持風裁。敢言切諫。屢觸雷霆。彈射。不避巨室。坐此數躓而不爲挫。至乙亥之疏。痛陳上下諱災矯誣上天。且斥椒房近屬出入宮中無期度。仍擧昏朝爲戒。雖以是獲譴。一時誦其言而推其直。秉臺憲。斬斬不撓。人不敢犯禁。京師爲肅。後上亦臨朝稱嘆。然公言事。皆遠識長慮。不顓主激亢。始淸虜僭號書至。朝論甚峻。爭言可絶。公獨謂不量力而挑禍失計也。或以畏懦誚公。及山城圍急。向之誚公者。反附麗和議。而公力陳死守之義。有疑其中變者。公曰。前吾所憂。正爲今日事也。今之下城拜戎。豈前日羈縻比也。疑者乃服。虜要我執送斥和臣。用事者乘時逞憾。指名十餘人。以餌虎口。</blockquote>
+<blockquote class="old" data-tag="원문">以我王父爲首。公見諸大臣極言之。且勸三司爭執。繇是多得免。公之力也。媾將成。公入對堅持前議。不納。退至朝堂言曰。設不得已。皇朝誥章。其可與乎。皮島天兵。其可犯乎。此則死不可從。座有悍弁調笑之。公正色以對。猶慷慨不已。其在謫。聞國家助兵瀋陽。每嘆曰。三百年父母之恩。何忍忘之。王父之赴北也。扶病往別。爲之悲惋涕泣。蓋其忠義發於天性者然也。公有器量饒籌略。常留心當世務。不帖帖細瑣。前後再典邑。僅少試其緖餘。而朞月之間。民皆鼓舞風動。使公不厄於時。以盡究其所有。其文武經濟之業。豈不大彰施於今與後哉。天之生材也。而遇不遇有命。悲夫。銘曰。嶷嶷廊廟之器兮。噫。</blockquote>
+<blockquote class="old" data-tag="원문">炯炯本朝之志兮。噫。材亦不必施兮。噫。忠亦不必以兮。噫。行之疐人所使兮。噫。奪之亟奚天理兮。噫。惟名之永垂無止兮。噫。ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1994</blockquote>
+<h2 class="chap" id="c17">8. 나성두(羅星斗) 묘지명 (문곡집)</h2>
+<p class="li">· 지은이: 김수항(1629~1689) · 주인공: 나성두(羅星斗), 나만갑의 아들, 김수항의 장인</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0397A_0190_010_0060&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0397A_0190_010_0060" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">壽恒少贅于安定羅公之門。周旋甥館垂念載。公不鄙夷余。其撫愛視子。而其相與則知己也。雖余之愚。無以稱公知愛。若公平生之詳。則有知人所不及知者焉。公爲人豐姿偉軀。襮寬而裏明。燕居諧笑和怡。弛張互見。持行不爲皦皦白。至裁制事可否。一於義不苟。與人不置畛域。然見有矯飾脂韋者。病甚夏畦。又以卜其人吉凶。後多契驗。性篤孝友。事親務順其志。逮其考鷗浦公。時雖少年。已自服訓幹蠱。祖妣老而失明。每値鷗浦公出。公輒承奉調護。能使祖妣忘鷗浦公不在側也。鷗浦公竄嶺表以卒。諸弟咸弱不任事。公獨銜恤庀喪。扶服返葬鄕山。易戚無違禮。又能理家秉。敎育諸弟。爲之授室與產。母夫人旣晝哭。</blockquote>
+<blockquote class="old" data-tag="원문">痛不欲生。公常與弟妹子姓環侍。所以娛悅之者萬方。及母夫人見背。毀幾不全。與弟妹析箸。田取其瘠者。僮指取其羸殘者。諸弟又後先夭殞。其孤嫠衣食百須。皆由公出。家世故睦婣。至公斤斤無少替。宗䣊中表無遠近。皆家歸之。其在邑。割廩以周急。寧使己之子寒餓。而無或先於同氣。寧贍施窮族以速謗。而不忍薄於所厚以沽能廉聲。尤謹於奉先。日晨興謁廟。出入有事必告。祭奠必慤創蠲潔。謂世俗輪行非禮。一掃其陋習。著爲家法。急人之難甚於己。於朋友存卹之尤厚。多人所難及者。蓋公樂善好義。有鷗浦公遺風云。母夫人守夢鄭先生之女。首擧男卽公。生而覃訏。父母愛之甚。爲兒戲有過誤。直而不諱。</blockquote>
+<blockquote class="old" data-tag="원문">鄭先生亦奇愛之。母夫人病口眼。貼藥公手奉二晝夜不釋。其純性自幼然也。公文藝蚤成。游張谿谷，鄭畸菴二公之門。弱冠負儁望。中罹變故。輟公車業。晩始爲親屈志。中丙戌進士。旋除翊衛司洗馬。時有姜氏獄。朝野惴恐。公初入賢關。倡全恩之論。諸生咸愕眙引去。公獨與一二同志。將上章叫閤。賊臣自點惡之。亟官公以沮其論。公恥不欲出。知友皆懼及禍。母夫人強之始就。累轉至翊贊，戶曹佐郞。出爲鳳山縣監。其俗嚚而獷。公一切以惠文繩之。有奴而背主者附麟坪大君。捏訴公以激其怒。遂文致公罪。公對簿痛陳事實。不少諱。上怒下廷尉問。公又抗辨不撓。竟論奪官。然上猶曰某嘗爲宮僚。予亦知其善人。</blockquote>
+<blockquote class="old" data-tag="원문">又坐他譴配海美。俄赦還。久之拜尼山縣監。爲治惠而有威。平獄訟寬氓征。躬駕田野以勞農。遇旱禱輒澍應。居三年。闔境無遺便。時孝廟大奮發求治。尤齋宋公時烈爲冢宰。建言羅某政績爲當今諸郡冠。宜先奬擢。繼而方伯直指褒聞亦如之。於是超遷海州牧使。州素號險棘。守多以不善去。公至則思所以自效爬剔。宿蠧殆盡。擧栗谷先生鄕約以導民俗。仍大修其祠院。凡係尊賢養士。殫心力乃已。屬荐饑。多方賑哺。又請江都糶自往越海以輸之。民賴以無殍。公以西土久諱兵。嘅然稍事陰雨備。有無賴子仇州人上變。因以並誣公。顯考命勿問。致上變者于法。亦異恩也。無何棄官歸。至癸卯十月乙巳。以疾卒。得年五十。</blockquote>
+<blockquote class="old" data-tag="원문">其病也。有薦良於醫者。公以其凶人子斥之。始葬楊州豐壤之家塋。後卜果川雨晩山面巳之原。以辛亥十月移窆焉。公之生也。先有夢鵬之異。鷗浦公取以爲小字。志騰騫也。世之君子觀公行能。則又謂其必得位與年也。然公旣不得志於科目。以展布其器業。纔少試之而又奪之年。天眞難諶哉。公諱星斗。字于天。其上祖天瑞。麗朝侍中。以功食安定。安定之羅胄于此。我朝有諱瀷。爲太史。直書金安老惡。與二兄湜，淑俱著名士類。是公高祖也。曾祖學諭允忱。祖輔德級。輔德公以長德稱。生諱萬甲。有忠孝大節。不偶於時。位止參議。鷗浦其號也。公之配慶州大姓。禮曹判書金公南重之女。有三男二女。男長明佐。</blockquote>
+<blockquote class="old" data-tag="원문">秀而早歿。次良佐用薦授敎官。次碩佐向學。女長適壽恒領議政。次適李師命觀察使。明佐娶吏曹判書同春宋公浚吉女。無嗣。良佐娶郡守金天錫女。生二女。適士人尹可敎，鄭壽期。碩佐娶郡守具鋈女。生一男幼。議政六男一女。男昌集敎官。昌協，昌翕，昌業並進士。昌緝，昌立。女適李涉。觀察二女幼。初鄭先生識鷗浦公於童丱。許以國器。遂以女女焉。鷗浦公亦誠心師事之克。有所成就。公之趾美踐行。得於外氏者爲多。鄭先生有所纂近思錄釋疑。公屬諸賢訂定。並其遺稿而梓行之。且憫外氏嗣絶。與群從疏請于朝。立宗人子以後鄭先生。人謂鷗浦公有子而鄭先生有宅相矣。公雖不從事儒學。其尙德愛士。不翅若出口。</blockquote>
+<blockquote class="old" data-tag="원문">在尼山。加禮魯西尹公宣擧。又遣子從學。以此一時士友爭傾嚮之。同春嘗曰。某之篤行。昔賢不過也。尤齋旣以公薦之孝廟。而又銘公墓石。稱述甚備。此可以觀公矣。嗚呼。公之不朽。又奚待於年與位乎哉。銘曰。謂天薄公乎而。賦之以懿善乎而。畀之以脩幹乎而。謂天厚公乎而。位之以州牧乎而。壽之以半百乎而。淹速者命乎而。屈伸者人乎而。所自殫者身乎而。聖祖之獎乎而。群賢之契乎而。我之銘無愧乎而。ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1994</blockquote>
+<h2 class="chap" id="c18">9. 나성두(羅星斗) 행장 (명재유고)</h2>
+<p class="li">· 지은이: 윤증(1629~1714) · 주인공: 나성두(羅星斗), 나만갑의 아들</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0400A_0450_010_0050&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0400A_0450_010_0050" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">公諱星斗。字于天。自號棋洲。羅氏。本出羅州。遠祖天瑞。仕麗朝。有功。位侍中。封安川君。食安定縣。子孫遂爲安定人。安定。卽今之比安也。安川之後。有曰世傑。贈持平。寔生三子。曰長吟亭湜。曰副提學淑。並死於乙巳士禍。季曰瀷。爲史官。直書金安老惡。又幾及於禍。以典籍早圽。後贈弘文校理。卽公之高祖也。曾祖允忱。坐家禍見錮。晩始登第。官止學諭。祖級。輔德贈領議政。世稱長德君子。考諱萬甲。刑曹參議贈左議政。忠孝氣節。爲士類所推重。兩世事行。具載墓文。妣貞敬夫人草溪鄭氏。左贊成守夢先生曄之女。以萬曆甲寅二月戊午生公。先是。鄭夫人夢一大鳥蔽天。問之。曰鵬。未幾公生。</blockquote>
+<blockquote class="old" data-tag="원문">仍以爲小字。生而英秀。警悟異常。守夢鍾愛之。目以奇兒。嘗遊嬉。誤爇守夢所居齋閤之窓欞。守夢自外歸。疑守僕之不謹。將罪之。公進曰。吾實爲之。彼則無罪也。守夢大賞之曰。此兒良心直道。已可見矣。六歲爲馬嚙破左頰。倉卒還貼。瘢痕甚險。有一華人得華佗之術者見之曰。吾當割之改貼。俾祛其疵。公略無怖色。如其言治之果驗。參議公喜曰。此壯夫所難。而兒乃能之。古人刮骨。誠亦易易也。公幼有至性。十歲。隨參議公在驪江莊舍。夜失火。鄭夫人旣出。覺子女未脫。將還赴烈焰。時公之季妹纔四歲。公負而出曰。吾與妹在此。守夢之喪也。公之仲妹方患痘。而參議公及鄭夫人俱赴喪次。留公看救。</blockquote>
+<blockquote class="old" data-tag="원문">晝夜不去側。至病疸而不食魚。蓋以俗言痘忌故也。病已則恒在喪側。哭泣助奠。如成人。諸長老來弔者。皆異之。十四歲。鄭夫人患口眼喎斜。醫言生鵲割其腹貼之則可治。公以手奉之。經二晝夜。人以爲難。祖母金夫人年高廢視。如膳服臥起之節。參議公常在傍調護。嘗承命試士北關。公替侍其側。扶持供奉。靡不順適及參議公還。金夫人迎謂曰。汝有是子。吾雖離汝。可無憂矣。公嘗有疾。淹沈經年。諸醫皆危之。公恐貽父母憂。每強食和顏以見曰。吾病吾自知之。豈可輕動於醫言。況脩短有命。願毋以爲念也。公器局夙成。隨參議公在江東任所。內外族黨來者。常充堂。參議公聽政少暇。使公接應。公周旋酬酢。</blockquote>
+<blockquote class="old" data-tag="원문">各適其意。無不感悅。稍長。參議公委以幹蠱之任。公讀誦之暇總理家政。上自奉先祀。以至接賓客馭臧獲。體行無遺闕。始學。聰敏過人。八歲能誦詩。甫成童。遊於張谿谷鄭畸庵之門。二公亟稱之。以爲不但文藝也。士多折行輩與交者。始婦翁慶川公。聞公名。欲壻之。自來呼公出。公時習字盤礴。母夫人使之盥濯更衣。公曰。修容以衒人。豈丈夫事也。人以爲有坦腹之風云。參議公乙亥抗疏忤旨。挈家歸郊墅。未幾有丙子之變。自田間單騎赴扈。公當以百口避兵。問所往。參議公曰。汝之識慮出人。豈待吾指揮。但江都則士女財寶之所聚。賊必欲取之。且守臣匪人。愼毋入。公負先世木主。扶老携幼。轉往湖右。</blockquote>
+<blockquote class="old" data-tag="원문">終免於難。其入海島也。舟閣於嶼沙。臭載在頃刻。一船皆號哭失措。公獨自若。端坐祝天。適潮至。舟得無恙。未幾祖妣李夫人卒。先是。參議公爲親。歲修甚備。避兵之日。公盡載以隨。故雖在搶攘流離之中。附身之具。得以無憾。丁丑冬。參議公爲脩谻者所誣。被逮謫嶺南之寧海。越四年庚辰。蒙宥。仍僦寓安東。時金文正公。亦屛居于此。公仍出入其門。特被眷許。壬午。參議公卒于寓所。疾革。公刺指進血。羈旅異地。四顧無助。而送終之禮。戚易咸備。奉櫬歸葬于廣州先塋。乙酉。外除。公自經丙子以後。棄公車業不事。至是以大夫人命。復就場屋。中丙戌司馬。公在弱冠。已負才望甚重。晩登上庠。</blockquote>
+<blockquote class="old" data-tag="원문">又不得居前列。談者以爲屈。時國家有姜氏之獄。公入泮中。唱叫閽全恩之議。諸生畏縮。莫有應者。同志若干人。推公爲疏頭。刻期將會。自點時爲首相。聞之。使西銓。除公爲翊衛司洗馬。蓋以沮散其論也。公恥之。不欲出。諸親舊以爲必速禍。白大夫人力勸。乃黽勉拜命。序遷侍直，副率。秋。陪春宮參會盟禮。錄寧國從勳。戊子。陞衛率。轉翊贊。己丑。移戶曹佐郞。曹事亟辦。長官元相斗杓。服其才。每稱其可大用。已而出監鳳山縣。縣地大俗悍。素號巖邑。公首以正風俗懲豪猾爲務。訪民所疾苦者而變通之。倉舍燬於兵燹。每年役民苫覆。邑人病之。宮家及軍門屯田。幾遍一邑。民多投入其中。官家莫敢何問。</blockquote>
+<blockquote class="old" data-tag="원문">公始至。卽營置倉庫累十間。搜屯民以均民役。治其尤橫恣不聽令者。視篆一朞。政擧而民安之。有柱英者。縣吏鄭行奴也。先是。投入麟坪大君家。反噬其主。至於徙邊。公聞而憤之。柱英恐公發其事。遣人潛訴于大君。大君令本縣送柱英。柱英得官令。故遷延不行。適大君赴燕。卽迎謁于中路。誣本縣不許送己。公聞之。逮囚其母。大君之褊裨。有宿憾於公者。入告大君。且激之大君怒。使公盡囚其從者。曰使我不得行。然後可快於心也。公欲面陳曲折。則拒不見。使悉驅其隨行吏卒。納於縣獄。欲以此。文致公罪。副使及方伯。以大君怒不已。卽以不謹供億馳啓。公於緘辭痛陳柱英罪狀。直斥宮家不少諱。該曹奏當。</blockquote>
+<blockquote class="old" data-tag="원문">上以律輕敎曰。欲輕己罪。搆陷大君。其爲薄待侮辱。不問可知。遂命推該官而拿問公。公置對。又陳前後實狀。上益怒。必欲置重律。李公基祚入對曰。此是羅某之子。有乃父風。言雖不中。情有可恕。上稍解曰。此人曾爲春宮屬官。予亦知其善人。然竟坐奪告身。是冬。又坐海西逋糶事。被逮編配海美縣。明年辛卯。宥還。已而。丁內憂。啜粥蔬食之節。一遵禮制。丙申。敍拜尼山縣監。蓋自去鳳山。至是凡七年。而敍命始下。公以長材利器。旣久挫不自得。顧無所施。不以小邑自怠。撫民訓兵。威惠並行。聽訟公明。賦役輕廉。遇旱虔禱。甘澍輒應。勞農田間。躬履四郊。審災蠲稅。猶恐不及。一境之民。愛之如父母。</blockquote>
+<blockquote class="old" data-tag="원문">畏之如神明。其去也。爲之刻石追思之。至今不能忘。尤以興學禮士爲先務。縣校舊無明倫堂。公捐俸創建。民不知役。市南兪公記其事以美之。居三年。治爲一道最。方伯御史相繼褒聞。時尤庵長東銓。以爲生民休戚。係於守令。不可不崇用循良。乃白於筵中曰。尼山縣監羅某。治績藉甚。播聞遠邇。宜加奬擢。以勸他人。己亥正月。超授海州牧使。海是營下劇邑。積弊如蝟。公感激恩簡。益思奮勵。凡疵政宿瘼。一切剗革。倣栗谷先生鄕約之法。以導率民俗。州有文憲，石潭二書院。而頹廢不修。公爲之鳩材葺理。以至籩鉶之器。無不畢備。而摘罰院儒之假名濟私者。以警弊習。又謂牛溪先生嘗來寓石潭。而尙無揭虔之禮。</blockquote>
+<blockquote class="old" data-tag="원문">一方之陋也。遂倡諭多士。妥侑如法。院右有聽溪堂。卽栗谷講學之所也。公憫其將壞。易而新之。値栗谷諱日及節祀。輒助以祭需。又取守夢公所著近思錄釋疑四冊者。與士友往復校訂。捐俸刊行。以貽學者。其尊賢重道。出於誠心如此。己亥。孝廟賓天。公哀慟不自勝。以州之芙蓉堂。曾經宣廟駐鞸。遂拮据改創。以寓蒼梧之思。歲庚子辛丑。仍兩年荐饑。飢民望哺者以千數。公捐衙俸。爲粥以賑之。朝夕躬莅。必自嘗一器。而後饋之。別其農民。助以種食。倉穀旣盡。則力請方伯。聞諸朝。乞糶江都米。不憚躬涉海往輸之。闔境賴以全活。傍邑民聞風坌集者。亦一視並濟。頌聲大播。兩西列邑。自亂後。畏隣嘖。</blockquote>
+<blockquote class="old" data-tag="원문">倚閣戎政。公以爲不可。忘危首脩首陽山城。訓鍊卒伍。信川有金姓者。與海人吳以札等。有隙。適到州。見閱兵。欲因此搆誣。走京師上變。謂公與以札有異謀。鞫廳據例請拿公。上不許。及以札等置對。告者自服就誅。中外莫不感歎。以公之所蒙。爲非常之恩云。明年壬寅。有不樂意。棄歸果川莊舍。癸卯秋。感疾。公自始病。自知不起。謂家人曰。吾先君以此病終。且吾年已滿五十。而吾先世享壽皆止於此。雖兪扁何益。是年十月某甲。竟卒于明禮坊舊第。聞者莫不痛惜。十二月某甲。葬于楊州豐壤先兆之側。至辛亥十月某甲。遷窆于果川治東雨晩山巳向之原。去莊舍十里許。配慶州金氏。禮曹判書慶川君南重之女。</blockquote>
+<blockquote class="old" data-tag="원문">敦寧都正閔公有慶之外孫也。生四男五女。男長明佐。次良佐，碩佐。女長適左議政金壽恒。次適進士李師命。餘皆夭。明佐娶左參贊同春宋先生浚吉女。夫妻俱歿無嗣。良佐娶郡守金天錫女。生二女。壻曰尹可敎。次幼。碩佐娶郡守具鋈女。以公命出爲其仲父後。金議政六男一女。曰昌集，昌協，昌翕。皆進士。昌業。餘幼。李師命一女。幼。公爲人俊爽。奕奕不群。樂善好義。出於天性。其奉先也。晨起謁家廟。出入有事必告。一禮不懈。祭必齋沐。隆冬不廢。淨掃庭內外。親莅備具。至於鼎鼒俎豆之末。無不檢視致潔。祭罷。不脫冠帶。坐以待朝。遇新物。不薦不嘗。先夫人臨終。思西瓜。節早不得進。</blockquote>
+<blockquote class="old" data-tag="원문">以此終身不忍食西瓜。祭祀不許輪行曰。非惟弟妹家力所不逮。支孫以紙榜行事。而宗家則不開廟門。習俗之弊甚無請也。其事親也。常以順志爲心。父母所命。必曲意承奉。晩侍大夫人。每效老萊。與弟妹子女。作兒戲於眼前。得其娛悅而後已。其友愛同氣也。聯床並被。怡愉湛樂。疾痛飢寒。視若在己。與弟婦同爨數十年。庭無間言。析著之際。自占殘瘠。不在應分者。並取而均之。諸弟無居第。爲之各營於京鄕以居之。宰邑之日。必曰弟妹飢困。不忍獨享也。割月俸以周其急。寒暑必資其衣服。凡有所得。先贍弟妹。而後及於子女。以至田園所收。盡散與之。不長尺寸爲產業計。撫育諸姪。一如己出。婚嫁之資。</blockquote>
+<blockquote class="old" data-tag="원문">無不自家取辦。同春嘗曰。此人卓行。雖昔賢不過也。其敦睦宗族也。其貧者濟以衣食。其有喪病患難者。必盡力救之。其良善而無依者。取養於家。敎訓而成就之。事舅鄭公。盡其誠敬。舅亦愛重。異於諸甥鄭公旣喪。其子木川公。託後事於公。及其卒也。公自海州乞暇。往哭于東峽。經紀葬事而還。木川有一子繼。夭。守夢之祀絶。公與群從上疏。請于朝得立同宗子爲後。其待知舊也。一以誠信。急難相救。死必致賻。莫執友之喪。則設位而哭之。撫其孤不替。雖下賤。若素厚者。則聞其死。爲之一再不肉。在鳳山。有友人姜文粹兄弟。奉親流落。阽於窮阨。公隨事盡力周濟。姜君兄弟。感刻深於親戚。公歿之後。</blockquote>
+<blockquote class="old" data-tag="원문">稱慕不衰。其當官奉職也。隨地殫心。前後涖邑。至誠愛民或値歲歉。賦稅率自官辦。不徵於民。最惡違道干譽之態。治民御下。一以嚴正。其始人或憚之。久乃悅服精力過人。雖不察察算計。而錙銖不漏。所在官儲充牣。事之可爲者。不拘泥文法。多以便宜行之。至係民生利病。則必力請上司。得請乃已。或至觸忤不恤也。坐衙必正衣冠。未嘗以褻服臨民。春秋設養老宴。下逮卑賤。皆親酌而勸之。民有以孝友著聞者。月給米肉。奬恤有加。素嗜俗所謂煙茶者。然當公私祀事。輒準茹葷例停之。在海州。躬行釋菜。諸生有犯戒者。責而罰之。因是遂絶。不復進。其厲志存誠。多此類。其居鄕接人也。善者揚之。</blockquote>
+<blockquote class="old" data-tag="원문">不善者掩而敎之。有酒食。必與共之。無親疎少長。咸得其歡心。人無不樂就。有兄弟失和者。爲陳友愛之義。垂涕而道之。其人爲之感泣改行。至於檢身操心。以不欺二字爲本。嘗曰。吾平生制行。唯在無愧於心。少時侍先參議公。有一嶺南名士來過。旣去。白于參議公曰。觀其言動。無非矯飾。此必不吉之士。其人後果以邪論敗。有某人以儒學名動一世。公嘗與交後。乃寢疏曰。不可深信也。其人亦果自敗。性不喜芬華。常以侈靡爲切戒。旣屢典邑。廏無良馬。嘗謂諸子曰。吾先世以淸儉傳業。至於吾身。有愧祖先多矣。若輩尤宜戒之。諸子或造器用。輒痛訶之曰。年少輩此等玩好。甚非美事也。又曰。雖紙筆之微。</blockquote>
+<blockquote class="old" data-tag="원문">須以毋求於人爲心可也。在尼山。命子良佐。受學於吾先子之門。勉以誠心事之。因又戒之曰。先收斂外面固好。中心正直尤好。嗚呼。此皆公行業之可見者也。潘南朴公世堅。與公有伍擧聲子之好。其稱公之言曰。粹潔恢豁。不爲表襮。如見脩飾邊幅者。恥之若浼。嗜善若飢渴。周人之急如不及。又道姜君文粹之事而曰。嘗聞先人論儕友中能受人妻子之託。而不以死生變者。惟羅某可許。卽公之濟美。又何愧焉。蓋朴公。卽錦洲君炡之子。而錦洲與參議公。爲知己友云。又曰。公素所慕者。先正性理之學。而源於家庭之訓。故其踐履篤厚。表裏純慤。居家之行。莅邑之政。出人如此云。觀於此言。蓋公之本末略備矣。</blockquote>
+<blockquote class="old" data-tag="원문">公與吾先子。少時以世誼相好。及公之來宰於此邑也。旣懸榻以禮之。又遣子而師之。情意遂深。拯兄弟亦夤緣獲私。辱知甚厚。又與良佐遊。重以婚媾。得公言行益詳。良佐將請墓銘於作者。而託拯爲之狀。拯以不文再辭而不得。仍竊惟公孝友之懿。氣義之高。豐偉之儀。華彩之才。有質有文。足以標顯當世。而其器幹才略。亦復絶人遠甚。若使公早致其身於津路。得以展布其所有。則其功名事業。豈不益蔚然可觀也哉。顧局於一科。仕止州縣。而壽又不永。遽齎以沒地。是則非夫所謂有命存焉者耶。謹就良佐所纂輯者。序而次之。而附之以聞見所及如右。以俟立言君子之採擇焉。</blockquote>
+<blockquote class="old" data-tag="원문">ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1994</blockquote>
+<h2 class="chap" id="c19">10. 나성두(羅星斗) 묘갈명 (서계집)</h2>
+<p class="li">· 지은이: 박세당(1629~1703) · 주인공: 나성두(羅星斗), 나만갑의 아들</p>
+<p class="li"><a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_BT_0398A_0130_010_0070&amp;viewSync=OT" target="_blank" rel="noopener">한글 번역 보기 ↗</a> · <a href="https://db.itkc.or.kr/dir/node?dataId=ITKC_MO_0398A_0130_010_0070" target="_blank" rel="noopener">원문 쪽 보기 ↗</a></p>
+<blockquote class="old" data-tag="원문">公諱星斗。字于天。姓羅。其先本羅州人。高麗之世。侍中天瑞。以功封安川君。食邑安定。子孫因籍焉。傳累世至瀷。與兄湜，淑俱有名能史職。早沒。官止典籍。是爲公高祖。曾大父學諭允忱。大父輔德級。父刑曹參議贈左議政諱萬甲。號鷗浦。有忠孝大節。當仁祖時。以伉直爲當路所仇嫉屢黜。後被誣謫配。飮恨而卒。母貞敬夫人草溪鄭氏。左參贊曄女。公生以光海六年甲寅二月戊午。其在娠也。鄭夫人夢大鳥旣生。命之曰鵬。幼而英秀。外祖守夢鄭公。甚愛焉。嘗持火戲誤爇窓。鄭公疑侍婢。公曰。爇窓者我。鄭公益憐之。六歲。焉齧左頰。後遇醫割肉治瘢。了無怖色。鷗浦公喜曰。以兒觀刮骨亦易事。及九歲。</blockquote>
+<blockquote class="old" data-tag="원문">家嘗夜失火。倉卒間長者僅身免。獨負四歲女弟出呼曰。吾與妹在此。時父母謂忘取室中兒。將赴火救之。祖母金夫人。年高失明。膳服臥起。鷗浦公必親視其節。適使外而公得專侍。祖母夫人安焉。鷗浦公歸。指而語之曰。有此兒。吾亦不憂汝之不在吾傍。早游谿谷，畸庵之門。二公稱其才。游黌序。負望甚重。仁祖十四年丙子。虜犯京都。鷗浦公自田間赴行在。公受後事請所往。鷗浦公曰。汝有識慮。豈待吾指揮。但江都不可往。於是携家入海島。終免於難。丁丑。鷗浦公被逮謫寧海。五歲獲宥。寓居安東。公因得事金文正被眷許。鷗浦公竟卒於嶺表。扶服返葬。戚易俱盡。免制。爲親屈志。擧丙戌進士。旋補洗馬。</blockquote>
+<blockquote class="old" data-tag="원문">時姜氏獄起。倡同志將上章請全恩。金自點心惡之。故除官用敗其事。公深以爲恥。鄭夫人強之勉就。轉翊贊，戶曹佐郞。出爲鳳山縣監。俗多豪猾。莊屯怙勢。小民失業。爲之鉏剔倚負而均征役。期年政擧。縣吏鄭行奴叛投麟坪。搆行徙邊。知公得其情。懼而私於大君。令縣送奴。又故不行。及麟坪赴燕。迎愬謂縣不聽往。公聞囚其母。麟坪益祭怒。盡驅納從者於獄曰。阻我行者。縣也。坐是罷。下吏置對。辭不撓。上甚怒。李公基祚入對。言此羅萬甲子有父風。上乃曰。此人久爲率府屬。予亦知之。始稍解。然竟削職。復坐他事編配。辛卯。釋還而遭鄭夫人憂。丙申。敍復尼山縣監。明聽斷。平徭賦。興學禮士。</blockquote>
+<blockquote class="old" data-tag="원문">暇則躬駕勸農。居三年。封內無遺便。時孝宗求治甚急。懷川相長銓。言公治行大著。宜先擢用勸四方。方伯御史。亦相繼褒聞。己亥正月。超授海州牧使。至益自礪。爬搔滌刷。弊盡利興。則行鄕約。修祠院養士。飭戎率殫心力。歲値荐飢。多方振哺。民以不病。兩西自亂後。不敢爲陰雨戒。信川人與海人有仇。到州見閱兵。走京師上變。因言仇者亦知叛謀。顯宗不許。逮公及辨對。自服欲害仇人。中外皆服上之明。壬寅棄官歸。癸卯十月乙巳。以疾卒。得年五十。初葬豐壤。辛亥卜月。遷于果川雨晩山負亥之原。公豐姿偉幹。寬厚而明達。和易而有節。行不爲皦潔。與人不置畛域。見人矯飾。特深惡之。性篤孝友。</blockquote>
+<blockquote class="old" data-tag="원문">鄭夫人旣老。左右就養。愉悅萬方。敎育諸弟。爲之授室置產。及諸弟前後夭殞。撫其孤嫠。衣食百須。皆出於公。寧使己之子寒餓。而無或先於同氣。寧贍施貧族而速官謗。不忍薄於所厚。以沽廉聲。其親友窶寒。存恤尤至。蓋樂善好義。有鷗浦遺風。同春宋公深歎公篤行古人不過。配慶州金氏。禮曹判書南重女。子明佐早夭。良佐縣監。碩佐後諸父。女壻領議政金壽恒，李師命。內外孫曾幾人嗚呼。以公之賢。使顯用於時。展布才力。所就必可傳。乃一第蹉跌。屈首吏塗。卒不得大試。豈非命與。先子與鷗浦公友。深相知許。其出處又略同。公之視世堂猶稚弟。世堂事公如吾伯兄。公沒後三十年。而良佐以碣文見屬。</blockquote>
+<blockquote class="old" data-tag="원문">謹據諸公所爲狀表誌敍次。系之銘曰。亢亢鷗浦。忠直世傳。服訓在躬。是嗣其賢。樂善好義。中懷坦然。洎于守職。執操愈堅。不撓天威。再見令宣。晩途褒擢。茂績著焉。功施不究。天靳之年。載辭于石。樹之墓前。勿毀以傷。垂萬億千。ⓒ 한국고전번역원 | 영인표점 한국문집총간 | 1994</blockquote>
+<h2 class="chap" id="c20">자료와 알림</h2>
+<p class="li">· 한문 원문: 한국고전종합DB(db.itkc.or.kr) 한국문집총간</p>
+<p class="li">· 한글 번역: 같은 DB 고전번역서 ― 이 책에는 연결만 두었습니다</p>
+<p class="li">· 비안현읍지: 서울대학교 규장각한국학연구원 奎17454</p>
+<p class="li">· 증보문헌비고: 한국학중앙연구원 장서각 K2-2094, 권50 제계고 씨족</p>
+<p class="li">· 계보 1~8세: 1930년 『나씨총보』 丙편 안정파 세계도</p>
+<p class="li">· 나만갑 신도비 사진: 위키미디어 공용(한국학중앙연구원·유남해 1987, 공공누리 제1유형)</p>
+<p>이 글은 지은이 개인이 옛 기록을 모아 정리한 것으로, 어느 단체의 공식 입장이 아닙니다.</p>
+
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="pagebtn" id="prev" type="button" aria-label="앞 쪽">‹</button>
+    <div class="pageno"><b id="cur">1</b> / <span id="tot">1</span></div>
+    <button class="pagebtn" id="next" type="button" aria-label="다음 쪽">›</button>
+  </div>
+</div>
+
+<div class="tocwrap" id="tocwrap">
+  <nav class="toc" role="dialog" aria-label="차례">
+    <h2>차 례</h2>
+    <ol id="toclist">
+<li><button type="button" data-go="c0">이 글을 펴며</button></li>
+<li><button type="button" data-go="c1">묘도문자란 무엇인가</button></li>
+<li><button type="button" data-go="c2">열 편이 한목소리로 말하는 것: 본출나주</button></li>
+<li><button type="button" data-go="c3">나주에서 어떻게 갈라졌나</button></li>
+<li><button type="button" data-go="c4">나주와 금성은 한 본관이었다</button></li>
+<li><button type="button" data-go="c5">다른 옛 기록도 같습니다</button></li>
+<li><button type="button" data-go="c6">오해하기 쉬운 두 대목</button></li>
+<li><button type="button" data-go="c7">열 편이 말하지 않는 것</button></li>
+<li><button type="button" data-go="c8">맺음말</button></li>
+<li><button type="button" data-go="c9">원문 및 해석 전체보기</button></li>
+<li><button type="button" data-go="c10">1. 나윤침(羅允忱) 묘갈명 (백사집)</button></li>
+<li><button type="button" data-go="c11">2. 나급(羅級) 신도비명 (월사집)</button></li>
+<li><button type="button" data-go="c12">3. 나급(羅級) 묘지명 (청음집)</button></li>
+<li><button type="button" data-go="c13">4. 나만갑(羅萬甲) 신도비명 (청음집)</button></li>
+<li><button type="button" data-go="c14">5. 나익(羅瀷) 묘갈명 (계곡집)</button></li>
+<li><button type="button" data-go="c15">6. 나익(羅瀷) 묘지명 (낙전당집)</button></li>
+<li><button type="button" data-go="c16">7. 나만갑(羅萬甲) 묘지명 (문곡집)</button></li>
+<li><button type="button" data-go="c17">8. 나성두(羅星斗) 묘지명 (문곡집)</button></li>
+<li><button type="button" data-go="c18">9. 나성두(羅星斗) 행장 (명재유고)</button></li>
+<li><button type="button" data-go="c19">10. 나성두(羅星斗) 묘갈명 (서계집)</button></li>
+<li><button type="button" data-go="c20">자료와 알림</button></li>
+</ol>
+  </nav>
+</div>
+
+<script>
+(function(){
+  /* ══ 쪽맞춤은 브라우저에게 맡기고, 클은 「단 자리」만 잰다 ══ */
+  var stage = document.getElementById('stage');
+  var pages = document.getElementById('pages');
+  var elCur = document.getElementById('cur'), elTot = document.getElementById('tot');
+  var bar   = document.getElementById('bar');
+  var prev  = document.getElementById('prev'), next = document.getElementById('next');
+
+  var 자식 = Array.prototype.slice.call(pages.children);
+  var 자리 = [];        /* 자식마다 그려진 왼쪽 자리 */
+  var 단자리 = [0];     /* 쪽마다 scrollLeft 값 — 셈이 아니라 실측 */
+  var page = 0, 쪽수 = 1;
+
+  /* ── 단 자리를 잰다 ────────────────────────────────────────
+     ★셈하지 않는다. 브라우저가 실제로 그린 자리를 그대로 쓴다.
+     단 간격은 일정하지 않게 잡히므로 (폭+틈)×번호 로 맞히면 어긋난다. */
+  function 단재기(){
+    /* 단 하나의 폭 = 상자 폭. 퍼센트로는 줄 수 없어 px 로 못 박는다 */
+    var 폭 = pages.clientWidth;
+    if (!(폭 > 60)) 폭 = Math.max(240, document.documentElement.clientWidth - 44);
+    pages.style.columnWidth = 폭 + 'px';
+
+    /* ★재는 동안 스크롤을 건드리지 않는다.
+       CSS 에 scroll-behavior:smooth 가 걸려 있어서, 재려고 scrollLeft 를
+       0 으로 되돌리면 그것이 「부드러운 스크롤」로 처리된다.
+       그 움직임이 뒤늦게 자리를 0 까지 끌고 가서, 되살려 둔 자리를 덮어썼다.
+       (2026-08-27 규명 — 이어읽기가 안 되던 참까닭)
+       스크롤 값을 더해 주면 문서 좌표가 되므로 건드릴 까닭이 없다. */
+    var 바탕 = pages.getBoundingClientRect().left - pages.scrollLeft;
+
+    자리 = [];
+    for (var i = 0; i < 자식.length; i++){
+      var rs = 자식[i].getClientRects();
+      var L = rs.length ? rs[0].left : 자식[i].getBoundingClientRect().left;
+      자리.push(Math.round(L - 바탕));
+    }
+    var 정렬 = 자리.slice().sort(function(a,b){ return a-b; });
+    단자리 = [];
+    for (var j = 0; j < 정렬.length; j++)
+      if (!단자리.length || 정렬[j] - 단자리[단자리.length-1] > 8)
+        단자리.push(정렬[j]);
+    if (!단자리.length) 단자리 = [0];
+    쪽수 = 단자리.length;
+  }
+
+  function 자식의쪽(i){
+    var L = 자리[i], 가장 = 0, 차 = Infinity;
+    for (var t = 0; t < 단자리.length; t++){
+      var d = Math.abs(L - 단자리[t]);
+      if (d < 차){ 차 = d; 가장 = t; }
+    }
+    return 가장;
+  }
+  /* 크기가 바뀌어도 읽던 자리를 지킨다 — 쪽 번호가 아니라 「몇 번째 대목」으로 */
+  function 지금대목(){
+    for (var i = 0; i < 자리.length; i++) if (자식의쪽(i) === page) return i;
+    return 0;
+  }
+
+  function 그리기(즉시){
+    if (page < 0) page = 0;
+    if (page > 쪽수 - 1) page = 쪽수 - 1;
+    /* 즉시 = 다시 나눈 직후(움직임 없이 바로) / 그 밖 = 부드럽게 */
+    pages.style.scrollBehavior = 즉시 ? 'auto' : 'smooth';
+    var 목표 = 단자리[page] || 0;
+    pages.scrollLeft = 목표;
+    /* 그림이 늦게 뜨면 자리가 늦게 잡힌다 — 못 갔으면 한 번 더 */
+    if (Math.abs(pages.scrollLeft - 목표) > 2)
+      requestAnimationFrame(function(){ pages.scrollLeft = 목표; });
+    elCur.textContent = page + 1; elTot.textContent = 쪽수;
+    bar.style.width = (쪽수 < 2 ? 100 : (page / (쪽수 - 1) * 100)) + '%';
+    prev.disabled = (page <= 0); next.disabled = (page >= 쪽수 - 1);
+    /* ★쪽 번호가 아니라 「몇 번째 대목」을 적어 둔다.
+       글씨 크기나 기기가 달라지면 쪽 번호는 뜻이 달라진다.
+       ⚠겉장(첫 쪽)에서는 적지 않는다. 책은 늘 겉장에서 열리므로,
+         적어 버리면 열자마자 지난번 자리가 지워진다. */
+    if (page > 0){
+      try{ localStorage.setItem('bonchulnaju대목', 지금대목()); }catch(e){}
+    }
+  }
+
+  /* ★책은 언제나 겉장에서 열린다 (2026-08-27 할아버지 지시).
+     지난번에 읽던 자리가 있으면 겉장에 「○쪽부터 이어 읽기」 단추를 보여 준다.
+     남에게 보여 줄 때 겉장부터 시작되도록, 종이책과 같게. */
+  var 이어대목 = -1;
+  try{
+    var _v = localStorage.getItem('bonchulnaju대목');
+    if (_v !== null) 이어대목 = +_v;
+  }catch(e){}
+  var 이어단추 = document.getElementById('이어단추');
+
+  function 이어단추손질(){
+    if (!이어단추) return;
+    if (이어대목 > 0 && 이어대목 < 자식.length){
+      var 쪽 = 자식의쪽(이어대목) + 1;
+      if (쪽 > 1){
+        이어단추.textContent = '이어 읽기';
+        이어단추.hidden = false;
+        return;
+      }
+    }
+    이어단추.hidden = true;
+  }
+
+  function 세기(지킬대목){
+    단재기();
+    if (지킬대목 != null){
+      page = 자식의쪽(지킬대목);
+    }
+    이어단추손질();
+    그리기(true);
+  }
+
+  function 가기(n){
+    var p = Math.max(0, Math.min(쪽수 - 1, n));
+    if (p !== page){ page = p; 그리기(); }
+  }
+  if (이어단추) 이어단추.onclick = function(e){
+    e.stopPropagation();
+    가기(자식의쪽(이어대목));
+  };
+  prev.onclick = function(){ 가기(page - 1); };
+  next.onclick = function(){ 가기(page + 1); };
+
+  /* ── 손가락으로 밀기 ── */
+  var x0 = null, y0 = null, t0 = 0, 손뗀때 = 0;
+  stage.addEventListener('touchstart', function(e){
+    var t = e.changedTouches[0]; x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+  }, {passive:true});
+  stage.addEventListener('touchend', function(e){
+    if (x0 === null) return;
+    var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    var 빠름 = (Date.now() - t0) < 500;
+    if (Math.abs(dx) > Math.abs(dy) * 1.4 && (Math.abs(dx) > 48 || (빠름 && Math.abs(dx) > 26))){
+      가기(page + (dx < 0 ? 1 : -1));
+      손뗀때 = Date.now();        /* ★민 때만 찍는다 — 톡 친 때 찍으면 폰에서 톡 치기가 죽는다 */
+    } else if (Math.abs(dx) > 12 || Math.abs(dy) > 12){
+      손뗀때 = Date.now();        /* 쓸어 넘긴 것도 톡 친 것이 아니다 */
+    }
+    x0 = null;
+  }, {passive:true});
+
+  /* ── 좌우 끝을 톡 치기 ── */
+  stage.addEventListener('click', function(e){
+    if (Date.now() - 손뗀때 < 700) return;      /* 민 직후의 클릭은 흘려보낸다 */
+    if (e.target.closest('img,button,figure,a')) return;   /* 2026-10-06 단추·그림·고리 누름은 톡 치기 아님 — 「›」 두 쪽 넘김 고침 */
+    var r = stage.getBoundingClientRect(), x = e.clientX - r.left;
+    if (x < r.width * 0.22) 가기(page - 1);
+    else if (x > r.width * 0.78) 가기(page + 1);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ 가기(page+1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ 가기(page-1); e.preventDefault(); }
+    else if (e.key === 'Home') 가기(0);
+    else if (e.key === 'End') 가기(쪽수 - 1);
+    else if (e.key === 'Escape') 닫기();
+  });
+
+  /* ── 글씨 크기 ── */
+  var fs = 17;
+  try{ var v = localStorage.getItem('bonchulnajuFs'); if (v) fs = Math.min(24, Math.max(14, +v)); }catch(e){}
+  function 글씨(n){
+    fs = Math.min(24, Math.max(14, n));
+    pages.style.setProperty('--fs', fs + 'px');
+    try{ localStorage.setItem('bonchulnajuFs', fs); }catch(e){}
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 30);
+  }
+  document.getElementById('bigger').onclick  = function(){ 글씨(fs+1); };
+  document.getElementById('smaller').onclick = function(){ 글씨(fs-1); };
+
+  /* ── 화면 꽉 채우기 ──────────────────────────────────────
+     ★앱스스크립트는 책을 iframe 두 겹으로 감싸고, 그 위에 구글 안내 띠를 붙인다.
+     띠는 우리 바깥이라 우리 코드가 없앨 수 없다.
+     그런데 바깥 틀에 `fullscreen *` 권한이 들어 있어(2026-08-27 실측),
+     이 단추를 누르면 주소줄도 띠도 다 사라지고 화면을 꽉 채운다. */
+  var 꽉 = document.getElementById('full');
+  function 꽉인가(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  /* ★글자(⛶)는 기기에 그 글꼴이 없으면 빈칸으로 나온다(2026-08-27 캡처로 확인).
+     그래서 어디서나 똑같이 보이는 그림(SVG)으로 그린다. */
+  var 그림_켜기 = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M4 9V5h5M15 5h5v4M20 15v5h-5M9 20H4v-5"/></svg>';
+  var 그림_끄기 = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg>';
+  function 꽉얼굴(){ 꽉.innerHTML = 꽉인가() ? 그림_끄기 : 그림_켜기; }
+  if (!document.fullscreenEnabled && !document.webkitFullscreenEnabled){
+    꽉.style.display = 'none';        /* 안 되는 기기(아이폰 사파리 등)에서는 감춘다 */
+  }
+  꽉.onclick = function(){
+    try{
+      if (꽉인가()){
+        (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+      } else {
+        var e = document.documentElement;
+        (e.requestFullscreen || e.webkitRequestFullscreen).call(e);
+      }
+    }catch(err){}
+  };
+  document.addEventListener('fullscreenchange', function(){
+    꽉얼굴();
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 220);   /* 크기가 바뀌었으니 다시 나눈다 */
+  });
+  document.addEventListener('webkitfullscreenchange', function(){
+    꽉얼굴();
+    var 대목 = 지금대목();
+    setTimeout(function(){ 세기(대목); }, 220);
+  });
+  꽉얼굴();
+
+  /* ── 해 · 달 ── */
+  var 해달 = document.getElementById('theme');
+  function 지금어두운가(){
+    var a = document.documentElement.getAttribute('data-theme');
+    if (a === 'dark') return true;
+    if (a === 'light') return false;
+    try{ return window.matchMedia('(prefers-color-scheme: dark)').matches; }catch(e){ return false; }
+  }
+  function 단추얼굴(){ 해달.textContent = 지금어두운가() ? '☀' : '☾'; }
+  단추얼굴();
+  해달.onclick = function(){
+    var 어둡게 = !지금어두운가();
+    document.documentElement.setAttribute('data-theme', 어둡게 ? 'dark' : 'light');
+    try{ localStorage.setItem('bonchulnajuTheme', 어둡게 ? 'dark' : 'light'); }catch(e){}
+    단추얼굴();
+  };
+
+  /* ── 차례 ── */
+  var wrap = document.getElementById('tocwrap');
+  function 닫기(){ wrap.classList.remove('on'); }
+  document.getElementById('tocbtn').onclick = function(){ wrap.classList.toggle('on'); };
+  wrap.addEventListener('click', function(e){ if (e.target === wrap) 닫기(); });
+  document.getElementById('toclist').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-go]'); if (!b) return;
+    var 이름 = b.getAttribute('data-go');
+    for (var i = 0; i < 자식.length; i++)
+      if (자식[i].id === 이름){ page = 자식의쪽(i); break; }
+    닫기(); 그리기();
+  });
+
+  pages.addEventListener('click', function(e){
+    var b = e.target.closest('button.jump[data-go]'); if (!b) return;
+    e.stopPropagation();
+    var 이름 = b.getAttribute('data-go');
+    for (var i = 0; i < 자식.length; i++)
+      if (자식[i].id === 이름){ page = 자식의쪽(i); break; }
+    그리기();
+  });
+  /* ── 크기가 바뀔 때 ── */
+  var 늦게 = null;
+  function 다시(){
+    var 대목 = 지금대목();
+    clearTimeout(늦게);
+    늦게 = setTimeout(function(){ 세기(대목); }, 140);
+  }
+  window.addEventListener('resize', 다시);
+  window.addEventListener('orientationchange', 다시);
+
+  /* ── 첫 그림 ── */
+  pages.style.setProperty('--fs', fs + 'px');
+  세기();
+  if (document.fonts && document.fonts.ready)
+    document.fonts.ready.then(function(){ setTimeout(function(){ 세기(지금대목()); }, 40); });
+  window.addEventListener('load', function(){
+    setTimeout(function(){ 세기(지금대목()); }, 60);
+  });
+})();
+</script>
+</body>
+</html>
