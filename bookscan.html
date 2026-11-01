@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>책스캔</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 배치: 위 = 단계 띠 · 가운데 = 사진 고치는 판(왼쪽 사진 줄) · 아래 = 펴진 쪽 묶음과 저장 */
+:root{
+  --paper:#eceeeb; --sheet:#fbfbf9; --ink:#1e2422; --muted:#5d6762; --line:#cfd5d1;
+  --indigo:#2d4a6b; --indigo-soft:#dfe6ee; --seal:#c23b2a; --ok:#2f7a4f;
+  --display:"Nanum Myeongjo","Batang",serif; --body:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#171b1a; --sheet:#202624; --ink:#e7ebe8; --muted:#9aa6a0; --line:#36403c;
+  --indigo:#8fb0d6; --indigo-soft:#253445; --seal:#ef6a55; --ok:#6cc08f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#171b1a; --sheet:#202624; --ink:#e7ebe8; --muted:#9aa6a0; --line:#36403c;
+  --indigo:#8fb0d6; --indigo-soft:#253445; --seal:#ef6a55; --ok:#6cc08f; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:17px/1.6 var(--body);padding:0 16px 40px}
+.wrap{max-width:1280px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;padding-block:18px 10px;border-bottom:2px solid var(--ink)}
+h1{font:800 34px/1.1 var(--display);margin:0;letter-spacing:.02em}
+header p{margin:0;color:var(--muted)}
+#libs{margin-left:auto;font-size:14px;color:var(--muted)}
+#libs b{color:var(--ok)}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.steps span{font-size:15px;padding:4px 12px;border:1px solid var(--line);border-radius:99px;color:var(--muted)}
+.steps span b{color:var(--seal);margin-right:4px;font-family:var(--display)}
+section{background:var(--sheet);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-top:14px}
+h2{font:700 21px/1.3 var(--display);margin:0 0 10px}
+button,.btn,select{font:500 16px var(--body);border-radius:8px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);padding:9px 14px;cursor:pointer;min-height:44px}
+button:hover,.btn:hover{border-color:var(--indigo)}
+button:focus-visible,select:focus-visible,.btn:focus-within{outline:3px solid var(--indigo);outline-offset:2px}
+button.main{background:var(--indigo);border-color:var(--indigo);color:var(--sheet);font-weight:700}
+button:disabled{opacity:.45;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;min-height:42px}
+.seg button[aria-pressed="true"]{background:var(--indigo-soft);color:var(--indigo);font-weight:700}
+.label{font-size:14px;color:var(--muted);letter-spacing:.04em;margin-right:4px}
+#drop{display:block;cursor:pointer;border:2px dashed var(--line);border-radius:var(--r);padding:22px;text-align:center;color:var(--muted)}
+#drop.over{border-color:var(--indigo);background:var(--indigo-soft)}
+#drop input{display:none}
+.editor{display:grid;grid-template-columns:150px minmax(0,1fr);gap:14px;margin-top:12px}
+@media (max-width:760px){.editor{grid-template-columns:1fr}}
+#thumbs{display:flex;flex-direction:column;gap:8px;max-height:72vh;overflow:auto}
+@media (max-width:760px){#thumbs{flex-direction:row;max-height:none;overflow-x:auto}}
+.thumb{position:relative;border:2px solid transparent;border-radius:8px;padding:0;background:none;min-height:0;flex:0 0 auto}
+.thumb img{display:block;width:130px;height:auto;border-radius:6px}
+.thumb[aria-current="true"]{border-color:var(--seal)}
+.thumb i{position:absolute;left:6px;top:4px;font:700 13px var(--body);font-style:normal;background:var(--sheet);border-radius:4px;padding:0 5px}
+.stage{min-width:0}
+#boardBox{position:relative;width:100%;background:var(--paper);border-radius:8px;touch-action:none}
+#board{display:block;width:100%;border-radius:8px}
+.hint{font-size:15px;color:var(--muted);margin:8px 0 0}
+#pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.page{display:flex;flex-direction:column;gap:6px;min-width:0}
+.page img{width:100%;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer}
+.page small{color:var(--muted);font-size:13px;overflow-wrap:anywhere;line-height:1.4}
+.page .row button{min-height:36px;padding:4px 9px;font-size:14px}
+.empty{color:var(--muted);padding:14px 0}
+#fixBox{display:grid;gap:10px}
+#fixCanvas{max-width:100%;border:1px solid var(--line);border-radius:6px;touch-action:none;cursor:crosshair;background:#fff}
+textarea{width:100%;min-height:220px;font:16px/1.7 var(--body);border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--paper);color:var(--ink)}
+progress{width:100%;height:12px}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:10px 18px;border-radius:99px;font-size:15px;max-width:calc(100% - 32px)}
+.busy{cursor:progress}
+@media (prefers-reduced-motion:no-preference){button{transition:border-color .15s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>책스캔</h1>
+  <p>펼친 책 사진을 반듯한 쪽으로 펴서 PDF로 묶습니다</p>
+  <span id="libs">도구 불러오는 중…</span>
+</header>
+<div class="steps" aria-label="순서">
+  <span><b>一</b>사진 넣기</span><span><b>二</b>테두리 맞추기</span><span><b>三</b>펴기·다듬기</span><span><b>四</b>저장·글자 읽기</span>
+</div>
+
+<section>
+  <h2>사진 넣기</h2>
+  <div class="row" style="margin-bottom:12px">
+    <label class="btn main" for="cam" style="background:var(--indigo);color:var(--sheet);font-weight:700;display:inline-flex;align-items:center">사진 찍기</label>
+    <input id="cam" type="file" accept="image/*" capture="environment" hidden>
+    <label class="row" style="gap:6px;font-size:16px"><input type="checkbox" id="autoFlat" checked style="width:22px;height:22px"> 찍은 뒤 바로 펴기</label>
+  </div>
+  <label id="drop" for="file">
+    <input id="file" type="file" accept="image/*" multiple>
+    <div><b>사진첩에서 고르기</b><br>여기를 눌러 이미 찍은 사진을 여러 장 고르거나, 끌어다 놓으십시오.</div>
+  </label>
+</section>
+
+<section id="editSec" hidden>
+  <div class="row" style="justify-content:space-between">
+    <h2 id="editTitle">테두리 맞추기</h2>
+    <div class="row">
+      <span class="label">쪽</span>
+      <div class="seg" id="modeSeg"><button type="button" data-mode="one" id="mOne">한 쪽</button><button type="button" data-mode="two" id="mTwo">두 쪽(펼침)</button></div>
+      <button type="button" id="autoBtn">테두리 다시 찾기</button>
+    </div>
+  </div>
+  <div class="editor">
+    <div id="thumbs" aria-label="넣은 사진"></div>
+    <div class="stage">
+      <div id="boardBox"><canvas id="board"></canvas></div>
+      <p class="hint">빨간 점을 끌어 쪽의 네 귀와 위·아래 가장자리에 맞추십시오. 휜 가장자리는 가운데 점들로 맞춥니다. 두 쪽이면 가운데 점선을 책 접힌 곳에 둡니다.</p>
+      <div class="row" style="margin-top:10px">
+        <span class="label">두 쪽 순서</span>
+        <div class="seg" id="orderSeg"><button type="button" data-order="rl" id="oRL">오른쪽 먼저(세로쓰기 옛 책)</button><button type="button" data-order="lr" id="oLR">왼쪽 먼저</button></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button type="button" class="main" id="flatBtn">이 사진 펴기</button>
+        <button type="button" id="flatAllBtn">모든 사진 펴기</button>
+        <button type="button" id="delPhotoBtn">이 사진 빼기</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pageSec">
+  <div class="row" style="justify-content:space-between">
+    <h2>펴진 쪽 <span id="pageCount" style="color:var(--muted);font-size:16px"></span></h2>
+    <div class="row">
+      <span class="label">보정</span>
+      <div class="seg" id="enhSeg">
+        <button type="button" data-enh="color">원본</button><button type="button" data-enh="gray">회색</button><button type="button" data-enh="doc">문서</button><button type="button" data-enh="bw">흑백</button>
+      </div>
+    </div>
+  </div>
+  <div id="pages"><p class="empty">아직 펴진 쪽이 없습니다. 사진을 넣고 「이 사진 펴기」를 누르십시오.</p></div>
+  <div class="row" style="margin-top:14px">
+    <button type="button" class="main" id="pdfBtn" disabled>PDF로 저장</button>
+    <button type="button" id="jpgBtn" disabled>쪽마다 JPG로 저장</button>
+  </div>
+</section>
+
+<section id="fixSec" hidden>
+  <div class="row" style="justify-content:space-between">
+    <h2 id="fixTitle">쪽 다듬기</h2>
+    <button type="button" id="fixClose">다 했음</button>
+  </div>
+  <div id="fixBox">
+    <div class="row">
+      <span class="label">지우개 굵기</span><input type="range" id="brush" min="6" max="120" value="40" aria-label="지우개 굵기">
+      <button type="button" id="rotL">왼쪽으로 돌리기</button><button type="button" id="rotR">오른쪽으로 돌리기</button>
+      <button type="button" id="undoFix">처음대로</button>
+    </div>
+    <p class="hint" style="margin:0">손가락이나 얼룩이 찍힌 곳을 문지르면 흰색으로 지워집니다.</p>
+    <canvas id="fixCanvas"></canvas>
+  </div>
+</section>
+
+<section>
+  <h2>글자 읽기</h2>
+  <div class="row">
+    <span class="label">글자</span>
+    <select id="ocrLang" aria-label="읽을 글자">
+      <option value="kor">한글(가로쓰기)</option>
+      <option value="kor+chi_tra">한글과 한자(가로쓰기)</option>
+      <option value="chi_tra_vert">한자 세로쓰기(족보·옛 책)</option>
+    </select>
+    <button type="button" class="main" id="ocrBtn" disabled>펴진 쪽 모두 읽기</button>
+  </div>
+  <p class="hint">처음 한 번은 글자 자료(10~40MB)를 받느라 시간이 걸립니다. 옛 책의 잔글씨·흘림 한자는 틀리게 읽는 일이 많으니 원본과 맞대어 보십시오.</p>
+  <progress id="ocrProg" value="0" max="1" hidden></progress>
+  <textarea id="ocrOut" placeholder="읽은 글자가 여기 나옵니다." aria-label="읽은 글자"></textarea>
+  <div class="row" style="margin-top:8px">
+    <button type="button" id="copyBtn">글자 복사</button>
+    <button type="button" id="txtBtn">TXT로 저장</button>
+  </div>
+</section>
+</div>
+<div id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js"></script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const MAXSRC = 3200, MAXOUT = 3000;
+const S = { photos: [], cur: -1, enh: 'doc', order: 'rl', fix: null };
+let CV = null;
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+
+/* ---------- 알림 ---------- */
+let toastT;
+function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, ms); }
+
+/* ---------- OpenCV 준비 ---------- */
+function waitCv() {
+  return new Promise(res => {
+    const t = setInterval(() => {
+      const c = window.cv;
+      if (c && c.Mat && c.imread) { clearInterval(t); res(c); }
+      else if (c && typeof c.then === 'function' && !c.__hooked) {
+        c.__hooked = true;
+        c.then(m => { try { m.then = undefined; } catch (e) {} window.cv = m; });
+      }
+    }, 150);
+  });
+}
+waitCv().then(c => { CV = c; $('#libs').innerHTML = '<b>준비됨</b>'; refreshButtons(); if (S.cur >= 0) { autoDetect(S.photos[S.cur]); draw(); } });
+
+/* ---------- 곡선 ---------- */
+function catmull(p, s) {
+  const n = p.length, i = Math.min(Math.floor(s), n - 2), t = s - i;
+  const a = p[Math.max(i - 1, 0)], b = p[i], c = p[i + 1], d = p[Math.min(i + 2, n - 1)];
+  const t2 = t * t, t3 = t2 * t;
+  const f = (A, B, C, D) => 0.5 * (2 * B + (-A + C) * t + (2 * A - 5 * B + 4 * C - D) * t2 + (-A + 3 * B - 3 * C + D) * t3);
+  return [f(a[0], b[0], c[0], d[0]), f(a[1], b[1], c[1], d[1])];
+}
+function dense(p, per = 100) {
+  const M = (p.length - 1) * per, pts = [], cum = [0];
+  for (let k = 0; k <= M; k++) pts.push(catmull(p, k / per));
+  for (let k = 1; k <= M; k++) cum.push(cum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
+  return { pts, cum, len: cum[M] };
+}
+function atLen(d, u) {
+  const L = u * d.len, c = d.cum; let lo = 0, hi = c.length - 1;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (c[m] < L) lo = m; else hi = m; }
+  const seg = c[hi] - c[lo] || 1, t = (L - c[lo]) / seg, a = d.pts[lo], b = d.pts[hi];
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+}
+const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+function resample(p, fr) { const d = dense(p); return fr.map(u => atLen(d, u)); }
+
+/* ---------- 사진 넣기 ---------- */
+function addFiles(files, fromCam = false) {
+  const list = [...files].filter(f => f.type.startsWith('image/'));
+  if (!list.length) return;
+  let left = list.length;
+  const slots = new Array(list.length).fill(null);   // 고른 순서 지키기
+  const finish = () => {
+    const got = slots.filter(Boolean); if (!got.length) { renderThumbs(); select(Math.max(S.cur, 0)); return; }
+    const first = S.photos.length; S.photos.push(...got); renderThumbs(); select(first);
+    if (fromCam && $('#autoFlat').checked && CV) runFlat([S.photos[first]]); else toast(got.length + '장을 넣었습니다.');
+  };
+  list.forEach((f, idx) => {
+    const url = URL.createObjectURL(f), img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, MAXSRC / Math.max(img.naturalWidth, img.naturalHeight));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.naturalWidth * k); cv.height = Math.round(img.naturalHeight * k);
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      const th = document.createElement('canvas'), tk = 260 / Math.max(cv.width, cv.height);
+      th.width = Math.round(cv.width * tk); th.height = Math.round(cv.height * tk);
+      th.getContext('2d').drawImage(cv, 0, 0, th.width, th.height);
+      const ph = { name: f.name.replace(/\.[^.]+$/, ''), src: cv, w: cv.width, h: cv.height, thumb: th.toDataURL('image/jpeg', .8),
+                   mode: cv.width > cv.height * 1.15 ? 'two' : 'one', top: null, bot: null, pages: [] };
+      slots[idx] = ph;
+      if (CV) autoDetect(ph); else defaultFrame(ph);
+      URL.revokeObjectURL(url);
+      if (--left === 0) finish();
+    };
+    img.onerror = () => { toast(f.name + ' 을(를) 열지 못했습니다.'); if (--left === 0) finish(); };
+    img.src = url;
+  });
+}
+$('#file').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+$('#cam').addEventListener('change', e => { addFiles(e.target.files, true); e.target.value = ''; });
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+
+function renderThumbs() {
+  const box = $('#thumbs'); box.innerHTML = '';
+  S.photos.forEach((p, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'thumb';
+    b.setAttribute('aria-current', i === S.cur ? 'true' : 'false');
+    b.innerHTML = `<img alt="${i + 1}번 사진" src="${p.thumb}"><i>${i + 1}${p.pages.length ? ' ✓' : ''}</i>`;
+    b.onclick = () => select(i);
+    box.appendChild(b);
+  });
+  $('#editSec').hidden = !S.photos.length;
+}
+function select(i) {
+  if (!S.photos.length) { S.cur = -1; $('#editSec').hidden = true; return; }
+  S.cur = Math.max(0, Math.min(i, S.photos.length - 1));
+  [...$('#thumbs').children].forEach((b, k) => b.setAttribute('aria-current', k === S.cur ? 'true' : 'false'));
+  $('#editTitle').textContent = `테두리 맞추기 · ${S.cur + 1}/${S.photos.length}`;
+  setSeg('#modeSeg', 'mode', S.photos[S.cur].mode);
+  fitBoard(); draw();
+}
+
+/* ---------- 테두리 찾기 ---------- */
+function framePts(ph, tl, tr, br, bl) {
+  const n = ph.mode === 'two' ? 7 : 5, fr = [...Array(n)].map((_, k) => k / (n - 1));
+  ph.top = fr.map(u => [tl[0] + (tr[0] - tl[0]) * u, tl[1] + (tr[1] - tl[1]) * u]);
+  ph.bot = fr.map(u => [bl[0] + (br[0] - bl[0]) * u, bl[1] + (br[1] - bl[1]) * u]);
+}
+function defaultFrame(ph) {
+  const mx = ph.w * .04, my = ph.h * .04;
+  framePts(ph, [mx, my], [ph.w - mx, my], [ph.w - mx, ph.h - my], [mx, ph.h - my]);
+}
+function autoDetect(ph) {
+  const cv = CV, k = Math.min(1, 900 / Math.max(ph.w, ph.h));
+  const sc = document.createElement('canvas'); sc.width = Math.round(ph.w * k); sc.height = Math.round(ph.h * k);
+  sc.getContext('2d').drawImage(ph.src, 0, 0, sc.width, sc.height);
+  const W = sc.width, H = sc.height;
+  const src = cv.imread(sc), g = new cv.Mat(), bin = new cv.Mat();
+  cv.cvtColor(src, g, cv.COLOR_RGBA2GRAY); cv.GaussianBlur(g, g, new cv.Size(7, 7), 0);
+  const findBig = m => {
+    const cs = new cv.MatVector(), hi = new cv.Mat();
+    cv.findContours(m, cs, hi, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE);
+    let best = -1, area = 0;
+    for (let i = 0; i < cs.size(); i++) { const a = cv.contourArea(cs.get(i)); if (a > area) { area = a; best = i; } }
+    let pts = null;
+    if (best >= 0 && area > W * H * 0.15) { const d = cs.get(best).data32S; pts = []; for (let i = 0; i < d.length; i += 2) pts.push([d[i], d[i + 1]]); }
+    cs.delete(); hi.delete(); return pts;
+  };
+  cv.threshold(g, bin, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
+  const ker = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(11, 11));
+  cv.morphologyEx(bin, bin, cv.MORPH_CLOSE, ker); cv.morphologyEx(bin, bin, cv.MORPH_OPEN, ker);
+  let pts = findBig(bin);
+  if (!pts) { cv.Canny(g, bin, 40, 120); cv.dilate(bin, bin, ker); pts = findBig(bin); }
+  src.delete(); g.delete(); bin.delete(); ker.delete();
+  if (!pts) { defaultFrame(ph); return false; }
+  let tl = pts[0], tr = pts[0], br = pts[0], bl = pts[0];
+  for (const p of pts) {
+    if (p[0] + p[1] < tl[0] + tl[1]) tl = p; if (p[0] + p[1] > br[0] + br[1]) br = p;
+    if (p[0] - p[1] > tr[0] - tr[1]) tr = p; if (p[0] - p[1] < bl[0] - bl[1]) bl = p;
+  }
+  const topY = new Array(W).fill(Infinity), botY = new Array(W).fill(-Infinity), midY = (tl[1] + tr[1] + bl[1] + br[1]) / 4;
+  for (const [x, y] of pts) { if (y < midY) topY[x] = Math.min(topY[x], y); else botY[x] = Math.max(botY[x], y); }
+  const edge = (arr, x, a, b) => {
+    x = Math.round(x);
+    for (let r = 0; r < 4; r++) for (const xx of [x - r, x + r]) if (xx >= 0 && xx < W && isFinite(arr[xx])) return arr[xx];
+    const u = (x - a[0]) / ((b[0] - a[0]) || 1); return a[1] + (b[1] - a[1]) * u;
+  };
+  const along = (a, b, u, arr) => { const x = a[0] + (b[0] - a[0]) * u; return [x, edge(arr, x, a, b)]; };
+  let top, bot;
+  if (ph.mode === 'two') {
+    let bu = .5, bd = -1, cu = .5, cd = -1;
+    for (let u = .3; u <= .7001; u += .01) {
+      const t = along(tl, tr, u, topY), lt = tl[1] + (tr[1] - tl[1]) * u; if (t[1] - lt > bd) { bd = t[1] - lt; bu = u; }
+      const b = along(bl, br, u, botY), lb = bl[1] + (br[1] - bl[1]) * u; if (lb - b[1] > cd) { cd = lb - b[1]; cu = u; }
+    }
+    if (bd < 3) bu = .5; if (cd < 3) cu = .5;
+    const sT = along(tl, tr, bu, topY), sB = along(bl, br, cu, botY);
+    top = [tl, along(tl, sT, 1 / 3, topY), along(tl, sT, 2 / 3, topY), sT, along(sT, tr, 1 / 3, topY), along(sT, tr, 2 / 3, topY), tr];
+    bot = [bl, along(bl, sB, 1 / 3, botY), along(bl, sB, 2 / 3, botY), sB, along(sB, br, 1 / 3, botY), along(sB, br, 2 / 3, botY), br];
+  } else {
+    top = [tl, ...[.25, .5, .75].map(u => along(tl, tr, u, topY)), tr];
+    bot = [bl, ...[.25, .5, .75].map(u => along(bl, br, u, botY)), br];
+  }
+  ph.top = top.map(p => [p[0] / k, p[1] / k]); ph.bot = bot.map(p => [p[0] / k, p[1] / k]);
+  return true;
+}
+function setMode(ph, mode) {
+  if (ph.mode === mode) return;
+  ph.mode = mode;
+  const fr = mode === 'two' ? [0, 1 / 6, 1 / 3, .5, 2 / 3, 5 / 6, 1] : [0, .25, .5, .75, 1];
+  ph.top = resample(ph.top, fr); ph.bot = resample(ph.bot, fr);
+}
+
+/* ---------- 고치는 판 ---------- */
+const board = $('#board'), bctx = board.getContext('2d');
+let view = { k: 1, dpr: 1 }, drag = null, pointer = null;
+function fitBoard() {
+  const ph = S.photos[S.cur]; if (!ph) return;
+  const box = $('#boardBox'), dpr = window.devicePixelRatio || 1;
+  const cw = box.clientWidth, maxH = Math.max(320, window.innerHeight * .72);
+  let k = cw / ph.w; if (ph.h * k > maxH) k = maxH / ph.h;
+  board.style.width = Math.round(ph.w * k) + 'px'; board.style.height = Math.round(ph.h * k) + 'px';
+  board.width = Math.round(ph.w * k * dpr); board.height = Math.round(ph.h * k * dpr);
+  view = { k, dpr };
+}
+window.addEventListener('resize', () => { fitBoard(); draw(); });
+function handles(ph) { const h = []; ph.top.forEach((p, i) => h.push(['top', i, p])); ph.bot.forEach((p, i) => h.push(['bot', i, p])); return h; }
+function draw() {
+  const ph = S.photos[S.cur]; if (!ph) return;
+  const z = view.k * view.dpr, c = bctx, css = getComputedStyle(document.documentElement);
+  const seal = css.getPropertyValue('--seal').trim() || '#c23b2a';
+  c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, board.width, board.height);
+  c.drawImage(ph.src, 0, 0, board.width, board.height);
+  c.setTransform(z, 0, 0, z, 0, 0);
+  const lw = 2.2 / z;
+  const path = pts => { const d = dense(pts, 30).pts; c.beginPath(); d.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); };
+  // 바깥 어둡게
+  c.save(); c.beginPath();
+  c.rect(0, 0, ph.w, ph.h);
+  const T = dense(ph.top, 30).pts, B = dense(ph.bot, 30).pts.slice().reverse();
+  T.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); B.forEach(p => c.lineTo(p[0], p[1])); c.closePath();
+  c.fillStyle = 'rgba(10,14,13,.38)'; c.fill('evenodd'); c.restore();
+  c.lineWidth = lw; c.strokeStyle = seal;
+  path(ph.top); c.stroke(); path(ph.bot); c.stroke();
+  const n = ph.top.length;
+  c.beginPath(); c.moveTo(...ph.top[0]); c.lineTo(...ph.bot[0]); c.moveTo(...ph.top[n - 1]); c.lineTo(...ph.bot[n - 1]); c.stroke();
+  if (ph.mode === 'two') { c.setLineDash([10 / z, 7 / z]); c.beginPath(); c.moveTo(...ph.top[3]); c.lineTo(...ph.bot[3]); c.stroke(); c.setLineDash([]); }
+  const r = (TOUCH ? 14 : 9) / z;
+  for (const [, i, p] of handles(ph)) {
+    const corner = i === 0 || i === n - 1;
+    c.beginPath(); c.arc(p[0], p[1], corner ? r * 1.25 : r, 0, 7);
+    c.fillStyle = corner ? seal : 'rgba(255,255,255,.92)'; c.fill(); c.lineWidth = lw; c.strokeStyle = seal; c.stroke();
+  }
+  if (drag && pointer) { // 돋보기
+    const R = 70 * view.dpr, zoom = 3, sx = pointer[0], sy = pointer[1];
+    const ox = sx * z < board.width / 2 ? board.width - R - 12 : R + 12, oy = R + 12;
+    c.setTransform(1, 0, 0, 1, 0, 0); c.save(); c.beginPath(); c.arc(ox, oy, R, 0, 7); c.clip();
+    const rs = R / (zoom * view.k * view.dpr); // 돋보기에 담을 원본 반경(그림 px)
+    c.drawImage(ph.src, sx - rs, sy - rs, rs * 2, rs * 2, ox - R, oy - R, R * 2, R * 2);
+    c.restore(); c.beginPath(); c.arc(ox, oy, R, 0, 7); c.lineWidth = 3; c.strokeStyle = seal; c.stroke();
+    c.beginPath(); c.moveTo(ox - 10, oy); c.lineTo(ox + 10, oy); c.moveTo(ox, oy - 10); c.lineTo(ox, oy + 10); c.lineWidth = 1.5; c.stroke();
+  }
+}
+function toImg(e) { const r = board.getBoundingClientRect(); return [(e.clientX - r.left) / view.k, (e.clientY - r.top) / view.k]; }
+board.addEventListener('pointerdown', e => {
+  const ph = S.photos[S.cur]; if (!ph) return;
+  const p = toImg(e); let best = null, bd = (TOUCH ? 44 : 28) / view.k;
+  for (const h of handles(ph)) { const d = dist(p, h[2]); if (d < bd) { bd = d; best = h; } }
+  if (best) { drag = best; pointer = p; board.setPointerCapture(e.pointerId); e.preventDefault(); draw(); }
+});
+board.addEventListener('pointermove', e => {
+  if (!drag) return; const ph = S.photos[S.cur], p = toImg(e);
+  p[0] = Math.max(0, Math.min(ph.w, p[0])); p[1] = Math.max(0, Math.min(ph.h, p[1]));
+  ph[drag[0]][drag[1]] = p; pointer = p; draw();
+});
+['pointerup', 'pointercancel'].forEach(t => board.addEventListener(t, () => { drag = null; pointer = null; draw(); }));
+
+/* ---------- 펴기 ---------- */
+function warp(srcMat, top, bot) {
+  const cv = CV, T = dense(top), B = dense(bot);
+  let W = Math.max(T.len, B.len), H = Math.max(dist(top[0], bot[0]), dist(top[top.length - 1], bot[bot.length - 1]));
+  const kk = Math.min(1, MAXOUT / Math.max(W, H)); W = Math.max(2, Math.round(W * kk)); H = Math.max(2, Math.round(H * kk));
+  const tx = new Float32Array(W), ty = new Float32Array(W), bx = new Float32Array(W), by = new Float32Array(W);
+  for (let j = 0; j < W; j++) { const u = j / (W - 1), a = atLen(T, u), b = atLen(B, u); tx[j] = a[0]; ty[j] = a[1]; bx[j] = b[0]; by[j] = b[1]; }
+  const mx = new cv.Mat(H, W, cv.CV_32FC1), my = new cv.Mat(H, W, cv.CV_32FC1), X = mx.data32F, Y = my.data32F;
+  for (let i = 0; i < H; i++) { const v = i / (H - 1), o = i * W; for (let j = 0; j < W; j++) { X[o + j] = tx[j] + (bx[j] - tx[j]) * v; Y[o + j] = ty[j] + (by[j] - ty[j]) * v; } }
+  const dst = new cv.Mat();
+  cv.remap(srcMat, dst, mx, my, cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar(255, 255, 255, 255));
+  mx.delete(); my.delete();
+  const out = document.createElement('canvas'); cv.imshow(out, dst); dst.delete(); return out;
+}
+function enhance(raw, mode) {
+  const out = document.createElement('canvas');
+  if (mode === 'color' || !CV) { out.width = raw.width; out.height = raw.height; out.getContext('2d').drawImage(raw, 0, 0); return out; }
+  const cv = CV, src = cv.imread(raw), g = new cv.Mat();
+  cv.cvtColor(src, g, cv.COLOR_RGBA2GRAY); src.delete();
+  if (mode !== 'gray') {
+    const ks = Math.max(7, (Math.round(Math.max(raw.width, raw.height) / 200) | 1));
+    const bg = new cv.Mat(), ker = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(ks, ks));
+    cv.dilate(g, bg, ker); cv.medianBlur(bg, bg, 21);
+    const d = new cv.Mat(); cv.absdiff(g, bg, d); cv.bitwise_not(d, d);
+    cv.normalize(d, d, 0, 255, cv.NORM_MINMAX);
+    if (mode === 'bw') cv.threshold(d, d, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU);
+    else d.convertTo(d, -1, 1.25, -63);
+    d.copyTo(g); d.delete(); bg.delete(); ker.delete();
+  }
+  cv.imshow(out, g); g.delete(); return out;
+}
+function flatten(ph) {
+  const cv = CV, src = cv.imread(ph.src);
+  let parts;
+  if (ph.mode === 'two') {
+    const L = [ph.top.slice(0, 4), ph.bot.slice(0, 4)], R = [ph.top.slice(3), ph.bot.slice(3)];
+    parts = S.order === 'rl' ? [R, L] : [L, R];
+  } else parts = [[ph.top, ph.bot]];
+  ph.pages = parts.map(([t, b]) => { const raw = warp(src, t, b); return { raw, orig: cloneCanvas(raw), img: null }; });
+  src.delete();
+  ph.pages.forEach(pg => pg.img = enhance(pg.raw, S.enh));
+}
+function cloneCanvas(c) { const o = document.createElement('canvas'); o.width = c.width; o.height = c.height; o.getContext('2d').drawImage(c, 0, 0); return o; }
+async function runFlat(list) {
+  if (!CV) { toast('도구를 아직 불러오는 중입니다. 잠시 뒤 다시 누르십시오.'); return; }
+  document.body.classList.add('busy');
+  for (const ph of list) { await new Promise(r => setTimeout(r, 30)); try { flatten(ph); } catch (e) { console.error(e); toast('펴지 못했습니다: ' + ph.name); } }
+  document.body.classList.remove('busy');
+  renderThumbs(); renderPages(); toast('펴기를 마쳤습니다.');
+}
+$('#flatBtn').onclick = () => S.photos[S.cur] && runFlat([S.photos[S.cur]]);
+$('#flatAllBtn').onclick = () => runFlat(S.photos);
+$('#autoBtn').onclick = () => { const ph = S.photos[S.cur]; if (!ph || !CV) return; const ok = autoDetect(ph); draw(); toast(ok ? '테두리를 다시 찾았습니다.' : '테두리를 못 찾아 가장자리에 두었습니다. 점을 끌어 맞추십시오.'); };
+$('#delPhotoBtn').onclick = () => { if (S.cur < 0) return; S.photos.splice(S.cur, 1); renderThumbs(); select(S.cur); renderPages(); };
+
+/* ---------- 펴진 쪽 ---------- */
+function allPages() { const a = []; S.photos.forEach((ph, pi) => ph.pages.forEach((pg, k) => a.push({ ph, pi, k, pg }))); return a; }
+function renderPages() {
+  const box = $('#pages'), all = allPages(); box.innerHTML = '';
+  $('#pageCount').textContent = all.length ? `${all.length}쪽` : '';
+  if (!all.length) box.innerHTML = '<p class="empty">아직 펴진 쪽이 없습니다. 사진을 넣고 「이 사진 펴기」를 누르십시오.</p>';
+  all.forEach((a, n) => {
+    const d = document.createElement('div'); d.className = 'page';
+    const im = new Image(); im.alt = `${n + 1}쪽`; im.src = a.pg.img.toDataURL('image/jpeg', .7); im.onclick = () => openFix(a);
+    d.appendChild(im);
+    const cap = document.createElement('small'); cap.textContent = `${n + 1}쪽 · ${a.ph.name}${a.ph.pages.length > 1 ? (a.k ? ' (뒤)' : ' (앞)') : ''}`;
+    d.appendChild(cap);
+    const row = document.createElement('div'); row.className = 'row';
+    const b1 = document.createElement('button'); b1.type = 'button'; b1.textContent = '다듬기'; b1.onclick = () => openFix(a);
+    const b2 = document.createElement('button'); b2.type = 'button'; b2.textContent = '빼기'; b2.onclick = () => { a.ph.pages.splice(a.k, 1); renderPages(); renderThumbs(); };
+    row.append(b1, b2); d.appendChild(row); box.appendChild(d);
+  });
+  refreshButtons();
+}
+function refreshButtons() {
+  const has = allPages().length > 0;
+  $('#pdfBtn').disabled = !has; $('#jpgBtn').disabled = !has; $('#ocrBtn').disabled = !has;
+  setSeg('#enhSeg', 'enh', S.enh); setSeg('#orderSeg', 'order', S.order);
+}
+function setSeg(sel, key, val) { document.querySelectorAll(sel + ' button').forEach(b => b.setAttribute('aria-pressed', b.dataset[key] === val ? 'true' : 'false')); }
+$('#enhSeg').onclick = e => { const v = e.target.dataset.enh; if (!v) return; S.enh = v; setSeg('#enhSeg', 'enh', v);
+  document.body.classList.add('busy'); setTimeout(() => { allPages().forEach(a => a.pg.img = enhance(a.pg.raw, v)); document.body.classList.remove('busy'); renderPages(); if (S.fix) drawFix(); }, 30); };
+$('#modeSeg').onclick = e => { const v = e.target.dataset.mode, ph = S.photos[S.cur]; if (!v || !ph) return; setMode(ph, v); setSeg('#modeSeg', 'mode', v); draw(); };
+$('#orderSeg').onclick = e => { const v = e.target.dataset.order; if (!v) return; S.order = v; setSeg('#orderSeg', 'order', v); toast('두 쪽 순서를 바꿨습니다. 다시 펴면 반영됩니다.'); };
+
+/* ---------- 다듬기(지우개·돌리기) ---------- */
+const fixC = $('#fixCanvas'), fctx = fixC.getContext('2d');
+function openFix(a) { S.fix = a; $('#fixSec').hidden = false; $('#fixTitle').textContent = `쪽 다듬기 · ${a.ph.name}`; drawFix(); $('#fixSec').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function drawFix() { const pg = S.fix.pg; fixC.width = pg.img.width; fixC.height = pg.img.height; fctx.drawImage(pg.img, 0, 0); fixC.style.width = Math.min(pg.img.width, $('#fixBox').clientWidth) + 'px'; }
+let erasing = false;
+function eraseAt(e) {
+  const r = fixC.getBoundingClientRect(), k = fixC.width / r.width, x = (e.clientX - r.left) * k, y = (e.clientY - r.top) * k;
+  const rad = +$('#brush').value * k / 2, pg = S.fix.pg;
+  for (const ctx of [pg.raw.getContext('2d'), pg.img.getContext('2d'), fctx]) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, rad, 0, 7); ctx.fill(); }
+}
+fixC.addEventListener('pointerdown', e => { if (!S.fix) return; erasing = true; fixC.setPointerCapture(e.pointerId); eraseAt(e); });
+fixC.addEventListener('pointermove', e => { if (erasing) eraseAt(e); });
+['pointerup', 'pointercancel'].forEach(t => fixC.addEventListener(t, () => { if (erasing) { erasing = false; renderPages(); } }));
+function rotate(dir) {
+  const pg = S.fix.pg, rot = c => { const o = document.createElement('canvas'); o.width = c.height; o.height = c.width; const x = o.getContext('2d');
+    x.translate(o.width / 2, o.height / 2); x.rotate(dir * Math.PI / 2); x.drawImage(c, -c.width / 2, -c.height / 2); return o; };
+  pg.raw = rot(pg.raw); pg.orig = rot(pg.orig); pg.img = enhance(pg.raw, S.enh); drawFix(); renderPages();
+}
+$('#rotL').onclick = () => S.fix && rotate(-1);
+$('#rotR').onclick = () => S.fix && rotate(1);
+$('#undoFix').onclick = () => { if (!S.fix) return; const pg = S.fix.pg; pg.raw = cloneCanvas(pg.orig); pg.img = enhance(pg.raw, S.enh); drawFix(); renderPages(); };
+$('#fixClose').onclick = () => { S.fix = null; $('#fixSec').hidden = true; };
+
+/* ---------- 저장 ---------- */
+function stamp() { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; }
+function save(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); }
+$('#pdfBtn').onclick = async () => {
+  const all = allPages(); if (!all.length) return;
+  document.body.classList.add('busy'); await new Promise(r => setTimeout(r, 30));
+  const { jsPDF } = window.jspdf; let doc = null;
+  all.forEach(a => {
+    const c = a.pg.img, w = 210, h = 210 * c.height / c.width, o = h >= w ? 'p' : 'l';
+    if (!doc) doc = new jsPDF({ unit: 'mm', format: [w, h], orientation: o, compress: true }); else doc.addPage([w, h], o);
+    doc.addImage(c.toDataURL('image/jpeg', .85), 'JPEG', 0, 0, w, h, undefined, 'FAST');
+  });
+  save(doc.output('blob'), `책스캔_${stamp()}.pdf`);
+  document.body.classList.remove('busy'); toast(`${all.length}쪽을 PDF로 저장했습니다.`);
+};
+$('#jpgBtn').onclick = () => {
+  const all = allPages(), st = stamp();
+  all.forEach((a, n) => setTimeout(() => a.pg.img.toBlob(b => save(b, `책스캔_${st}_${String(n + 1).padStart(3, '0')}.jpg`), 'image/jpeg', .92), n * 400));
+  toast(`${all.length}쪽을 차례로 저장합니다. 브라우저가 여러 파일 내려받기를 물으면 허용하십시오.`, 4000);
+};
+
+/* ---------- 글자 읽기 ---------- */
+let tessLoading = null;
+function loadTess() {
+  if (window.Tesseract) return Promise.resolve();
+  if (!tessLoading) tessLoading = new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js'; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+  return tessLoading;
+}
+$('#ocrBtn').onclick = async () => {
+  const all = allPages(); if (!all.length) return;
+  const lang = $('#ocrLang').value, out = $('#ocrOut'), pr = $('#ocrProg'), btn = $('#ocrBtn');
+  btn.disabled = true; pr.hidden = false; pr.value = 0; out.value = '';
+  try {
+    await loadTess();
+    const worker = await Tesseract.createWorker(lang.split('+'), 1, { logger: m => { if (m.status && m.progress != null) { pr.value = m.progress; btn.textContent = m.status.includes('load') ? '글자 자료 받는 중…' : '읽는 중…'; } } });
+    if (lang === 'chi_tra_vert') await worker.setParameters({ tessedit_pageseg_mode: '5' });
+    for (let n = 0; n < all.length; n++) {
+      btn.textContent = `${n + 1}/${all.length}쪽 읽는 중…`;
+      const { data } = await worker.recognize(all[n].pg.img);
+      let t = data.text.trim(); if (lang !== 'kor') t = t.replace(/(?<=[㐀-鿿가-힣]) (?=[㐀-鿿가-힣])/g, '');
+      out.value += `── ${n + 1}쪽 · ${all[n].ph.name} ──\n${t}\n\n`;
+    }
+    await worker.terminate(); toast('글자 읽기를 마쳤습니다.');
+  } catch (e) { console.error(e); toast('글자 읽기에 실패했습니다. 인터넷 연결을 확인하고 다시 누르십시오.', 4000); }
+  pr.hidden = true; btn.textContent = '펴진 쪽 모두 읽기'; btn.disabled = false;
+};
+$('#copyBtn').onclick = () => { const t = $('#ocrOut'); navigator.clipboard.writeText(t.value).then(() => toast('복사했습니다.')).catch(() => { t.select(); toast('글자를 골라 두었습니다. Ctrl+C 로 복사하십시오.'); }); };
+$('#txtBtn').onclick = () => { const v = $('#ocrOut').value; if (!v.trim()) { toast('읽은 글자가 없습니다.'); return; } save(new Blob(['﻿' + v], { type: 'text/plain;charset=utf-8' }), `책스캔_글자_${stamp()}.txt`); };
+
+refreshButtons();
+</script>
+</body>
+</html>
