@@ -181,7 +181,6 @@ progress{width:100%;height:12px}
 <div id="toast" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script async src="https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js"></script>
 <script>
 'use strict';
 const $ = s => document.querySelector(s);
@@ -199,7 +198,8 @@ function waitCv() {
   return new Promise(res => {
     const t = setInterval(() => {
       const c = window.cv;
-      if (c && c.Mat && c.imread) { clearInterval(t); res(c); }
+      // ★then 이 남은 채로 넘기면 Promise 가 끝없이 따라가 페이지가 굳는다 → then 을 지우고 상자에 담아 넘김
+      if (c && c.Mat && c.imread) { clearInterval(t); try { c.then = undefined; } catch (e) {} res({ cv: c }); }
       else if (c && typeof c.then === 'function' && !c.__hooked) {
         c.__hooked = true;
         c.then(m => { try { m.then = undefined; } catch (e) {} window.cv = m; });
@@ -207,7 +207,48 @@ function waitCv() {
     }, 150);
   });
 }
-waitCv().then(c => { CV = c; $('#libs').innerHTML = '<b>준비됨</b>'; refreshButtons(); if (S.cur >= 0) { autoDetect(S.photos[S.cur]); draw(); } });
+/* 도구(OpenCV 약 10MB)를 받는 양을 보여 주며 받고, 막히면 다른 곳에서 다시 받는다 */
+const CV_URLS = ['https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js',
+                 'https://unpkg.com/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js'];
+let lastErr = '';
+window.addEventListener('error', e => { lastErr = (e.message || '') + (e.filename ? ' @' + e.filename.split('/').pop() : ''); });
+window.addEventListener('unhandledrejection', e => { lastErr = String(e.reason && (e.reason.message || e.reason)); });
+function libs(html) { $('#libs').innerHTML = html; }
+const withTimeout = (p, ms, what) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(what + ' 시간 넘김')), ms))]);
+async function fetchProgress(url, n) {
+  const r = await fetch(url, { cache: 'force-cache' });
+  if (!r.ok) throw new Error('받기 실패 ' + r.status);
+  const rd = r.body.getReader(), parts = []; let got = 0, last = Date.now();
+  for (;;) {
+    const { done, value } = await withTimeout(rd.read(), 60000, '받기');
+    if (done) break; parts.push(value); got += value.length;
+    if (Date.now() - last > 300) { libs(`도구 받는 중 ${(got / 1048576).toFixed(1)}MB / 약 10MB` + (n ? ` (다른 곳 ${n + 1})` : '')); last = Date.now(); }
+  }
+  if (got < 1000000) throw new Error('받은 것이 너무 작음 ' + got);
+  return new Blob(parts, { type: 'text/javascript' });
+}
+function addScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('도구 열기 실패')); document.head.appendChild(s); }); }
+async function loadCv() {
+  let err;
+  for (let n = 0; n < CV_URLS.length; n++) {
+    try {
+      const blob = await fetchProgress(CV_URLS[n], n);
+      libs('도구 여는 중… (탭은 1분쯤 걸릴 수 있음)');
+      await addScript(URL.createObjectURL(blob));
+      return await withTimeout(waitCv(), 120000, '도구 열기');
+    } catch (e) { err = e; console.error(e); }
+  }
+  throw err;
+}
+function startCv() {
+  libs('도구 받는 중…');
+  loadCv().then(r => { CV = r.cv; libs('<b>준비됨</b>'); refreshButtons(); if (S.cur >= 0) { autoDetect(S.photos[S.cur]); draw(); } })
+    .catch(e => {
+      libs(`<span style="color:var(--seal)">도구를 못 불러왔습니다: ${String(e.message || e)}${lastErr ? ' / ' + lastErr : ''}</span> <button type="button" id="retryCv" style="min-height:36px;padding:4px 10px">다시 시도</button>`);
+      $('#retryCv').onclick = () => location.reload();
+    });
+}
+startCv();
 
 /* ---------- 곡선 ---------- */
 function catmull(p, s) {
